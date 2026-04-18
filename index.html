@@ -1,63 +1,595 @@
-
-<!-- 
-  @Author: Yichun XU	
-  @Date:   2023.05.19
-  @Last Modified by:  Yichun XU
-  @Last Modified time: 2023.05.19
--->
-<!DOCTYPE HTML>
-<html>
-
+<!DOCTYPE html>
+<html lang="zh-CN">
 <head>
-    <title>Yichun XU</title>
-    <meta name="description" content="yichun xu 个人主页" />
-    <meta name="keywords" content="yichun xu, yichun Xu, Yichun XU, Xu yichun, Xu Yichun, 徐亦淳" />
-    <meta name="author" content="Yichun XU (徐亦淳) " />
-    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-    <link rel="stylesheet" type="text/css" href="style/style.css" />
-    <link rel="icon" href="favicon.ico" type="image/x-icon" />
-    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>今天吃什么 🍽️</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#fff8f0;--card:#fff;--primary:#ff6b35;--secondary:#f7c59f;
+  --text:#2d2d2d;--sub:#888;--border:#f0e0d0;--shadow:rgba(255,107,53,.15);
+  --tag-meat:#ff6b35;--tag-veg:#52b788;--tag-soup:#4cc9f0;--tag-semi:#a78bfa;
+}
+body{background:var(--bg);color:var(--text);font-family:'PingFang SC','Microsoft YaHei',sans-serif;min-height:100vh}
+
+/* Header */
+.header{background:linear-gradient(135deg,#ff6b35,#f7c59f);padding:20px;text-align:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 20px var(--shadow)}
+.header h1{font-size:24px;color:#fff;font-weight:700;letter-spacing:2px}
+.header p{color:rgba(255,255,255,.8);font-size:12px;margin-top:4px}
+
+/* Tabs */
+.tabs{display:flex;background:#fff;border-bottom:2px solid var(--border);position:sticky;top:72px;z-index:99;overflow-x:auto}
+.tab{flex:1;min-width:80px;padding:12px 8px;text-align:center;font-size:13px;color:var(--sub);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:.2s;white-space:nowrap}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:600}
+.tab:hover{color:var(--primary)}
+
+/* Pages */
+.page{display:none;padding:16px;max-width:640px;margin:0 auto}
+.page.active{display:block}
+
+/* Today menu */
+.generate-btn{width:100%;padding:18px;background:linear-gradient(135deg,#ff6b35,#ff8c42);color:#fff;border:none;border-radius:16px;font-size:18px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px var(--shadow);transition:.2s;letter-spacing:2px}
+.generate-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--shadow)}
+.generate-btn:active{transform:translateY(0)}
+
+.date-label{text-align:center;color:var(--sub);font-size:13px;margin:12px 0 8px}
+.today-cards{display:flex;flex-direction:column;gap:12px;margin-top:8px}
+.today-card{background:var(--card);border-radius:16px;padding:16px;display:flex;align-items:center;gap:16px;box-shadow:0 2px 12px var(--shadow);cursor:pointer;transition:.2s;border:2px solid transparent}
+.today-card:hover{border-color:var(--secondary);transform:translateY(-2px)}
+.today-card .dish-emoji{font-size:48px;width:64px;text-align:center;flex-shrink:0}
+.today-card .dish-info{flex:1}
+.today-card .dish-name{font-size:18px;font-weight:700;margin-bottom:4px}
+.today-card .dish-ing-preview{font-size:12px;color:var(--sub);line-height:1.6}
+.today-card .dish-tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;color:#fff;margin-bottom:6px}
+.tag-荤菜{background:var(--tag-meat)}
+.tag-素菜{background:var(--tag-veg)}
+.tag-汤{background:var(--tag-soup)}
+.tag-半荤{background:var(--tag-semi)}
+
+.spin-overlay{position:fixed;inset:0;background:rgba(255,107,53,.08);display:flex;align-items:center;justify-content:center;z-index:200;pointer-events:none;opacity:0;transition:.3s}
+.spin-overlay.show{opacity:1}
+.spin-text{font-size:64px;animation:spin .4s linear infinite}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* Week plan */
+.week-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.week-title{font-size:18px;font-weight:700}
+.week-btn{padding:8px 16px;background:var(--primary);color:#fff;border:none;border-radius:20px;font-size:13px;cursor:pointer}
+.day-card{background:var(--card);border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 2px 8px var(--shadow)}
+.day-label{font-size:13px;color:var(--sub);margin-bottom:10px;font-weight:600}
+.day-dishes{display:flex;gap:8px;flex-wrap:wrap}
+.day-dish{background:var(--bg);border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;transition:.15s;flex:1;min-width:100px}
+.day-dish:hover{background:var(--secondary)}
+.day-dish .em{font-size:20px}
+
+/* Dish library */
+.search-bar{position:relative;margin-bottom:12px}
+.search-bar input{width:100%;padding:12px 16px 12px 40px;border:2px solid var(--border);border-radius:12px;font-size:14px;background:var(--card);outline:none;transition:.2s}
+.search-bar input:focus{border-color:var(--primary)}
+.search-bar .icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px}
+.filter-row{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px}
+.filter-chip{padding:6px 14px;border-radius:20px;border:2px solid var(--border);font-size:13px;cursor:pointer;white-space:nowrap;background:var(--card);transition:.15s}
+.filter-chip.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.dish-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.dish-card{background:var(--card);border-radius:12px;padding:14px;text-align:center;cursor:pointer;transition:.2s;box-shadow:0 2px 8px var(--shadow);border:2px solid transparent;position:relative}
+.dish-card:hover{transform:translateY(-3px);border-color:var(--secondary)}
+.dish-card .em{font-size:36px;margin-bottom:6px}
+.dish-card .name{font-size:13px;font-weight:600;margin-bottom:4px}
+.dish-card .tag{font-size:11px;padding:2px 8px;border-radius:10px;color:#fff}
+.dish-card .fav-btn{position:absolute;top:8px;right:8px;font-size:16px;cursor:pointer;opacity:.5;transition:.15s}
+.dish-card .fav-btn:hover{opacity:1}
+.dish-card .fav-btn.active{opacity:1}
+.dish-count{color:var(--sub);font-size:12px;margin-bottom:12px}
+
+/* Add dish */
+.add-form{background:var(--card);border-radius:16px;padding:20px;box-shadow:0 2px 12px var(--shadow)}
+.form-group{margin-bottom:16px}
+.form-label{font-size:13px;color:var(--sub);margin-bottom:6px;display:block;font-weight:600}
+.form-input{width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:10px;font-size:14px;outline:none;transition:.2s;background:var(--bg)}
+.form-input:focus{border-color:var(--primary)}
+.form-select{width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:10px;font-size:14px;outline:none;background:var(--bg)}
+.emoji-picker{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-top:8px}
+.emoji-opt{font-size:24px;padding:4px;text-align:center;cursor:pointer;border-radius:8px;border:2px solid transparent;transition:.15s}
+.emoji-opt:hover,.emoji-opt.selected{border-color:var(--primary);background:var(--secondary)}
+.submit-btn{width:100%;padding:14px;background:linear-gradient(135deg,#ff6b35,#ff8c42);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:.3s}
+.modal-overlay.show{opacity:1;pointer-events:all}
+.modal{background:var(--card);border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:640px;max-height:85vh;overflow-y:auto;transform:translateY(100%);transition:.3s}
+.modal-overlay.show .modal{transform:translateY(0)}
+.modal-emoji{font-size:64px;text-align:center;margin-bottom:8px}
+.modal-name{font-size:22px;font-weight:700;text-align:center;margin-bottom:8px}
+.modal-tag{text-align:center;margin-bottom:16px}
+.modal-section{margin-bottom:16px}
+.modal-section h3{font-size:14px;color:var(--sub);font-weight:600;margin-bottom:8px;border-bottom:1px solid var(--border);padding-bottom:4px}
+.ing-list{display:flex;flex-wrap:wrap;gap:8px}
+.ing-tag{background:var(--bg);border-radius:8px;padding:4px 10px;font-size:13px;color:var(--text)}
+.steps-text{font-size:14px;line-height:2;color:var(--text)}
+.modal-close{position:absolute;right:20px;top:20px;font-size:24px;cursor:pointer;color:var(--sub)}
+.modal-actions{display:flex;gap:10px;margin-top:16px}
+.modal-action-btn{flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;cursor:pointer;font-weight:600}
+.btn-fav{background:var(--bg);color:var(--text)}
+.btn-fav.active{background:#fff0e0;color:var(--primary)}
+.btn-select{background:var(--primary);color:#fff}
+
+/* Toast */
+.toast{position:fixed;top:100px;left:50%;transform:translateX(-50%);background:#2d2d2d;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;z-index:500;opacity:0;transition:.3s;pointer-events:none}
+.toast.show{opacity:1}
+
+/* Empty */
+.empty{text-align:center;padding:40px;color:var(--sub)}
+.empty .em{font-size:48px;margin-bottom:12px}
+
+@media(max-width:480px){.dish-grid{grid-template-columns:repeat(2,1fr)}.today-card .dish-emoji{font-size:40px;width:52px}}
+</style>
 </head>
-
 <body>
-    <div id="main">
-        <div id="header">
-            <script type="text/javascript" src="js/logo.js"></script>
 
-            <div id="menubar">
-                <ul id="menu">
+<div class="header">
+  <h1>🍽️ 今天吃什么</h1>
+  <p>随机菜单生成器 · 为老婆定制</p>
+</div>
 
-                </ul>
-            </div>
-        </div>
-        <div id="content_header"></div>
-        <div id="site_content">
-            <script type="text/javascript" src="js/sidebar.js"></script>
-            <div id="content">
-                <!-- insert the page content here -->
-                <div id="left" style="float:left;width:500px;">
-                    <h2>Resume</h2>
-                    <p><strong>徐亦淳</strong> ，男，1993年生，嘉定人。2012年毕业于嘉定一中。2016年毕业于华东理工大学食品系，获工学学士学位。2019年毕业于华东理工大学生物化工专业，获工学硕士学位。毕业后加入生物制药行业，熟悉生物大分子药物全流程。</p>
-                </div>
-                <div id="right" style="float:right;width:600px;">
-                    <img src="Images/yichunxu.png" >
-                </div>
-                <div id="content_down" style="float:left;">
-                    <h2>教育与工作经历</h2>
-                    <ul>
-		<li>本科，2012.09~2016.06，<a href="https://www.ecust.edu.cn/">华东理工大学</a></li>
-		<li>研究生，2016.09~2019.06，<a href="https://biotech.ecust.edu.cn/ahs/list.htm/">阿华所</a></li>
-		<li>MSAT 工程师，2019.07~2022.04，<a href="https://www.henlius.com/"> Henlius</a></li>
-		<li>CMC PM，2022.05~至今，<a href="https://zgbiotech.com/"> Zencore</a></li>		
-                        <li></li>
-                    </ul>
-                  
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <script type="text/javascript" src="js/copyright.js"></script>
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('today')">🎲 今日菜单</div>
+  <div class="tab" onclick="switchTab('week')">📅 本周计划</div>
+  <div class="tab" onclick="switchTab('library')">📚 菜品库</div>
+  <div class="tab" onclick="switchTab('add')">➕ 添加菜品</div>
+</div>
+
+<div id="tab-today" class="page active">
+  <button class="generate-btn" onclick="generateToday()">🎲 随机生成今日菜单</button>
+  <div class="date-label" id="date-label"></div>
+  <div class="today-cards" id="today-cards">
+    <div class="empty"><div class="em">🥢</div><p>点击上方按钮生成今日菜单</p></div>
+  </div>
+</div>
+
+<div id="tab-week" class="page">
+  <div class="week-header">
+    <div class="week-title">📅 本周菜单</div>
+    <button class="week-btn" onclick="generateWeek()">重新生成</button>
+  </div>
+  <div id="week-cards"></div>
+</div>
+
+<div id="tab-library" class="page">
+  <div class="search-bar">
+    <span class="icon">🔍</span>
+    <input type="text" placeholder="搜索菜名或食材..." oninput="filterDishes()" id="search-input">
+  </div>
+  <div class="filter-row" id="filter-row">
+    <div class="filter-chip active" onclick="setFilter('全部',this)">全部</div>
+    <div class="filter-chip" onclick="setFilter('荤菜',this)">🥩 荤菜</div>
+    <div class="filter-chip" onclick="setFilter('素菜',this)">🥦 素菜</div>
+    <div class="filter-chip" onclick="setFilter('汤',this)">🍲 汤</div>
+    <div class="filter-chip" onclick="setFilter('半荤',this)">🍳 半荤</div>
+    <div class="filter-chip" onclick="setFilter('收藏',this)">❤️ 收藏</div>
+  </div>
+  <div class="dish-count" id="dish-count"></div>
+  <div class="dish-grid" id="dish-grid"></div>
+</div>
+
+<div id="tab-add" class="page">
+  <div class="add-form">
+    <h2 style="font-size:18px;font-weight:700;margin-bottom:20px">➕ 添加自定义菜品</h2>
+    <div class="form-group">
+      <label class="form-label">选择 Emoji</label>
+      <div id="selected-emoji" style="font-size:36px;text-align:center;margin-bottom:8px">🍽️</div>
+      <div class="emoji-picker" id="emoji-picker"></div>
     </div>
-</body>
+    <div class="form-group">
+      <label class="form-label">菜名 *</label>
+      <input class="form-input" id="add-name" placeholder="例：红烧肉">
+    </div>
+    <div class="form-group">
+      <label class="form-label">分类 *</label>
+      <select class="form-select" id="add-category">
+        <option value="荤菜">🥩 荤菜（纯肉类）</option>
+        <option value="素菜">🥦 素菜（纯蔬菜）</option>
+        <option value="半荤">🍳 半荤（荤素搭配）</option>
+        <option value="汤">🍲 汤</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">食材（用顿号隔开）</label>
+      <input class="form-input" id="add-ingredients" placeholder="例：猪肉300g、土豆2个、生抽、老抽、糖">
+    </div>
+    <div class="form-group">
+      <label class="form-label">做法简介</label>
+      <textarea class="form-input" id="add-steps" rows="3" placeholder="例：猪肉切块焯水，锅中炒糖色，加入肉块翻炒上色，加调料炖1小时。" style="resize:vertical"></textarea>
+    </div>
+    <button class="submit-btn" onclick="addCustomDish()">✅ 添加到菜品库</button>
+  </div>
+</div>
 
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <span class="modal-close" onclick="closeModalDirect()">✕</span>
+    <div class="modal-emoji" id="m-emoji"></div>
+    <div class="modal-name" id="m-name"></div>
+    <div class="modal-tag" id="m-tag"></div>
+    <div class="modal-section"><h3>🛒 食材清单</h3><div class="ing-list" id="m-ing"></div></div>
+    <div class="modal-section"><h3>👩‍🍳 做法</h3><p class="steps-text" id="m-steps"></p></div>
+    <div class="modal-actions">
+      <button class="modal-action-btn btn-fav" id="m-fav-btn" onclick="toggleFavModal()">❤️ 收藏</button>
+      <button class="modal-action-btn btn-select" onclick="selectDishForToday()">加入今日菜单</button>
+    </div>
+  </div>
+</div>
+
+<div class="spin-overlay" id="spin-overlay"><div class="spin-text">🎲</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ============ DATA ============
+const EMOJIS = ['🥩','🍖','🍗','🐟','🦐','🦑','🥚','🍳','🥬','🥦','🍅','🌽','🥕','🧄','🌶️','🍄','🫛','🥔','🍲','🫕','🍜','🥘','🍱','🫚','🥗','🧅','🫑','🥒','🍆','🌿','🫘','🧆','🍠','🥙','🌮','🥟'];
+
+const DISHES = [
+// ====== 荤菜 ======
+{id:1,name:'红烧肉',emoji:'🥩',cat:'荤菜',ing:['五花肉500g','冰糖30g','生抽3勺','老抽1勺','料酒2勺','姜片','葱段','八角2个'],steps:'五花肉切4cm方块，冷水下锅焯水捞出。锅中放少量油，加冰糖小火炒至焦糖色，下肉块翻炒上色，加料酒、生抽、老抽、姜葱八角，加热水没过肉，大火烧开转小火炖1小时，收汁即可。'},
+{id:2,name:'糖醋排骨',emoji:'🍖',cat:'荤菜',ing:['猪排骨500g','糖3勺','醋3勺','生抽2勺','料酒2勺','姜','蒜','淀粉'],steps:'排骨剁小块焯水，加料酒、盐腌10分钟，拍淀粉炸至金黄。锅留底油，放糖、醋、生抽、蒜末炒成糖醋汁，下排骨翻炒收汁，撒芝麻出锅。'},
+{id:3,name:'宫保鸡丁',emoji:'🍗',cat:'荤菜',ing:['鸡胸肉300g','花生米50g','干辣椒8个','花椒10粒','葱','姜','蒜','生抽','醋','糖','淀粉'],steps:'鸡胸肉切丁加盐、淀粉腌制。调宫保汁：生抽2勺、醋2勺、糖2勺、淀粉1勺。热锅冷油下花椒、干辣椒炒香，下鸡丁滑散，加葱姜蒜爆香，倒入宫保汁翻炒，最后加花生米出锅。'},
+{id:4,name:'回锅肉',emoji:'🥩',cat:'荤菜',ing:['猪后腿肉300g','青蒜苗2根','豆瓣酱2勺','甜面酱1勺','生抽','糖'],steps:'整块猪肉冷水下锅加姜葱料酒煮熟，晾凉切薄片。锅中油热，下肉片煸至出油微卷，推到锅边，下豆瓣酱炒红，加甜面酱、生抽、糖，放蒜苗大火翻炒出锅。'},
+{id:5,name:'清蒸鲈鱼',emoji:'🐟',cat:'荤菜',ing:['鲈鱼1条','姜丝','葱丝','蒸鱼豉油3勺','热油'],steps:'鲈鱼处理干净，划几刀，鱼身内外抹盐腌10分钟。鱼身下垫姜片，大火蒸8-10分钟。取出倒掉蒸出的腥水，铺上葱丝姜丝，浇蒸鱼豉油，淋上烧至冒烟的热油即可。'},
+{id:6,name:'水煮鱼',emoji:'🐟',cat:'荤菜',ing:['草鱼1条','豆芽200g','郫县豆瓣2勺','干辣椒','花椒','蛋清','淀粉','盐'],steps:'鱼片加蛋清、淀粉、盐腌制。豆芽烫熟垫底。锅中油热下豆瓣酱炒红，加高汤烧开，下鱼片煮熟倒在豆芽上。另起锅烧热油，下干辣椒花椒炝香，浇在鱼上。'},
+{id:7,name:'酸菜鱼',emoji:'🐟',cat:'荤菜',ing:['草鱼1条','酸菜200g','干辣椒','花椒','蛋清','淀粉','盐','白胡椒'],steps:'鱼片加蛋清淀粉盐腌制。锅中油炒香酸菜，加高汤烧开，下鱼骨煮5分钟，再下鱼片煮熟，撒白胡椒。另起锅热油炝干辣椒花椒淋上。'},
+{id:8,name:'剁椒鱼头',emoji:'🐟',cat:'荤菜',ing:['鱼头1个','剁椒4勺','姜蒜','葱','蒸鱼豉油','香油'],steps:'鱼头洗净对半剖开，抹盐腌20分钟。剁椒加蒜末姜末混匀铺在鱼头上，大火蒸12分钟，取出撒葱花，浇热油和豉油即可。'},
+{id:9,name:'土豆炖牛肉',emoji:'🥩',cat:'荤菜',ing:['牛腩500g','土豆2个','胡萝卜1根','番茄2个','洋葱半个','生抽','老抽','料酒','盐'],steps:'牛腩切块焯水。锅中炒软洋葱，下牛肉翻炒，加生抽老抽料酒，加番茄翻炒出汁，加热水没过食材炖1小时，放土豆胡萝卜再炖20分钟，收汁调味。'},
+{id:10,name:'番茄炖牛腩',emoji:'🥩',cat:'荤菜',ing:['牛腩600g','番茄3个','洋葱1个','土豆1个','生抽','老抽','盐','糖'],steps:'牛腩焯水切块。锅中炒软洋葱，下牛肉煸炒，加番茄翻炒出汁，加热水炖1小时，加土豆再炖20分钟，调味出锅。'},
+{id:11,name:'黑椒牛柳',emoji:'🥩',cat:'荤菜',ing:['牛里脊300g','洋葱半个','彩椒各半个','黑胡椒酱3勺','生抽','料酒','淀粉'],steps:'牛里脊切条加生抽料酒淀粉腌15分钟。锅热油爆香洋葱，下牛柳大火快炒至变色，加彩椒翻炒，下黑胡椒酱翻匀出锅。'},
+{id:12,name:'可乐鸡翅',emoji:'🍗',cat:'荤菜',ing:['鸡翅中500g','可乐1罐','生抽3勺','老抽1勺','姜片'],steps:'鸡翅划刀，冷水下锅焯水。锅中炒鸡翅至两面金黄，加可乐、生抽、老抽、姜片，大火烧开转中火，收汁至浓稠即可。'},
+{id:13,name:'口水鸡',emoji:'🍗',cat:'荤菜',ing:['鸡腿2个','辣椒油2勺','花椒油1勺','生抽2勺','醋1勺','蒜末','葱花','芝麻','花生碎'],steps:'鸡腿煮熟晾凉，斩块摆盘。调口水汁：辣椒油、花椒油、生抽、醋、蒜末、糖混匀，浇在鸡肉上，撒葱花芝麻花生碎。'},
+{id:14,name:'啤酒鸭',emoji:'🍗',cat:'荤菜',ing:['鸭半只','啤酒1罐','干辣椒','生抽','老抽','料酒','姜','蒜'],steps:'鸭肉剁块焯水。锅中炒鸭块至出油，加姜蒜干辣椒爆香，加生抽老抽料酒翻炒，倒入啤酒大火烧开，转小火炖40分钟收汁。'},
+{id:15,name:'蒜香虾',emoji:'🦐',cat:'荤菜',ing:['鲜虾500g','蒜末5瓣','黄油15g','生抽','盐','黑胡椒','欧芹'],steps:'虾开背去虾线。锅中黄油融化，爆香蒜末，下虾大火翻炒至变红，加生抽盐黑胡椒调味，撒欧芹出锅。'},
+{id:16,name:'油焖大虾',emoji:'🦐',cat:'荤菜',ing:['大虾500g','番茄酱2勺','糖2勺','醋1勺','生抽2勺','姜蒜','料酒'],steps:'大虾剪须去虾线。锅中油热，下虾两面煎红，加姜蒜料酒，下番茄酱、糖、醋、生抽，翻炒收汁即可。'},
+{id:17,name:'红烧鲫鱼',emoji:'🐟',cat:'荤菜',ing:['鲫鱼2条','豆瓣酱1勺','生抽','老抽','糖','醋','葱姜蒜'],steps:'鲫鱼两面划刀，抹盐腌10分钟，热锅冷油煎至两面金黄。加豆瓣酱炒香，加葱姜蒜，加生抽老抽糖醋，加热水炖10分钟，收汁出锅。'},
+{id:18,name:'煎带鱼',emoji:'🐟',cat:'荤菜',ing:['带鱼500g','姜片','料酒','盐','面粉'],steps:'带鱼切段，加盐料酒腌20分钟，拍面粉。锅中油热，下带鱼中火煎至两面金黄，加姜片点少许料酒，装盘即可。'},
+{id:19,name:'蒜蓉蒸扇贝',emoji:'🦑',cat:'荤菜',ing:['扇贝6个','蒜末3勺','粉丝50g','蒸鱼豉油3勺','小米辣','葱花'],steps:'扇贝洗净，粉丝泡软垫底。蒜末一半炒黄一半生蒜混匀，加豉油调匀铺在扇贝上，大火蒸8分钟，撒葱花小米辣，淋热油。'},
+{id:20,name:'爆炒鱿鱼',emoji:'🦑',cat:'荤菜',ing:['鱿鱼2条','芹菜2根','红椒1个','豆瓣酱1勺','生抽','蒜','姜'],steps:'鱿鱼切花刀，过热水烫至卷起。锅中油热炒香豆瓣酱，下蒜姜，加鱿鱼大火翻炒，加芹菜红椒，生抽调味出锅。'},
+{id:21,name:'黄焖鸡',emoji:'🍗',cat:'荤菜',ing:['鸡腿肉400g','香菇5朵','土豆1个','干辣椒','生抽','老抽','料酒','黄豆酱'],steps:'鸡腿剁块腌制。砂锅热油下鸡块煸香，加黄豆酱炒匀，加生抽老抽料酒，加香菇土豆，加适量水炖30分钟至汁浓。'},
+{id:22,name:'辣子鸡',emoji:'🍗',cat:'荤菜',ing:['鸡腿肉300g','干辣椒100g','花椒20粒','蒜','姜','料酒','生抽','盐'],steps:'鸡腿切小块腌制，炸至金黄酥脆。锅留底油，下大量干辣椒花椒小火炒香，下蒜姜，倒入鸡块翻炒，加生抽，快速出锅。'},
+{id:23,name:'三杯鸡',emoji:'🍗',cat:'荤菜',ing:['鸡腿肉400g','九层塔','米酒1/3杯','生抽1/3杯','芝麻油1/3杯','糖','蒜','姜'],steps:'鸡肉切块。砂锅热麻油炒香姜蒜，下鸡块煸炒，加米酒生抽糖，中火收汁，最后加九层塔翻炒出锅。'},
+{id:24,name:'东坡肉',emoji:'🥩',cat:'荤菜',ing:['五花肉1000g','绍兴黄酒1瓶','生抽3勺','老抽1勺','冰糖50g','葱段','姜片'],steps:'五花肉整块焯水，切大方块，皮朝下码入砂锅，铺葱姜，加黄酒、生抽、老抽、冰糖，大火烧开，小火炖2小时，翻面再炖1小时。'},
+{id:25,name:'粉蒸肉',emoji:'🥩',cat:'荤菜',ing:['五花肉400g','蒸肉粉100g','甜面酱2勺','生抽2勺','料酒','腐乳汁','土豆或红薯'],steps:'五花肉切片，加甜面酱、生抽、料酒、腐乳汁腌30分钟，裹上蒸肉粉，铺在切片土豆上，大火蒸1.5小时。'},
+{id:26,name:'梅菜扣肉',emoji:'🥩',cat:'荤菜',ing:['五花肉500g','梅干菜100g','生抽','老抽','料酒','腐乳','冰糖','蒜'],steps:'五花肉整块加料酒煮至七成熟，取出抹老抽，过热油炸至虎皮色，切片。梅干菜泡发炒香，五花肉肉皮朝下铺于梅干菜上，上锅蒸1.5小时，翻扣装盘。'},
+{id:27,name:'红烧猪蹄',emoji:'🍖',cat:'荤菜',ing:['猪蹄2个','生抽3勺','老抽1勺','料酒','冰糖','八角','桂皮','香叶','姜'],steps:'猪蹄焯水，砂锅热油炒冰糖，下猪蹄上色，加生抽老抽料酒香料，加热水没过，炖2小时至软糯，收汁。'},
+{id:28,name:'腊肉炒蒜薹',emoji:'🥩',cat:'荤菜',ing:['腊肉200g','蒜薹300g','干辣椒','生抽','盐'],steps:'腊肉蒸软切片，蒜薹切段。锅热无需加油，下腊肉煸出油，加干辣椒，下蒜薹大火翻炒，加生抽调味出锅。'},
+{id:29,name:'蒜泥白肉',emoji:'🥩',cat:'荤菜',ing:['猪后腿肉400g','蒜末4瓣','辣椒油2勺','生抽2勺','醋1勺','芝麻油','葱','姜'],steps:'猪肉整块冷水下锅加葱姜料酒煮熟，晾凉切薄片摆盘。蒜末、辣椒油、生抽、醋、糖、芝麻油调成蒜泥汁浇上，撒葱花。'},
+{id:30,name:'夫妻肺片',emoji:'🥩',cat:'荤菜',ing:['牛腱子200g','牛肚100g','牛心100g','花椒油','辣椒油','生抽','醋','芝麻','花生碎','芹菜'],steps:'各种牛杂卤熟晾凉切片，芹菜焯熟。调汁：花椒油、辣椒油、生抽、醋、糖混匀，淋在牛杂和芹菜上，撒芝麻花生碎拌匀。'},
+{id:31,name:'水煮牛肉',emoji:'🥩',cat:'荤菜',ing:['牛肉300g','豆芽','莴笋','郫县豆瓣2勺','干辣椒','花椒','蛋清','淀粉'],steps:'牛肉切片加蛋清淀粉腌制。豆芽莴笋焯熟垫底。锅中炒豆瓣酱，加高汤烧开，下牛肉片煮熟倒入碗中。热油炝干辣椒花椒淋上。'},
+{id:32,name:'洋葱炒牛肉',emoji:'🥩',cat:'荤菜',ing:['牛里脊200g','洋葱1个','生抽','蚝油','淀粉','黑胡椒','盐'],steps:'牛肉切片加生抽蚝油淀粉黑胡椒腌15分钟。锅热油，大火下牛肉翻炒至变色捞出，下洋葱炒软，倒回牛肉翻炒均匀出锅。'},
+{id:33,name:'糖醋鲤鱼',emoji:'🐟',cat:'荤菜',ing:['鲤鱼1条','番茄酱3勺','糖4勺','醋3勺','淀粉','生抽','蒜末'],steps:'鲤鱼切花刀腌制，裹淀粉炸至金黄酥脆。锅中炒蒜末，加番茄酱、糖、醋、生抽、水勾芡，浇在鱼上。'},
+{id:34,name:'葱烧海参',emoji:'🦑',cat:'荤菜',ing:['海参4个','大葱2根','生抽2勺','老抽1勺','蚝油2勺','糖','高汤'],steps:'海参发好焯水。葱段入油锅炸至金黄，加生抽老抽蚝油糖，下海参和高汤，小火烧10分钟收汁。'},
+{id:35,name:'鱼香虾球',emoji:'🦐',cat:'荤菜',ing:['大虾300g','泡椒2勺','姜末','蒜末','葱花','醋','糖','生抽','淀粉'],steps:'虾去壳腌制炸熟。调鱼香汁：泡椒、姜蒜末、醋、糖、生抽、淀粉。锅中炒泡椒姜蒜，下鱼香汁，倒入虾球翻炒出锅。'},
+{id:36,name:'蛤蜊炒蛋',emoji:'🥚',cat:'荤菜',ing:['蛤蜊500g','鸡蛋3个','姜','料酒','盐','葱'],steps:'蛤蜊吐沙，焯水开口取肉。鸡蛋打散加盐。锅中油热炒鸡蛋半熟，下蛤蜊肉翻炒，加姜料酒，调味撒葱花出锅。'},
+{id:37,name:'干煸牛肉丝',emoji:'🥩',cat:'荤菜',ing:['牛里脊300g','芹菜2根','干辣椒','花椒','生抽','糖','盐'],steps:'牛肉切细丝腌制，小火慢炒至干香，加干辣椒花椒翻炒，下芹菜段，加生抽糖调味，大火翻炒出锅。'},
+{id:38,name:'卤鸡腿',emoji:'🍗',cat:'荤菜',ing:['鸡腿4个','生抽5勺','老抽2勺','冰糖','八角','桂皮','香叶','料酒','姜'],steps:'鸡腿焯水，卤料加水煮开成卤水，下鸡腿中小火卤30分钟，关火泡20分钟即可。'},
+{id:39,name:'白斩鸡',emoji:'🍗',cat:'荤菜',ing:['整鸡1只','姜','葱','盐','芝麻油'],steps:'整鸡洗净，放入加了姜葱盐的水中，大火烧开转小火25分钟，关火闷10分钟，取出冰水浸凉，斩件，蘸姜蓉或葱油食用。'},
+{id:40,name:'照烧鸡腿',emoji:'🍗',cat:'荤菜',ing:['鸡腿2个','生抽2勺','蚝油2勺','蜂蜜2勺','料酒1勺','蒜末','姜末'],steps:'鸡腿去骨，加腌料腌1小时。平锅皮朝下中火煎至金黄，翻面再煎，加腌料翻炒收汁即可。'},
+
+// ====== 素菜 ======
+{id:101,name:'番茄炒蛋',emoji:'🍅',cat:'素菜',ing:['番茄3个','鸡蛋4个','盐','糖','葱'],steps:'鸡蛋打散加盐，番茄切块。热锅热油炒鸡蛋嫩熟盛出，锅留油炒番茄至出汁，加少许糖，倒回鸡蛋翻炒，撒葱花出锅。'},
+{id:102,name:'地三鲜',emoji:'🍆',cat:'素菜',ing:['茄子1个','土豆1个','青椒2个','蒜末','生抽','豆瓣酱','淀粉'],steps:'茄子土豆切滚刀块分别炸至金黄，青椒过油。锅留底油炒蒜末豆瓣酱，加生抽，下三样食材翻炒，加水淀粉收汁。'},
+{id:103,name:'干煸四季豆',emoji:'🫛',cat:'素菜',ing:['四季豆400g','猪肉末50g','干辣椒','蒜末','生抽','盐'],steps:'四季豆择去筋，油炸或干煸至皮皱起泡。锅留底油炒肉末，加蒜末干辣椒，下四季豆翻炒，加生抽盐调味出锅。'},
+{id:104,name:'蒜蓉西兰花',emoji:'🥦',cat:'素菜',ing:['西兰花1棵','蒜末4瓣','盐','蚝油'],steps:'西兰花切小朵焯水捞出。锅热油爆香蒜末，下西兰花大火翻炒，加蚝油盐调味出锅。'},
+{id:105,name:'土豆丝',emoji:'🥔',cat:'素菜',ing:['土豆2个','干辣椒','花椒','醋','盐','葱'],steps:'土豆切细丝，泡水去淀粉。锅热油炝花椒干辣椒，下土豆丝大火翻炒，加醋盐，断生即可出锅，不要炒过。'},
+{id:106,name:'醋溜白菜',emoji:'🥬',cat:'素菜',ing:['白菜半棵','干辣椒','花椒','醋3勺','糖1勺','生抽','淀粉','盐'],steps:'白菜切片。锅热油炝花椒干辣椒，下白菜大火翻炒，加醋糖生抽，勾薄芡出锅。'},
+{id:107,name:'麻婆豆腐',emoji:'🧀',cat:'素菜',ing:['嫩豆腐1块','猪肉末100g','豆瓣酱2勺','豆豉','花椒粉','生抽','高汤','淀粉','葱'],steps:'豆腐切块焯水。锅中油炒肉末，下豆瓣酱豆豉炒红出油，加高汤烧开，下豆腐煮3分钟，勾芡，撒花椒粉葱花。'},
+{id:108,name:'清炒小白菜',emoji:'🥬',cat:'素菜',ing:['小白菜400g','蒜末','盐','油'],steps:'小白菜洗净切段。锅热油爆香蒜末，下小白菜大火翻炒至断生，加盐调味出锅。'},
+{id:109,name:'韭菜炒蛋',emoji:'🥚',cat:'素菜',ing:['韭菜200g','鸡蛋3个','盐','油'],steps:'鸡蛋打散加盐。韭菜切段。热锅热油炒鸡蛋嫩熟，下韭菜大火翻炒，加盐出锅。'},
+{id:110,name:'蒜蓉菠菜',emoji:'🥬',cat:'素菜',ing:['菠菜400g','蒜末4瓣','盐','芝麻油'],steps:'菠菜整棵焯水10秒捞出，挤干水分，切段摆盘，调入蒜末盐芝麻油拌匀。'},
+{id:111,name:'炒木耳',emoji:'🍄',cat:'素菜',ing:['木耳200g','红椒半个','蒜末','生抽','醋','盐'],steps:'木耳泡发撕小朵焯水。锅热油爆蒜，下木耳红椒大火翻炒，加生抽醋盐调味出锅。'},
+{id:112,name:'香菇炒青菜',emoji:'🍄',cat:'素菜',ing:['香菇8个','青菜300g','蒜','蚝油','盐','生抽'],steps:'香菇切片，青菜掰开。锅热油炒香菇至出香，加蒜末，下青菜翻炒，加蚝油生抽盐调味出锅。'},
+{id:113,name:'清炒莲藕',emoji:'🌿',cat:'素菜',ing:['莲藕1节','干辣椒','醋2勺','盐','葱'],steps:'莲藕切薄片泡水防氧化。锅热油下干辣椒，放莲藕大火翻炒，加醋盐，保持爽脆感出锅。'},
+{id:114,name:'鱼香茄子',emoji:'🍆',cat:'素菜',ing:['茄子2根','泡椒2勺','姜蒜末','葱','醋','糖','生抽','淀粉'],steps:'茄子切条过油炸软。锅留底油炒泡椒姜蒜，调鱼香汁（醋糖生抽淀粉）下茄子翻炒，撒葱花出锅。'},
+{id:115,name:'清炒豆芽',emoji:'🌱',cat:'素菜',ing:['豆芽300g','韭菜50g','干辣椒','盐','醋'],steps:'锅热油炝干辣椒，下豆芽大火快炒，加韭菜段，放醋盐，保持爽脆出锅。'},
+{id:116,name:'炒茄子',emoji:'🍆',cat:'素菜',ing:['茄子2根','蒜末','豆瓣酱1勺','生抽','盐','糖'],steps:'茄子切块，盐腌10分钟挤干水分。锅热油下茄子煸炒至软，加蒜末豆瓣酱翻炒，加生抽糖调味出锅。'},
+{id:117,name:'清炒南瓜',emoji:'🌽',cat:'素菜',ing:['南瓜半个','蒜末','盐','油'],steps:'南瓜去皮切薄片。锅热油爆蒜末，下南瓜片翻炒，加盐，炒至软糯出锅。'},
+{id:118,name:'蒜蓉空心菜',emoji:'🥬',cat:'素菜',ing:['空心菜400g','蒜末5瓣','盐','油'],steps:'空心菜摘洗干净。锅热油大火爆香蒜末，下空心菜猛火翻炒至断生，加盐出锅。'},
+{id:119,name:'拍黄瓜',emoji:'🥒',cat:'素菜',ing:['黄瓜2根','蒜末','辣椒油','生抽','醋','糖','盐','芝麻'],steps:'黄瓜用刀拍裂切段，加盐腌10分钟去水。调汁：蒜末辣椒油生抽醋糖，倒在黄瓜上拌匀，撒芝麻。'},
+{id:120,name:'凉拌木耳',emoji:'🍄',cat:'素菜',ing:['木耳200g','大蒜','辣椒油','醋','生抽','芝麻油','香菜'],steps:'木耳泡发焯水晾凉，调入蒜末辣椒油醋生抽芝麻油，拌匀撒香菜。'},
+{id:121,name:'炒红薯叶',emoji:'🥬',cat:'素菜',ing:['红薯叶400g','蒜末','盐','油'],steps:'红薯叶摘洗干净。锅热油爆蒜，下红薯叶大火翻炒至断生，加盐出锅。'},
+{id:122,name:'酸辣土豆丝',emoji:'🥔',cat:'素菜',ing:['土豆2个','干辣椒','花椒','醋3勺','糖','盐'],steps:'土豆切细丝泡水。锅热油炝花椒干辣椒，下土豆丝大火翻炒，加醋糖盐，断生爽脆出锅。'},
+{id:123,name:'炒合菜',emoji:'🥬',cat:'素菜',ing:['绿豆芽','韭菜','粉丝','鸡蛋','胡萝卜丝','盐','生抽'],steps:'粉丝泡软，鸡蛋炒熟。锅热油下胡萝卜丝翻炒，加豆芽、粉丝、鸡蛋、韭菜翻炒，加盐生抽调味出锅。'},
+{id:124,name:'炒冬瓜',emoji:'🌿',cat:'素菜',ing:['冬瓜半个','蒜末','生抽','盐','葱'],steps:'冬瓜去皮切片。锅热油爆蒜，下冬瓜翻炒，加少量水焖3分钟，加生抽盐，撒葱花出锅。'},
+{id:125,name:'干锅花椰菜',emoji:'🥦',cat:'素菜',ing:['花椰菜1棵','腊肉50g','干辣椒','蒜','生抽'],steps:'花椰菜切小朵焯水。锅中炒腊肉出油，加干辣椒蒜，下花椰菜大火干煸，加生抽调味。'},
+{id:126,name:'炒芥兰',emoji:'🥬',cat:'素菜',ing:['芥兰400g','蒜末','蚝油','盐'],steps:'芥兰切段焯水30秒。锅热油爆蒜，下芥兰大火翻炒，加蚝油盐出锅。'},
+{id:127,name:'西芹百合',emoji:'🌿',cat:'素菜',ing:['西芹3根','百合1个','枸杞','盐','蒜'],steps:'百合掰片洗净，西芹切片。分别焯水。锅热油爆蒜，下西芹百合大火翻炒，加盐出锅，加枸杞点缀。'},
+{id:128,name:'炒丝瓜',emoji:'🌿',cat:'素菜',ing:['丝瓜2根','蒜末','盐','油'],steps:'丝瓜去皮切滚刀块。锅热油爆蒜，下丝瓜翻炒至软，加盐出锅。'},
+{id:129,name:'炒苦瓜',emoji:'🌿',cat:'素菜',ing:['苦瓜1根','鸡蛋2个','盐','蒜'],steps:'苦瓜切片，盐腌去苦味，冲洗。鸡蛋炒散。锅热油下苦瓜翻炒，加蛋翻炒，加盐出锅。'},
+{id:130,name:'凉拌黄瓜',emoji:'🥒',cat:'素菜',ing:['黄瓜2根','蒜','醋','芝麻油','盐','辣椒'],steps:'黄瓜切薄片，加盐腌出水挤干，加蒜末醋芝麻油辣椒拌匀即可。'},
+
+// ====== 半荤 ======
+{id:201,name:'木须肉',emoji:'🍳',cat:'半荤',ing:['猪里脊150g','鸡蛋2个','木耳50g','黄瓜1根','生抽','淀粉','盐'],steps:'猪肉切片腌制，鸡蛋炒熟。锅热油下肉片炒至变色，加木耳黄瓜翻炒，倒入鸡蛋，加生抽盐出锅。'},
+{id:202,name:'青椒肉丝',emoji:'🌶️',cat:'半荤',ing:['猪里脊200g','青椒3个','生抽','淀粉','盐','蒜'],steps:'肉切丝腌制。锅热油下肉丝炒至变色，加蒜末，下青椒丝大火翻炒，加生抽盐调味出锅。'},
+{id:203,name:'荷兰豆炒肉',emoji:'🫛',cat:'半荤',ing:['荷兰豆200g','猪肉150g','蒜','生抽','盐'],steps:'肉切片腌制，荷兰豆去筋焯水。锅热油下肉片炒变色，加蒜下荷兰豆翻炒，加生抽盐出锅。'},
+{id:204,name:'蒜薹炒肉',emoji:'🌿',cat:'半荤',ing:['蒜薹200g','猪肉150g','生抽','豆瓣酱','盐'],steps:'蒜薹切段，肉切片腌制。锅热油下肉片，加豆瓣酱炒香，下蒜薹翻炒，加生抽盐出锅。'},
+{id:205,name:'芹菜炒肉',emoji:'🌿',cat:'半荤',ing:['芹菜300g','猪肉150g','干辣椒','生抽','盐'],steps:'芹菜切段，肉切丝腌制。锅热油下肉丝炒变色，加干辣椒，下芹菜大火翻炒，加生抽盐出锅。'},
+{id:206,name:'豆角炒肉',emoji:'🫛',cat:'半荤',ing:['豆角300g','猪肉150g','蒜','生抽','盐'],steps:'豆角折段焯水，肉切丝腌制。锅热油下肉丝炒变色，加蒜下豆角翻炒至熟，加生抽盐出锅。'},
+{id:207,name:'冬瓜炒肉',emoji:'🌿',cat:'半荤',ing:['冬瓜300g','猪肉100g','葱','生抽','盐'],steps:'冬瓜切片，肉切片腌制。锅热油下肉片炒变色，下冬瓜翻炒，加少许水焖3分钟，生抽盐调味出锅。'},
+{id:208,name:'榨菜肉丝',emoji:'🥩',cat:'半荤',ing:['猪里脊200g','榨菜100g','青椒1个','生抽','盐','淀粉'],steps:'肉切丝腌制，榨菜切丝泡水去盐。锅热油炒肉丝变色，下榨菜青椒丝翻炒，加生抽盐出锅。'},
+{id:209,name:'土豆炖鸡块',emoji:'🍗',cat:'半荤',ing:['鸡腿2个','土豆2个','胡萝卜1根','生抽','老抽','料酒','盐'],steps:'鸡腿剁块焯水。锅热油下鸡块煸炒出油，加生抽老抽料酒，加热水，放土豆胡萝卜炖30分钟，收汁调味。'},
+{id:210,name:'香菇炖鸡',emoji:'🍄',cat:'半荤',ing:['整鸡半只','香菇10朵','姜','料酒','生抽','盐'],steps:'鸡剁块焯水，香菇泡发。砂锅下鸡块，加香菇姜片料酒生抽，加水没过，大火烧开小火炖40分钟，加盐调味。'},
+{id:211,name:'家常豆腐',emoji:'🧀',cat:'半荤',ing:['北豆腐1块','猪肉末100g','豆瓣酱2勺','葱姜蒜','生抽','老抽'],steps:'豆腐切片煎至两面金黄。锅中炒肉末，下豆瓣酱炒红，加葱姜蒜，下豆腐翻炒，加生抽老抽加水炖5分钟，收汁出锅。'},
+{id:212,name:'鱼香肉丝',emoji:'🥩',cat:'半荤',ing:['猪里脊250g','泡椒2勺','木耳50g','冬笋50g','姜蒜末','葱','醋','糖','生抽','淀粉'],steps:'肉切丝腌制，木耳冬笋焯水。锅热油炒肉丝变色，加泡椒姜蒜炒香，下木耳冬笋，调鱼香汁（醋糖生抽淀粉）倒入翻炒，撒葱花。'},
+{id:213,name:'酱爆鸡丁',emoji:'🍗',cat:'半荤',ing:['鸡胸肉300g','甜面酱2勺','黄瓜丁','胡萝卜丁','葱','蒜','淀粉'],steps:'鸡胸切丁腌制，过油滑熟。锅留底油炒葱蒜，下甜面酱翻炒，加鸡丁黄瓜胡萝卜翻炒均匀出锅。'},
+{id:214,name:'青椒炒豆腐干',emoji:'🌶️',cat:'半荤',ing:['豆腐干200g','青椒2个','猪肉50g','生抽','盐','蒜'],steps:'豆腐干切片，青椒切块，肉切片腌制。锅热油炒肉变色，下豆腐干煎香，加蒜青椒翻炒，生抽盐调味出锅。'},
+{id:215,name:'莴笋炒肉',emoji:'🌿',cat:'半荤',ing:['莴笋1根','猪肉150g','大蒜','生抽','盐'],steps:'莴笋去皮切片，肉切薄片腌制。锅热油下肉片炒变色，加蒜下莴笋大火翻炒，加生抽盐出锅。'},
+{id:216,name:'番茄炒鸡蛋',emoji:'🍅',cat:'半荤',ing:['番茄3个','鸡蛋4个','盐','糖','葱'],steps:'同番茄炒蛋，是经典菜肴。鸡蛋打散加盐炒嫩，番茄炒出汁，加糖合炒出锅。'},
+{id:217,name:'酸辣白菜',emoji:'🥬',cat:'半荤',ing:['白菜半棵','猪肉100g','干辣椒','醋','生抽','盐','淀粉'],steps:'肉切片腌制。锅热油下肉片炒变色，加干辣椒，下白菜大火翻炒，加醋生抽盐，勾薄芡出锅。'},
+
+// ====== 汤 ======
+{id:301,name:'番茄蛋花汤',emoji:'🍲',cat:'汤',ing:['番茄2个','鸡蛋2个','盐','葱花','芝麻油'],steps:'番茄切块，鸡蛋打散。锅中水烧开，下番茄煮3分钟，淋入蛋液搅成蛋花，加盐芝麻油，撒葱花出锅。'},
+{id:302,name:'紫菜蛋花汤',emoji:'🍲',cat:'汤',ing:['紫菜10g','鸡蛋2个','虾皮','盐','芝麻油','葱花'],steps:'水烧开，下紫菜虾皮煮1分钟，淋蛋液搅成蛋花，加盐芝麻油，撒葱花出锅。'},
+{id:303,name:'冬瓜排骨汤',emoji:'🍲',cat:'汤',ing:['排骨400g','冬瓜500g','姜片','盐','葱'],steps:'排骨焯水，加姜片煮1小时，放入冬瓜再煮20分钟，加盐调味，撒葱花出锅。'},
+{id:304,name:'玉米排骨汤',emoji:'🌽',cat:'汤',ing:['排骨400g','玉米2根','胡萝卜1根','姜片','盐'],steps:'排骨焯水，加姜片，加玉米胡萝卜，大火烧开转小火炖1小时，加盐调味出锅。'},
+{id:305,name:'莲藕排骨汤',emoji:'🍲',cat:'汤',ing:['排骨500g','莲藕2节','姜片','盐','葱'],steps:'排骨焯水，莲藕切块，一起加入砂锅，加姜片清水，大火烧开转小火炖1.5小时，加盐出锅。'},
+{id:306,name:'西红柿牛腩汤',emoji:'🍅',cat:'汤',ing:['牛腩500g','西红柿3个','土豆1个','洋葱半个','盐','糖','姜'],steps:'牛腩焯水切块，加姜先炖1小时。下西红柿洋葱炒软，加入牛腩汤中，加土豆再炖20分钟，加盐糖调味。'},
+{id:307,name:'菠菜豆腐汤',emoji:'🍲',cat:'汤',ing:['菠菜200g','豆腐1块','虾皮','盐','芝麻油','姜'],steps:'豆腐切块，菠菜焯水切段。水烧开加姜片，下豆腐虾皮煮3分钟，加菠菜，加盐芝麻油出锅。'},
+{id:308,name:'海带排骨汤',emoji:'🍲',cat:'汤',ing:['排骨400g','海带结200g','姜片','盐','葱'],steps:'排骨焯水，海带结洗净，一起加姜片清水炖1小时，加盐葱出锅。'},
+{id:309,name:'酸辣汤',emoji:'🍲',cat:'汤',ing:['豆腐','木耳','鸡蛋','竹笋','猪血','醋','胡椒粉','淀粉','盐'],steps:'各食材切丝，高汤烧开，下各食材煮熟，加醋胡椒粉盐，勾芡，淋蛋花，撒葱花出锅。'},
+{id:310,name:'白萝卜排骨汤',emoji:'🍲',cat:'汤',ing:['排骨400g','白萝卜1根','姜','盐','葱'],steps:'排骨焯水，加姜片先炖40分钟，下白萝卜再炖20分钟，加盐葱出锅。'},
+{id:311,name:'南瓜汤',emoji:'🌽',cat:'汤',ing:['南瓜500g','牛奶100ml','盐','黄油','洋葱'],steps:'南瓜去皮切块蒸熟，洋葱炒软，加南瓜加水煮软，用搅拌棒打成泥，加牛奶加盐，小火加热出锅。'},
+{id:312,name:'鸡蛋豆腐汤',emoji:'🥚',cat:'汤',ing:['鸡蛋2个','内酯豆腐1盒','盐','芝麻油','葱花'],steps:'水烧开，下豆腐轻轻煮2分钟，淋蛋液搅成蛋花，加盐芝麻油，撒葱花出锅。'},
+{id:313,name:'猪肝汤',emoji:'🍲',cat:'汤',ing:['猪肝200g','菠菜100g','姜丝','料酒','盐','白胡椒'],steps:'猪肝切薄片加料酒腌10分钟，水烧开下姜丝，下猪肝煮熟，加菠菜，加盐白胡椒出锅。'},
+{id:314,name:'花蛤豆腐汤',emoji:'🍲',cat:'汤',ing:['花蛤500g','豆腐1块','姜片','盐','葱'],steps:'花蛤吐沙，豆腐切块。锅中加水和姜片烧开，下花蛤煮至开口，加豆腐煮2分钟，加盐葱出锅。'},
+{id:315,name:'木瓜银耳汤',emoji:'🍲',cat:'汤',ing:['木瓜半个','银耳1朵','红枣8颗','冰糖'],steps:'银耳泡发撕小朵，红枣去核，木瓜切块。一起入锅加水，大火烧开转小火炖1小时，加冰糖即可。'},
+{id:316,name:'山药排骨汤',emoji:'🍲',cat:'汤',ing:['排骨400g','山药1根','枸杞','姜片','盐'],steps:'排骨焯水，加姜片炖40分钟，下山药段再炖20分钟，加枸杞盐出锅。'},
+{id:317,name:'豆腐鱼汤',emoji:'🐟',cat:'汤',ing:['鲫鱼2条','豆腐1块','姜片','葱','盐','白胡椒'],steps:'鲫鱼两面煎黄，加热水烧开，加姜片大火煮10分钟至汤色奶白，下豆腐再煮5分钟，加盐白胡椒葱出锅。'},
+{id:318,name:'胡萝卜玉米汤',emoji:'🥕',cat:'汤',ing:['胡萝卜2根','玉米1根','排骨300g','姜','盐'],steps:'排骨焯水，加姜片玉米胡萝卜，一起炖1小时，加盐调味出锅。'},
+{id:319,name:'冬笋腊肉汤',emoji:'🍲',cat:'汤',ing:['冬笋300g','腊肉100g','葱','盐','姜'],steps:'冬笋切片焯水，腊肉切片。水烧开下腊肉煮出味，加冬笋姜片炖20分钟，加盐葱出锅。'},
+{id:320,name:'红豆薏米汤',emoji:'🍲',cat:'汤',ing:['红豆50g','薏米50g','红枣','冰糖'],steps:'红豆薏米提前泡一夜，加红枣一起煮1.5小时至软糯，加冰糖调味即可。'},
+];
+
+// ============ STATE ============
+let favorites = JSON.parse(localStorage.getItem('favs')||'[]');
+let customDishes = JSON.parse(localStorage.getItem('custom')||'[]');
+let allDishes = [...DISHES, ...customDishes];
+let currentFilter = '全部';
+let currentSearch = '';
+let selectedEmoji = '🍽️';
+let modalDishId = null;
+let weekPlan = JSON.parse(localStorage.getItem('weekPlan')||'null');
+
+// ============ UTILS ============
+function saveState(){
+  localStorage.setItem('favs', JSON.stringify(favorites));
+  localStorage.setItem('custom', JSON.stringify(customDishes));
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2000);
+}
+
+function getRandom(arr, n){
+  const shuffled = [...arr].sort(()=>Math.random()-.5);
+  return shuffled.slice(0,n);
+}
+
+function getDishById(id){
+  return allDishes.find(d=>d.id===id);
+}
+
+// ============ TODAY ============
+function generateToday(){
+  const overlay = document.getElementById('spin-overlay');
+  overlay.classList.add('show');
+  setTimeout(()=>{
+    overlay.classList.remove('show');
+    const meats = allDishes.filter(d=>d.cat==='荤菜');
+    const vegs = allDishes.filter(d=>d.cat==='素菜');
+    const semis = allDishes.filter(d=>d.cat==='半荤');
+    const soups = allDishes.filter(d=>d.cat==='汤');
+    const meat = getRandom(meats,1)[0];
+    const veg = getRandom(vegs,1)[0];
+    const extra = Math.random()>.5 ? getRandom(soups,1)[0] : getRandom(semis,1)[0];
+    renderToday([meat, veg, extra]);
+  }, 600);
+}
+
+function renderToday(dishes){
+  const label = document.getElementById('date-label');
+  const now = new Date();
+  label.textContent = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 · 今日推荐`;
+  const container = document.getElementById('today-cards');
+  container.innerHTML = dishes.map(d=>`
+    <div class="today-card" onclick="openModal(${d.id})">
+      <div class="dish-emoji">${d.emoji}</div>
+      <div class="dish-info">
+        <div class="dish-tag tag-${d.cat}">${d.cat}</div>
+        <div class="dish-name">${d.name}</div>
+        <div class="dish-ing-preview">食材：${d.ing.slice(0,4).join('、')}${d.ing.length>4?'…':''}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ============ WEEK ============
+const WEEK_DAYS = ['周一','周二','周三','周四','周五','周六','周日'];
+
+function generateWeek(){
+  const meats = allDishes.filter(d=>d.cat==='荤菜');
+  const vegs = allDishes.filter(d=>d.cat==='素菜');
+  const semis = allDishes.filter(d=>d.cat==='半荤');
+  const soups = allDishes.filter(d=>d.cat==='汤');
+  weekPlan = WEEK_DAYS.map(day=>{
+    const meat = getRandom(meats,1)[0];
+    const veg = getRandom(vegs,1)[0];
+    const extra = Math.random()>.5 ? getRandom(soups,1)[0] : getRandom(semis,1)[0];
+    return {day, dishes:[meat.id, veg.id, extra.id]};
+  });
+  localStorage.setItem('weekPlan', JSON.stringify(weekPlan));
+  renderWeek();
+}
+
+function renderWeek(){
+  if(!weekPlan){generateWeek();return;}
+  const container = document.getElementById('week-cards');
+  container.innerHTML = weekPlan.map(w=>`
+    <div class="day-card">
+      <div class="day-label">📅 ${w.day}</div>
+      <div class="day-dishes">
+        ${w.dishes.map(id=>{
+          const d = getDishById(id);
+          return d ? `<div class="day-dish" onclick="openModal(${d.id})"><span class="em">${d.emoji}</span>${d.name}</div>` : '';
+        }).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ============ LIBRARY ============
+function setFilter(f, el){
+  currentFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderLibrary();
+}
+
+function filterDishes(){
+  currentSearch = document.getElementById('search-input').value;
+  renderLibrary();
+}
+
+function renderLibrary(){
+  allDishes = [...DISHES, ...customDishes];
+  let list = allDishes;
+  if(currentFilter==='收藏') list = list.filter(d=>favorites.includes(d.id));
+  else if(currentFilter!=='全部') list = list.filter(d=>d.cat===currentFilter);
+  if(currentSearch) list = list.filter(d=>d.name.includes(currentSearch)||d.ing.some(i=>i.includes(currentSearch)));
+  document.getElementById('dish-count').textContent = `共 ${list.length} 道菜`;
+  const grid = document.getElementById('dish-grid');
+  if(!list.length){
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="em">🔍</div><p>没有找到相关菜品</p></div>';
+    return;
+  }
+  grid.innerHTML = list.map(d=>`
+    <div class="dish-card" onclick="openModal(${d.id})">
+      <div class="fav-btn ${favorites.includes(d.id)?'active':''}" onclick="event.stopPropagation();toggleFav(${d.id},this)">${favorites.includes(d.id)?'❤️':'🤍'}</div>
+      <div class="em">${d.emoji}</div>
+      <div class="name">${d.name}</div>
+      <div class="tag tag-${d.cat}">${d.cat}</div>
+    </div>
+  `).join('');
+}
+
+function toggleFav(id, el){
+  if(favorites.includes(id)){
+    favorites = favorites.filter(f=>f!==id);
+    el.textContent='🤍'; el.classList.remove('active');
+    showToast('已取消收藏');
+  } else {
+    favorites.push(id);
+    el.textContent='❤️'; el.classList.add('active');
+    showToast('已收藏 ❤️');
+  }
+  saveState();
+}
+
+// ============ MODAL ============
+function openModal(id){
+  const d = getDishById(id);
+  if(!d) return;
+  modalDishId = id;
+  document.getElementById('m-emoji').textContent = d.emoji;
+  document.getElementById('m-name').textContent = d.name;
+  document.getElementById('m-tag').innerHTML = `<span class="dish-tag tag-${d.cat}" style="padding:4px 14px;font-size:13px">${d.cat}</span>`;
+  document.getElementById('m-ing').innerHTML = d.ing.map(i=>`<span class="ing-tag">${i}</span>`).join('');
+  document.getElementById('m-steps').textContent = d.steps;
+  const favBtn = document.getElementById('m-fav-btn');
+  favBtn.textContent = favorites.includes(id) ? '❤️ 已收藏' : '🤍 收藏';
+  favBtn.className = `modal-action-btn btn-fav ${favorites.includes(id)?'active':''}`;
+  document.getElementById('modal-overlay').classList.add('show');
+}
+
+function closeModal(e){
+  if(e.target===document.getElementById('modal-overlay')) closeModalDirect();
+}
+function closeModalDirect(){
+  document.getElementById('modal-overlay').classList.remove('show');
+}
+
+function toggleFavModal(){
+  const id = modalDishId;
+  const btn = document.getElementById('m-fav-btn');
+  if(favorites.includes(id)){
+    favorites = favorites.filter(f=>f!==id);
+    btn.textContent='🤍 收藏'; btn.classList.remove('active');
+    showToast('已取消收藏');
+  } else {
+    favorites.push(id);
+    btn.textContent='❤️ 已收藏'; btn.classList.add('active');
+    showToast('已收藏 ❤️');
+  }
+  saveState();
+  renderLibrary();
+}
+
+function selectDishForToday(){
+  showToast('功能提示：请在今日菜单页点击生成 🎲');
+  closeModalDirect();
+}
+
+// ============ ADD DISH ============
+function initEmojiPicker(){
+  const picker = document.getElementById('emoji-picker');
+  picker.innerHTML = EMOJIS.map(e=>`<div class="emoji-opt" onclick="selectEmoji('${e}')">${e}</div>`).join('');
+}
+
+function selectEmoji(e){
+  selectedEmoji = e;
+  document.getElementById('selected-emoji').textContent = e;
+  document.querySelectorAll('.emoji-opt').forEach(el=>{
+    el.classList.toggle('selected', el.textContent===e);
+  });
+}
+
+function addCustomDish(){
+  const name = document.getElementById('add-name').value.trim();
+  const cat = document.getElementById('add-category').value;
+  const ingRaw = document.getElementById('add-ingredients').value.trim();
+  const steps = document.getElementById('add-steps').value.trim();
+  if(!name){showToast('请填写菜名 ⚠️');return;}
+  const ing = ingRaw ? ingRaw.split(/[、,，]/).map(s=>s.trim()).filter(Boolean) : ['食材待填写'];
+  const newDish = {
+    id: Date.now(),
+    name, emoji: selectedEmoji, cat,
+    ing, steps: steps||'做法待填写'
+  };
+  customDishes.push(newDish);
+  allDishes = [...DISHES, ...customDishes];
+  saveState();
+  showToast(`已添加「${name}」到菜品库 ✅`);
+  document.getElementById('add-name').value='';
+  document.getElementById('add-ingredients').value='';
+  document.getElementById('add-steps').value='';
+  renderLibrary();
+}
+
+// ============ TABS ============
+function switchTab(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if(name==='library') renderLibrary();
+  if(name==='week') renderWeek();
+}
+
+// ============ INIT ============
+document.addEventListener('DOMContentLoaded',()=>{
+  initEmojiPicker();
+  renderLibrary();
+  // Set today date
+  const now = new Date();
+  document.getElementById('date-label').textContent = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
+});
+</script>
+</body>
 </html>
