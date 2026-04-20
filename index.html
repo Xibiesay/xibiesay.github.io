@@ -1227,4 +1227,422 @@
                 case 'train':
                     showTrainModal();
                     break;
-                case '
+                case 'shop':
+                    showShopModal();
+                    break;
+                case 'business':
+                    triggerBusinessEvent();
+                    break;
+                case 'rest':
+                    triggerRestEvent();
+                    break;
+            }
+        }
+
+        function showTrainModal() {
+            const modal = document.getElementById('basketball-modal');
+            const title = document.getElementById('basketball-modal-title');
+            const content = document.getElementById('basketball-modal-content');
+            
+            title.textContent = '🏀 专项训练';
+            content.innerHTML = `
+                <p>选择要训练的篮球技术：</p>
+                <div style="display:grid;gap:12px;margin:20px 0;">
+                    <div onclick="trainAttribute('shoot')" style="background:rgba(33,150,243,0.1);padding:12px;border-radius:8px;cursor:pointer;">
+                        <div style="font-weight:bold;">翻身跳投</div>
+                        <div style="font-size:12px;color:var(--sub);">消耗: 50💰 当前等级: ${basketballState.shootLevel}</div>
+                    </div>
+                    <div onclick="trainAttribute('inside')" style="background:rgba(76,175,80,0.1);padding:12px;border-radius:8px;cursor:pointer;">
+                        <div style="font-weight:bold;">突破劈扣</div>
+                        <div style="font-size:12px;color:var(--sub);">消耗: 50💰 当前等级: ${basketballState.insideLevel}</div>
+                    </div>
+                    <div onclick="trainAttribute('defense')" style="background:rgba(156,39,176,0.1);padding:12px;border-radius:8px;cursor:pointer;">
+                        <div style="font-weight:bold;">追身大帽</div>
+                        <div style="font-size:12px;color:var(--sub);">消耗: 50💰 当前等级: ${basketballState.defenseLevel}</div>
+                    </div>
+                    <div onclick="trainAttribute('speed')" style="background:rgba(255,152,0,0.1);padding:12px;border-radius:8px;cursor:pointer;">
+                        <div style="font-weight:bold;">快速反击</div>
+                        <div style="font-size:12px;color:var(--sub);">消耗: 50💰 当前等级: ${basketballState.speedLevel}</div>
+                    </div>
+                </div>
+            `;
+            
+            modal.style.display = 'flex';
+        }
+
+        function trainAttribute(attribute) {
+            if (basketballState.money < 50) {
+                addBasketballLog('💰 金钱不足，无法训练！', 'failure');
+                closeBasketballModal();
+                return;
+            }
+            
+            if (basketballState.stamina < 20) {
+                addBasketballLog('💪 体力不足，无法训练！', 'failure');
+                closeBasketballModal();
+                return;
+            }
+            
+            basketballState.money -= 50;
+            basketballState.stamina -= 20;
+            
+            let newDice = 'd6';
+            const level = basketballState[`${attribute}Level`];
+            
+            if (level < 5) {
+                basketballState[`${attribute}Level`]++;
+                
+                if (level === 2) newDice = 'd8';
+                else if (level === 4) newDice = 'd10';
+                
+                basketballState[`${attribute}Dice`].push(newDice);
+                addBasketballLog(`🎯 ${getAttributeName(attribute)} 提升到 ${level+1} 级！获得新的${getDiceName(newDice)}`, 'success');
+            } else {
+                addBasketballLog(`🎯 ${getAttributeName(attribute)} 已是最高等级！`, 'info');
+            }
+            
+            closeBasketballModal();
+            updateBasketballUI();
+        }
+
+        function getAttributeName(attribute) {
+            const names = {
+                'shoot': '翻身跳投',
+                'inside': '突破劈扣',
+                'defense': '追身大帽',
+                'speed': '快速反击'
+            };
+            return names[attribute];
+        }
+
+        function getDiceName(diceType) {
+            const diceNames = {
+                'd4': '4面骰',
+                'd6': '6面骰',
+                'd8': '8面骰',
+                'd10': '10面骰'
+            };
+            return diceNames[diceType] || diceType;
+        }
+
+        function showShopModal() {
+            addBasketballLog('🛍️ 商店暂未开放', 'info');
+        }
+
+        function triggerBusinessEvent() {
+            if (basketballState.stamina < 15) {
+                addBasketballLog('💪 体力不足，无法进行商业活动！', 'failure');
+                return;
+            }
+            
+            const earnings = 80 + Math.floor(Math.random() * 40);
+            basketballState.stamina -= 15;
+            basketballState.money += earnings;
+            
+            addBasketballLog(`💼 商业活动获得 ${earnings}💰，体力-15`, 'info');
+            updateBasketballUI();
+        }
+
+        function triggerRestEvent() {
+            const recovery = 40 + Math.floor(Math.random() * 20);
+            basketballState.stamina = Math.min(100, basketballState.stamina + recovery);
+            
+            addBasketballLog(`💤 休息恢复 ${recovery} 体力`, 'info');
+            updateBasketballUI();
+        }
+
+        function triggerGameEvent(gameType) {
+            const modal = document.getElementById('basketball-modal');
+            const title = document.getElementById('basketball-modal-title');
+            const content = document.getElementById('basketball-modal-content');
+            
+            basketballState.currentEvent = gameType;
+            
+            if (gameType === 'regular') {
+                title.textContent = '🏆 常规赛比赛';
+                content.innerHTML = `
+                    <p>第 ${basketballState.regularSeasonGames} 场常规赛！</p>
+                    <p>选择你的主要进攻/防守方式：</p>
+                    <div style="display:grid;gap:12px;margin:20px 0;">
+                        <div onclick="selectGameAttribute('shoot')" style="background:rgba(33,150,243,0.1);padding:12px;border-radius:8px;cursor:pointer;">
+                            <div style="font-weight:bold;">翻身跳投</div>
+                            <div style="font-size:12px;color:var(--sub);">骰子数量: ${basketballState.shootDice.length}</div>
+                        </div>
+                        <div onclick="selectGameAttribute('inside')" style="background:rgba(76,175,80,0.1);padding:12px;border-radius:8px;cursor:pointer;">
+                            <div style="font-weight:bold;">突破劈扣</div>
+                            <div style="font-size:12px;color:var(--sub);">骰子数量: ${basketballState.insideDice.length}</div>
+                        </div>
+                        <div onclick="selectGameAttribute('defense')" style="background:rgba(156,39,176,0.1);padding:12px;border-radius:8px;cursor:pointer;">
+                            <div style="font-weight:bold;">追身大帽</div>
+                            <div style="font-size:12px;color:var(--sub);">骰子数量: ${basketballState.defenseDice.length}</div>
+                        </div>
+                        <div onclick="selectGameAttribute('speed')" style="background:rgba(255,152,0,0.1);padding:12px;border-radius:8px;cursor:pointer;">
+                            <div style="font-weight:bold;">快速反击</div>
+                            <div style="font-size:12px;color:var(--sub);">骰子数量: ${basketballState.speedDice.length}</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                title.textContent = '🏆 季后赛关键战';
+                content.innerHTML = `
+                    <p>季后赛第 ${basketballState.playoffRound} 轮，第 ${basketballState.playoffWins + basketballState.playoffLosses + 1} 场！</p>
+                    <p>选择你的制胜绝招：</p>
+                    <div style="display:grid;gap:12px;margin:20px 0;">
+                        <div onclick="selectGameAttribute('shoot')" style="background:rgba(33,150,243,0.1);padding:12px;border-radius:8px;cursor:pointer;">
+                            <div style="font-weight:bold;">翻身跳投</div>
+                            <div style="font-size:12px;color:var(--sub);">骰子数量: ${basketballState.shootDice.length}</div>
+                        </div>
+                        <div onclick="selectGameAttribute('inside')" style="background:rgba(76,175,80,0.1);padding:12px;border-radius:8px;cursor:pointer;">
+                            <div style="font-weight:bold;">突破劈扣</div>
+                            <div style="font-size:12px;color:var(--sub);">骰子数量: ${basketballState.insideDice.length}</div>
+                        </div>
+                        <div onclick="selectGameAttribute('defense')" style="background:rgba(156,39,176,0.1);padding:12px;border-radius:8px;cursor:pointer;">
+                            <div style="font-weight:bold;">追身大帽</div>
+                            <div style="font-size:12px;color:var(--sub);">骰子数量: ${basketballState.defenseDice.length}</div>
+                        </div>
+                        <div onclick="selectGameAttribute('speed')" style="background:rgba(255,152,0,0.1);padding:12px;border-radius:8px;cursor:pointer;">
+                            <div style="font-weight:bold;">快速反击</div>
+                            <div style="font-size:12px;color:var(--sub);">骰子数量: ${basketballState.speedDice.length}</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            modal.style.display = 'flex';
+        }
+
+        function selectGameAttribute(attribute) {
+            basketballState.currentAttribute = attribute;
+            
+            if (basketballState.currentEvent === 'regular') {
+                basketballState.currentCheckValue = 12 + Math.floor(Math.random() * 7);
+            } else {
+                basketballState.currentCheckValue = 20 + Math.floor(Math.random() * 6);
+            }
+            
+            document.getElementById('basketball-modal-content').innerHTML = `
+                <p>使用 <strong>${getAttributeName(attribute)}</strong> 进行比赛！</p>
+                <p>需要掷出至少 <strong style="color: #ff9800;">${basketballState.currentCheckValue}</strong> 点才能获胜</p>
+                <p>你有 ${basketballState[`${attribute}Dice`].length} 个${getAttributeName(attribute)}骰子</p>
+            `;
+            
+            document.getElementById('dice-roll-btn').style.display = 'block';
+            document.getElementById('dice-roll-result').innerHTML = '';
+            document.getElementById('dice-result-text').textContent = '';
+        }
+
+        function startPlayoffSeries() {
+            if (basketballState.playoffRound > 3) {
+                endBasketballGame('🎉 恭喜！你赢得了总冠军，成为了真正的GOAT！');
+                return;
+            }
+            
+            basketballState.playoffWins = 0;
+            basketballState.playoffLosses = 0;
+            
+            addBasketballLog(`🏆 季后赛第 ${basketballState.playoffRound} 轮开始！先赢4场者晋级`, 'warning');
+            triggerGameEvent('playoff');
+        }
+
+        function rollDiceForCheck() {
+            if (!basketballState.currentAttribute) return;
+            
+            const diceArray = basketballState[`${basketballState.currentAttribute}Dice`];
+            const resultElement = document.getElementById('dice-roll-result');
+            resultElement.innerHTML = '';
+            
+            let total = 0;
+            const rolls = [];
+            
+            diceArray.forEach(diceType => {
+                let max = 6;
+                if (diceType === 'd4') max = 4;
+                else if (diceType === 'd8') max = 8;
+                else if (diceType === 'd10') max = 10;
+                
+                const roll = Math.floor(Math.random() * max) + 1;
+                total += roll;
+                rolls.push(roll);
+                
+                const diceElement = document.createElement('div');
+                diceElement.className = 'dice';
+                diceElement.textContent = roll;
+                diceElement.title = `${diceType}: ${roll}`;
+                resultElement.appendChild(diceElement);
+            });
+            
+            const resultText = document.getElementById('dice-result-text');
+            const success = total >= basketballState.currentCheckValue;
+            
+            if (success) {
+                resultText.innerHTML = `<span style="color: #4caf50;">🎯 投出 ${total} 点，成功！(需要 ${basketballState.currentCheckValue} 点)</span>`;
+                handleGameSuccess();
+            } else {
+                resultText.innerHTML = `<span style="color: #f44336;">💥 投出 ${total} 点，失败！(需要 ${basketballState.currentCheckValue} 点)</span>`;
+                handleGameFailure();
+            }
+            
+            document.getElementById('dice-roll-btn').style.display = 'none';
+            
+            setTimeout(() => {
+                if (basketballState.currentEvent === 'playoff') {
+                    updatePlayoffStatus();
+                }
+                closeBasketballModal();
+            }, 3000);
+        }
+
+        function handleGameSuccess() {
+            basketballState.stamina -= 25;
+            basketballState.gamesPlayed++;
+            
+            if (basketballState.currentEvent === 'regular') {
+                basketballState.wins++;
+                basketballState.regularSeasonWins++;
+                basketballState.money += 60;
+                addBasketballLog(`🏆 常规赛胜利！获得60💰，胜场: ${basketballState.regularSeasonWins}/25`, 'success');
+            } else {
+                basketballState.wins++;
+                basketballState.playoffWins++;
+                basketballState.money += 100;
+                addBasketballLog(`🏆 季后赛胜利！${basketballState.playoffWins}胜${basketballState.playoffLosses}负，获得100💰`, 'success');
+            }
+        }
+
+        function handleGameFailure() {
+            basketballState.stamina -= 25;
+            basketballState.gamesPlayed++;
+            
+            if (basketballState.currentEvent === 'regular') {
+                addBasketballLog(`💥 常规赛失利...胜场: ${basketballState.regularSeasonWins}/25`, 'failure');
+            } else {
+                basketballState.playoffLosses++;
+                addBasketballLog(`💥 季后赛失利...${basketballState.playoffWins}胜${basketballState.playoffLosses}负`, 'failure');
+            }
+        }
+
+        function updatePlayoffStatus() {
+            if (basketballState.playoffWins >= 4) {
+                basketballState.playoffRound++;
+                addBasketballLog(`🎉 晋级季后赛第 ${basketballState.playoffRound} 轮！`, 'success');
+            } else if (basketballState.playoffLosses >= 4) {
+                endBasketballGame(`季后赛第 ${basketballState.playoffRound} 轮被淘汰。GOAT之路止步于此。`);
+            }
+        }
+
+        function endTurn() {
+            if (basketballState.stamina <= 0) {
+                endBasketballGame('体力耗尽！你因伤退役，篮球生涯结束。');
+                return;
+            }
+            
+            if (basketballState.money <= 0) {
+                endBasketballGame('资金链断裂！你破产了，篮球生涯结束。');
+                return;
+            }
+            
+            basketballState.canMove = true;
+            document.getElementById('end-turn-btn').disabled = true;
+            
+            addBasketballLog(`第${basketballState.dayCount}天结束`, 'info');
+        }
+
+        function endBasketballGame(message) {
+            const modal = document.getElementById('game-over-modal');
+            const content = document.getElementById('game-over-content');
+            
+            content.innerHTML = `
+                <p style="margin: 20px 0; font-size: 1.2em;">${message}</p>
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                    <p>最终统计:</p>
+                    <p>🏆 总胜场: ${basketballState.wins}</p>
+                    <p>💰 最终金钱: ${basketballState.money}</p>
+                    <p>⏱️ 生存天数: ${basketballState.dayCount}</p>
+                    <p>📈 属性等级: 跳投${basketballState.shootLevel} 突破${basketballState.insideLevel} 防守${basketballState.defenseLevel} 速度${basketballState.speedLevel}</p>
+                </div>
+            `;
+            
+            modal.style.display = 'flex';
+        }
+
+        function newBasketballGame() {
+            Object.assign(basketballState, {
+                stamina: 100,
+                money: 500,
+                wins: 0,
+                gamesPlayed: 0,
+                shootLevel: 1,
+                insideLevel: 1,
+                defenseLevel: 1,
+                speedLevel: 1,
+                shootDice: ['d6'],
+                insideDice: ['d6'],
+                defenseDice: ['d6'],
+                speedDice: ['d6'],
+                boardPosition: 0,
+                dayCount: 1,
+                seasonPhase: 'regular',
+                regularSeasonGames: 0,
+                regularSeasonWins: 0,
+                playoffSeries: 0,
+                playoffWins: 0,
+                playoffLosses: 0,
+                playoffRound: 0,
+                currentAttribute: null,
+                currentCheckValue: 0,
+                currentEvent: null,
+                moveDiceValue: 0,
+                canMove: true
+            });
+            
+            document.getElementById('game-over-modal').style.display = 'none';
+            document.getElementById('basketball-event-log').innerHTML = '';
+            
+            initBasketballGame();
+        }
+
+        function closeBasketballModal() {
+            document.getElementById('basketball-modal').style.display = 'none';
+            basketballState.currentAttribute = null;
+            basketballState.currentCheckValue = 0;
+            updateBasketballUI();
+        }
+
+        // 点击模态框外部关闭
+        document.getElementById('basketball-modal')?.addEventListener('click', function(e) {
+            if (e.target === this) closeBasketballModal();
+        });
+
+        document.getElementById('game-over-modal')?.addEventListener('click', function(e) {
+            if (e.target === this) this.style.display = 'none';
+        });
+
+        // ============================================
+        // 通用工具函数
+        // ============================================
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            toast.style.background = type === 'error' ? 'var(--danger)' : 'var(--accent)';
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        // 初始加载
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDishes();
+        });
+    </script>
+</body>
+</html>
