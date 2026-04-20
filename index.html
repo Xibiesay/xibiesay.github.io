@@ -3,579 +3,1061 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>篮球生涯骰子 - NBA GOAT之路</title>
+    <title>工具箱 - 今天吃什么 & 篮球骰子</title>
     <style>
+        /* 全局样式 */
+        :root {
+            --bg: #f5f7fa;
+            --card: rgba(255,255,255,0.85);
+            --text: #1c1c1e;
+            --sub: #8e8e93;
+            --accent: #34c759;
+            --primary: #007aff;
+            --danger: #ff3b30;
+            --warning: #ff9500;
+            --border: rgba(0,0,0,0.1);
+            --shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #000;
+                --card: rgba(255,255,255,0.12);
+                --text: #f2f2f2;
+                --sub: #8e8e93;
+                --border: rgba(255,255,255,0.1);
+                --shadow: 0 4px 20px rgba(0,0,0,0.3);
+            }
+        }
+
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Arial', sans-serif;
+            box-sizing: border-box;
         }
-        
+
         body {
-            background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
-            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
             min-height: 100vh;
-            padding: 20px;
+            line-height: 1.5;
         }
-        
-        .container {
-            max-width: 1200px;
+
+        /* 首页样式 */
+        .home-container {
+            width: 100%;
+            max-width: 500px;
             margin: 0 auto;
+            padding: 24px 16px;
         }
-        
-        header {
+
+        .home-header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 32px;
+        }
+
+        .home-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .home-subtitle {
+            color: var(--sub);
+            font-size: 15px;
+        }
+
+        .app-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .app-card {
+            background: var(--card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 18px;
             padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            border: 2px solid #ff9800;
-        }
-        
-        h1 {
-            color: #ff9800;
-            font-size: 2.5em;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            margin-bottom: 10px;
-        }
-        
-        .subtitle {
-            color: #bbbbbb;
-            font-size: 1.2em;
-        }
-        
-        .game-area {
-            display: grid;
-            grid-template-columns: 300px 1fr 300px;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .panel {
-            background: rgba(0, 0, 0, 0.6);
-            border-radius: 10px;
-            padding: 20px;
-            border: 1px solid #3949ab;
-        }
-        
-        .panel h2 {
-            color: #4fc3f7;
-            border-bottom: 2px solid #4fc3f7;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-            font-size: 1.3em;
-        }
-        
-        .stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        
-        .stat-item {
-            background: rgba(25, 118, 210, 0.3);
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 2em;
-            font-weight: bold;
-            color: #4fc3f7;
-        }
-        
-        .stat-label {
-            font-size: 0.9em;
-            color: #bbbbbb;
-            margin-top: 5px;
-        }
-        
-        .attributes {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        
-        .attribute {
-            background: rgba(76, 175, 80, 0.2);
-            padding: 12px;
-            border-radius: 8px;
-        }
-        
-        .attribute-name {
-            color: #81c784;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .attribute-level {
-            font-size: 0.9em;
-            color: #e8f5e9;
-        }
-        
-        .dice-pool {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 10px;
-        }
-        
-        .dice {
-            width: 40px;
-            height: 40px;
-            background: #ff9800;
-            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text);
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.2em;
+            gap: 16px;
+            transition: all 0.2s ease;
             cursor: pointer;
-            transition: transform 0.2s;
+            border: 1px solid transparent;
         }
-        
-        .dice:hover {
-            transform: scale(1.1);
-        }
-        
-        .dice.selected {
-            background: #f44336;
-            box-shadow: 0 0 10px #f44336;
-        }
-        
-        .dice.d4 { background: #2196f3; }
-        .dice.d6 { background: #4caf50; }
-        .dice.d8 { background: #9c27b0; }
-        
-        .game-board {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
-        }
-        
-        .tile {
-            aspect-ratio: 1;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5em;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .tile:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.05);
-        }
-        
-        .tile.current {
-            background: #ff9800;
-            box-shadow: 0 0 20px #ff9800;
-        }
-        
-        .tile.train { background: rgba(76, 175, 80, 0.3); }
-        .tile.shop { background: rgba(156, 39, 176, 0.3); }
-        .tile.business { background: rgba(33, 150, 243, 0.3); }
-        .tile.rest { background: rgba(121, 85, 72, 0.3); }
-        .tile.game { background: rgba(244, 67, 54, 0.3); }
-        
-        .controls {
-            text-align: center;
-            margin-top: 20px;
-        }
-        
-        button {
-            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 1.1em;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: bold;
-            margin: 0 10px;
-        }
-        
-        button:hover {
+
+        .app-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.4);
+            box-shadow: var(--shadow);
+            border-color: var(--border);
         }
-        
-        button:disabled {
-            background: #666666;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
+
+        .app-emoji {
+            font-size: 36px;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(52, 199, 89, 0.1);
+            border-radius: 12px;
         }
-        
-        .event-log {
-            max-height: 300px;
-            overflow-y: auto;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 8px;
-            margin-top: 15px;
+
+        .app-card:nth-child(2) .app-emoji {
+            background: rgba(0, 122, 255, 0.1);
         }
-        
-        .log-entry {
-            padding: 8px;
-            margin: 5px 0;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-            animation: fadeIn 0.3s;
+
+        .app-card:nth-child(3) .app-emoji {
+            background: rgba(255, 149, 0, 0.1);
         }
-        
-        .log-entry.success { border-left: 4px solid #4caf50; }
-        .log-entry.failure { border-left: 4px solid #f44336; }
-        .log-entry.info { border-left: 4px solid #2196f3; }
-        .log-entry.warning { border-left: 4px solid #ff9800; }
-        
+
+        .app-info {
+            flex: 1;
+        }
+
+        .app-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .app-desc {
+            font-size: 13px;
+            color: var(--sub);
+        }
+
+        /* 今天吃什么页面样式 */
+        .tool-page {
+            display: none;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px 16px;
+        }
+
+        .header {
+            margin-bottom: 24px;
+        }
+
+        .back-button {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 16px;
+            padding: 8px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-top: 16px;
+        }
+
+        /* === 篮球骰子样式 === */
+        .basketball-container {
+            width: 100%;
+        }
+
         .season-info {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
+            background: var(--card);
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            font-size: 14px;
         }
-        
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--sub);
+            margin-top: 4px;
+        }
+
+        .attributes-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .attribute-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .attribute-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+
+        .dice-pool {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .dice {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            color: white;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .dice.d4 { background: #2196f3; }
+        .dice.d6 { background: #4caf50; }
+        .dice.d8 { background: #9c27b0; }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .tile {
+            aspect-ratio: 1;
+            background: var(--card);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .tile.current {
+            background: var(--primary);
+            color: white;
+        }
+
+        .tile.train { background: rgba(76, 175, 80, 0.2); }
+        .tile.shop { background: rgba(156, 39, 176, 0.2); }
+        .tile.business { background: rgba(33, 150, 243, 0.2); }
+        .tile.rest { background: rgba(121, 85, 72, 0.2); }
+        .tile.game { background: rgba(244, 67, 54, 0.2); }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            background: var(--border);
+            color: var(--sub);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn.secondary {
+            background: var(--warning);
+        }
+
+        .event-log {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 16px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-entry.success { color: #4caf50; }
+        .log-entry.failure { color: #f44336; }
+        .log-entry.info { color: var(--primary); }
+        .log-entry.warning { color: #ff9800; }
+
+        /* === 今天吃什么页面样式 === */
+        .eat-container {
+            display: none;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px 16px;
+        }
+
+        .tab-nav {
+            display: flex;
+            background: var(--card);
+            border-radius: 12px;
+            padding: 4px;
+            margin: 20px 0;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: none;
+            border-radius: 10px;
+            font-size: 15px;
+            color: var(--sub);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-button.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .content {
+            display: none;
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        .today-container {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .generate-button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 16px 24px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .generate-button:hover {
+            opacity: 0.9;
+            transform: scale(0.98);
+        }
+
+        .menu-display {
+            margin-top: 24px;
+        }
+
+        .menu-item {
+            padding: 16px;
+            background: rgba(0, 122, 255, 0.1);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .menu-item.vegetable { background: rgba(52, 199, 89, 0.1); }
+        .menu-item.soup { background: rgba(90, 200, 250, 0.1); }
+
+        .week-plan {
+            display: grid;
+            gap: 12px;
+        }
+
+        .day-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 16px;
+        }
+
+        .day-header {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+
+        .dish-item {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .dish-item:last-child {
+            border-bottom: none;
+        }
+
+        .dishes-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .dish-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+        }
+
+        .dish-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .dish-type {
+            font-size: 12px;
+            color: var(--sub);
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 8px;
+            background: var(--bg);
+        }
+
+        .add-form {
+            display: grid;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: grid;
+            gap: 8px;
+        }
+
+        label {
+            font-weight: 500;
+        }
+
+        input, select, textarea {
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 15px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .submit-button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
         .modal {
             display: none;
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
             align-items: center;
             justify-content: center;
             z-index: 1000;
         }
-        
+
         .modal-content {
-            background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
-            padding: 30px;
-            border-radius: 15px;
-            max-width: 500px;
+            background: var(--card);
+            border-radius: 20px;
+            padding: 24px;
+            max-width: 400px;
             width: 90%;
-            border: 2px solid #4fc3f7;
+            max-height: 80vh;
+            overflow-y: auto;
         }
-        
-        .modal h2 {
-            color: #4fc3f7;
-            margin-bottom: 20px;
-        }
-        
-        .dice-roll-result {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin: 20px 0;
-        }
-        
-        .roll-dice {
-            width: 50px;
-            height: 50px;
-            background: #ff9800;
-            border-radius: 10px;
-            display: flex;
+
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
             align-items: center;
             justify-content: center;
-            font-size: 1.5em;
-            font-weight: bold;
-            animation: roll 0.5s;
+            z-index: 1001;
         }
-        
-        @keyframes roll {
-            0% { transform: rotate(0deg) scale(0.5); }
-            100% { transform: rotate(360deg) scale(1); }
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .shop-items {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin: 20px 0;
-        }
-        
-        .shop-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .shop-item:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        .item-name {
-            color: #4fc3f7;
-            font-weight: bold;
-        }
-        
-        .item-cost {
-            color: #ff9800;
-            font-size: 0.9em;
-        }
-        
-        .item-desc {
-            color: #bbbbbb;
-            font-size: 0.8em;
-            margin-top: 5px;
-        }
-        
-        .upgrade-options {
-            display: flex;
-            gap: 10px;
-            margin: 10px 0;
-        }
-        
-        .upgrade-option {
-            flex: 1;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.3s;
-        }
-        
-        .upgrade-option:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        .playoff-series {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
-            margin: 20px 0;
-        }
-        
-        .playoff-game {
-            aspect-ratio: 1;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .playoff-game.won { background: #4caf50; }
-        .playoff-game.lost { background: #f44336; }
-        
-        @media (max-width: 1024px) {
-            .game-area {
-                grid-template-columns: 1fr;
-            }
-            
-            .game-board {
-                grid-template-columns: repeat(4, 1fr);
-            }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--text);
+            color: var(--bg);
+            padding: 12px 20px;
+            border-radius: 12px;
+            display: none;
+            z-index: 1002;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🏀 篮球生涯骰子</h1>
-            <p class="subtitle">NBA GOAT之路 - 用骰子决定你的篮球传奇</p>
-        </header>
-        
-        <div class="season-info">
-            <div>赛季: <span id="season-phase">常规赛</span></div>
-            <div>比赛日: <span id="day-count">1</span>/120</div>
-            <div>位置: <span id="board-position">0</span></div>
+    <!-- 首页 -->
+    <div id="home-page" class="home-container">
+        <div class="home-header">
+            <h1 class="home-title">🧰 小工具集合</h1>
+            <p class="home-subtitle">选择一个工具开始使用</p>
         </div>
         
-        <div class="game-area">
-            <!-- 左侧面板：玩家状态 -->
-            <div class="panel">
-                <h2>🏀 球员状态</h2>
-                <div class="stats">
-                    <div class="stat-item">
-                        <div class="stat-value" id="stamina">100</div>
-                        <div class="stat-label">体力</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="money">500</div>
-                        <div class="stat-label">金钱</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="wins">0</div>
-                        <div class="stat-label">胜场</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="games-played">0</div>
-                        <div class="stat-label">比赛数</div>
-                    </div>
-                </div>
-                
-                <h2>🎲 属性骰子</h2>
-                <div class="attributes">
-                    <div class="attribute">
-                        <div class="attribute-name">翻身跳投</div>
-                        <div class="attribute-level">等级: <span id="shoot-level">1</span></div>
-                        <div class="dice-pool" id="shoot-dice"></div>
-                    </div>
-                    <div class="attribute">
-                        <div class="attribute-name">突破劈扣</div>
-                        <div class="attribute-level">等级: <span id="inside-level">1</span></div>
-                        <div class="dice-pool" id="inside-dice"></div>
-                    </div>
-                    <div class="attribute">
-                        <div class="attribute-name">追身大帽</div>
-                        <div class="attribute-level">等级: <span id="defense-level">1</span></div>
-                        <div class="dice-pool" id="defense-dice"></div>
-                    </div>
-                    <div class="attribute">
-                        <div class="attribute-name">快速反击</div>
-                        <div class="attribute-level">等级: <span id="speed-level">1</span></div>
-                        <div class="dice-pool" id="speed-dice"></div>
-                    </div>
-                </div>
-                
-                <h2>📈 赛季进度</h2>
-                <div style="margin-top: 10px;">
-                    <div>常规赛: <span id="regular-wins">0</span>/25 胜 (需晋级)</div>
-                    <div style="height: 8px; background: rgba(255,255,255,0.2); border-radius: 4px; margin: 5px 0;">
-                        <div id="regular-progress" style="height: 100%; background: #4caf50; border-radius: 4px; width: 0%;"></div>
-                    </div>
-                    <div style="margin-top: 10px;">季后赛: 系列赛 <span id="playoff-series">0</span>/3</div>
+        <div class="app-grid">
+            <!-- 今天吃什么 -->
+            <div class="app-card" onclick="openEatPage()">
+                <div class="app-emoji">🍚</div>
+                <div class="app-info">
+                    <div class="app-name">今天吃什么</div>
+                    <div class="app-desc">随机菜单生成器 · 一荤一素一汤</div>
                 </div>
             </div>
             
-            <!-- 中间面板：游戏棋盘 -->
-            <div class="panel">
-                <h2>🏟️ 篮球生涯</h2>
-                <div class="game-board" id="game-board"></div>
-                
-                <div class="controls">
-                    <button id="roll-move-btn" onclick="rollMoveDice()">🎲 掷骰移动</button>
-                    <button id="end-turn-btn" onclick="endTurn()" disabled>⏭️ 结束回合</button>
-                    <button id="new-game-btn" onclick="newGame()">🔄 新游戏</button>
+            <!-- 篮球骰子 -->
+            <div class="app-card" onclick="openBasketballDice()">
+                <div class="app-emoji">🏀</div>
+                <div class="app-info">
+                    <div class="app-name">篮球生涯骰子</div>
+                    <div class="app-desc">NBA GOAT之路 · 骰子决定命运</div>
                 </div>
-                
-                <h2 style="margin-top: 20px;">📋 事件日志</h2>
-                <div class="event-log" id="event-log"></div>
             </div>
             
-            <!-- 右侧面板：道具和提示 -->
-            <div class="panel">
-                <h2>🛍️ 道具背包</h2>
-                <div id="inventory">暂无道具</div>
-                
-                <h2 style="margin-top: 20px;">ℹ️ 操作说明</h2>
-                <div style="font-size: 0.9em; line-height: 1.5; color: #bbbbbb;">
-                    <p>1. 点击"掷骰移动"在棋盘上前进</p>
-                    <p>2. 踩中格子触发相应事件</p>
-                    <p>3. 每3步触发一场常规赛</p>
-                    <p>4. 每10步触发季后赛系列赛</p>
-                    <p>5. 在常规赛赢得至少25场胜利进入季后赛</p>
-                    <p>6. 赢得3轮季后赛成为GOAT！</p>
-                </div>
-                
-                <h2 style="margin-top: 20px;">🎯 当前目标</h2>
-                <div id="current-goal" style="color: #4fc3f7;">
-                    赢得常规赛，进入季后赛！
+            <!-- 占位 -->
+            <div class="app-card" onclick="alert('新功能开发中...')">
+                <div class="app-emoji">✨</div>
+                <div class="app-info">
+                    <div class="app-name">神秘功能</div>
+                    <div class="app-desc">即将上线 · 敬请期待</div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- 各种模态框 -->
-    <div id="game-modal" class="modal">
+
+    <!-- 篮球生涯骰子页面 -->
+    <div id="basketball-page" class="tool-page">
+        <div class="header">
+            <button class="back-button" onclick="goHome()">← 返回首页</button>
+            <h1 class="page-title">🏀 篮球生涯骰子</h1>
+        </div>
+
+        <div class="basketball-container">
+            <!-- 赛季信息 -->
+            <div class="season-info">
+                <div>赛季: <span id="season-phase">常规赛</span></div>
+                <div>比赛日: <span id="day-count">1</span>/120</div>
+                <div>位置: <span id="board-position">0</span></div>
+            </div>
+
+            <!-- 球员状态 -->
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="stamina">100</div>
+                    <div class="stat-label">体力</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="money">500</div>
+                    <div class="stat-label">金钱</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="wins">0</div>
+                    <div class="stat-label">胜场</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="games-played">0</div>
+                    <div class="stat-label">比赛数</div>
+                </div>
+            </div>
+
+            <!-- 属性骰子 -->
+            <h3 style="margin-bottom: 12px;">🎲 属性骰子</h3>
+            <div class="attributes-grid">
+                <div class="attribute-card">
+                    <div class="attribute-name">翻身跳投</div>
+                    <div style="font-size: 12px; color: var(--sub); margin-bottom: 8px;">等级: <span id="shoot-level">1</span></div>
+                    <div class="dice-pool" id="shoot-dice"></div>
+                </div>
+                <div class="attribute-card">
+                    <div class="attribute-name">突破劈扣</div>
+                    <div style="font-size: 12px; color: var(--sub); margin-bottom: 8px;">等级: <span id="inside-level">1</span></div>
+                    <div class="dice-pool" id="inside-dice"></div>
+                </div>
+                <div class="attribute-card">
+                    <div class="attribute-name">追身大帽</div>
+                    <div style="font-size: 12px; color: var(--sub); margin-bottom: 8px;">等级: <span id="defense-level">1</span></div>
+                    <div class="dice-pool" id="defense-dice"></div>
+                </div>
+                <div class="attribute-card">
+                    <div class="attribute-name">快速反击</div>
+                    <div style="font-size: 12px; color: var(--sub); margin-bottom: 8px;">等级: <span id="speed-level">1</span></div>
+                    <div class="dice-pool" id="speed-dice"></div>
+                </div>
+            </div>
+
+            <!-- 赛季进度 -->
+            <h3 style="margin: 20px 0 12px;">📈 赛季进度</h3>
+            <div style="background: var(--card); padding: 12px; border-radius: 12px; margin-bottom: 20px;">
+                <div style="margin-bottom: 8px;">常规赛: <span id="regular-wins">0</span>/25 胜 (需晋级)</div>
+                <div style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px;">
+                    <div id="regular-progress" style="height: 100%; background: #4caf50; border-radius: 3px; width: 0%; transition: width 0.3s;"></div>
+                </div>
+                <div style="margin-top: 8px;">季后赛: 系列赛 <span id="playoff-series">0</span>/3</div>
+            </div>
+
+            <!-- 游戏棋盘 -->
+            <h3 style="margin-bottom: 12px;">🏟️ 篮球生涯</h3>
+            <div class="game-board" id="game-board"></div>
+
+            <!-- 控制按钮 -->
+            <div class="controls">
+                <button id="roll-move-btn" class="btn" onclick="rollMoveDice()">🎲 掷骰移动</button>
+                <button id="end-turn-btn" class="btn secondary" onclick="endTurn()" disabled>⏭️ 结束回合</button>
+            </div>
+
+            <!-- 事件日志 -->
+            <h3 style="margin-bottom: 12px;">📋 事件日志</h3>
+            <div class="event-log" id="basketball-event-log"></div>
+        </div>
+    </div>
+
+    <!-- 今天吃什么页面 -->
+    <div id="eat-page" class="tool-page">
+        <div class="header">
+            <button class="back-button" onclick="goHome()">← 返回首页</button>
+            <h1 class="page-title">今天吃什么</h1>
+        </div>
+
+        <!-- 选项卡导航 -->
+        <div class="tab-nav">
+            <button class="tab-button active" onclick="switchTab('today')">今日菜单</button>
+            <button class="tab-button" onclick="switchTab('week')">本周计划</button>
+            <button class="tab-button" onclick="switchTab('dishes')">菜品库</button>
+            <button class="tab-button" onclick="switchTab('add')">添加菜品</button>
+        </div>
+
+        <!-- 今日菜单 -->
+        <div id="tab-today" class="content active">
+            <div class="today-container">
+                <button class="generate-button" onclick="generateToday()">🍽️ 随机生成今日菜单</button>
+                <div id="menu-display" class="menu-display">
+                    <!-- 菜单会显示在这里 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 本周计划 -->
+        <div id="tab-week" class="content">
+            <button class="generate-button" onclick="generateWeek()">📅 生成本周菜单计划</button>
+            <div id="week-plan" class="week-plan">
+                <!-- 本周计划会显示在这里 -->
+            </div>
+        </div>
+
+        <!-- 菜品库 -->
+        <div id="tab-dishes" class="content">
+            <input type="text" id="search" placeholder="🔍 搜索菜品..." style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);margin-bottom:16px;">
+            <div class="tab-nav" style="margin-bottom:16px;">
+                <button class="tab-button active" onclick="setFilter('all')">全部</button>
+                <button class="tab-button" onclick="setFilter('meat')">荤菜</button>
+                <button class="tab-button" onclick="setFilter('vegetable')">素菜</button>
+                <button class="tab-button" onclick="setFilter('soup')">汤</button>
+            </div>
+            <div id="dishes-list" class="dishes-grid">
+                <!-- 菜品列表会显示在这里 -->
+            </div>
+        </div>
+
+        <!-- 添加菜品 -->
+        <div id="tab-add" class="content">
+            <form id="add-dish-form" class="add-form">
+                <div class="form-group">
+                    <label>菜名</label>
+                    <input type="text" id="dish-name" placeholder="例如：红烧肉" required>
+                </div>
+                <div class="form-group">
+                    <label>类型</label>
+                    <select id="dish-type" required>
+                        <option value="">选择类型</option>
+                        <option value="meat">荤菜</option>
+                        <option value="vegetable">素菜</option>
+                        <option value="soup">汤</option>
+                        <option value="half">半荤</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>食材</label>
+                    <textarea id="dish-ingredients" placeholder="主料、配料..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>做法</label>
+                    <textarea id="dish-method" placeholder="烹饪步骤..." required></textarea>
+                </div>
+                <button type="submit" class="submit-button">➕ 添加菜品</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 菜品详情模态框 -->
+    <div id="dish-modal" class="modal">
         <div class="modal-content">
-            <h2 id="modal-title">游戏事件</h2>
-            <div id="modal-content"></div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button id="modal-close-btn" onclick="closeModal()">确认</button>
+            <h2 id="modal-title" style="margin-bottom:16px;"></h2>
+            <div id="modal-type" style="margin-bottom:12px;"></div>
+            <h3 style="margin:16px 0 8px;">食材</h3>
+            <div id="modal-ingredients"></div>
+            <h3 style="margin:16px 0 8px;">做法</h3>
+            <div id="modal-method"></div>
+            <div style="margin-top:20px;text-align:center;">
+                <button onclick="closeModal()" style="padding:8px 20px;background:var(--primary);color:white;border:none;border-radius:8px;cursor:pointer;">关闭</button>
             </div>
         </div>
     </div>
-    
-    <div id="dice-roll-modal" class="modal">
+
+    <!-- 游戏模态框（篮球） -->
+    <div id="basketball-modal" class="modal">
         <div class="modal-content">
-            <h2 id="dice-modal-title">骰子判定</h2>
-            <div id="dice-modal-content"></div>
-            <div class="dice-roll-result" id="dice-roll-result"></div>
-            <div id="dice-result-text" style="text-align: center; margin: 20px 0;"></div>
-            <div style="text-align: center;">
-                <button id="dice-roll-btn" onclick="rollDiceForCheck()">🎲 投掷骰子</button>
+            <h2 id="basketball-modal-title" style="margin-bottom:16px;"></h2>
+            <div id="basketball-modal-content"></div>
+            <div id="dice-roll-result" style="display:flex;justify-content:center;gap:8px;margin:20px 0;"></div>
+            <div id="dice-result-text" style="text-align:center;margin:20px 0;"></div>
+            <div style="text-align:center;">
+                <button id="dice-roll-btn" onclick="rollDiceForCheck()" style="padding:12px 24px;background:var(--primary);color:white;border:none;border-radius:8px;cursor:pointer;">🎲 投掷骰子</button>
             </div>
         </div>
     </div>
-    
+
+    <!-- 游戏结束模态框（篮球） -->
     <div id="game-over-modal" class="modal">
         <div class="modal-content">
-            <h2 id="game-over-title">游戏结束</h2>
+            <h2 id="game-over-title" style="margin-bottom:16px;">🏀 生涯结束</h2>
             <div id="game-over-content"></div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button onclick="newGame()">🔄 重新开始</button>
+            <div style="text-align:center;margin-top:20px;">
+                <button onclick="newBasketballGame()" style="padding:12px 24px;background:var(--accent);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;">🔄 重新开始</button>
             </div>
         </div>
     </div>
-    
+
+    <!-- 加载动画 -->
+    <div id="loading" class="loading">
+        <div style="color:white;font-size:20px;">加载中...</div>
+    </div>
+
+    <!-- 提示消息 -->
+    <div id="toast" class="toast"></div>
+
     <script>
-        // 游戏状态
-        const gameState = {
-            // 基本资源
+        // ============================================
+        // 页面切换功能
+        // ============================================
+        function openEatPage() {
+            document.getElementById('home-page').style.display = 'none';
+            document.getElementById('basketball-page').style.display = 'none';
+            document.getElementById('eat-page').style.display = 'block';
+            loadDishes();
+        }
+
+        function openBasketballDice() {
+            document.getElementById('home-page').style.display = 'none';
+            document.getElementById('eat-page').style.display = 'none';
+            document.getElementById('basketball-page').style.display = 'block';
+            initBasketballGame();
+        }
+
+        function goHome() {
+            document.getElementById('eat-page').style.display = 'none';
+            document.getElementById('basketball-page').style.display = 'none';
+            document.getElementById('home-page').style.display = 'block';
+        }
+
+        // ============================================
+        // 今天吃什么功能
+        // ============================================
+        const DISHES = [
+            { id: 1, name: "红烧肉", type: "meat", emoji: "🥩", ingredients: "五花肉、冰糖、生姜、料酒、生抽、老抽", method: "1. 五花肉切块焯水 2. 炒糖色 3. 加入肉块翻炒 4. 加水炖煮1小时" },
+            { id: 2, name: "西红柿炒鸡蛋", type: "half", emoji: "🍅", ingredients: "西红柿、鸡蛋、葱、糖、盐", method: "1. 鸡蛋打散炒熟备用 2. 西红柿炒软 3. 加入鸡蛋翻炒 4. 调味出锅" },
+            { id: 3, name: "清炒西兰花", type: "vegetable", emoji: "🥦", ingredients: "西兰花、蒜、盐、蚝油", method: "1. 西兰花焯水 2. 蒜末爆香 3. 加入西兰花翻炒 4. 调味出锅" },
+            { id: 4, name: "紫菜蛋花汤", type: "soup", emoji: "🍲", ingredients: "紫菜、鸡蛋、葱花、香油、盐", method: "1. 水烧开 2. 加入紫菜 3. 淋入蛋液 4. 调味撒葱花" },
+            { id: 5, name: "糖醋排骨", type: "meat", emoji: "🍖", ingredients: "排骨、醋、糖、生抽、生姜", method: "1. 排骨焯水 2. 炒糖色 3. 加入排骨翻炒 4. 加醋和水炖煮" },
+            { id: 6, name: "麻婆豆腐", type: "half", emoji: "🌶️", ingredients: "豆腐、肉末、豆瓣酱、花椒、葱姜蒜", method: "1. 豆腐切块 2. 炒香肉末和豆瓣酱 3. 加水煮开 4. 加入豆腐炖煮" },
+            { id: 7, name: "酸辣土豆丝", type: "vegetable", emoji: "🥔", ingredients: "土豆、干辣椒、醋、蒜、盐", method: "1. 土豆切丝泡水 2. 干辣椒蒜末爆香 3. 加入土豆丝翻炒 4. 加醋调味" },
+            { id: 8, name: "冬瓜排骨汤", type: "soup", emoji: "🍲", ingredients: "冬瓜、排骨、姜、盐、料酒", method: "1. 排骨焯水 2. 加水炖煮1小时 3. 加入冬瓜煮20分钟 4. 调味" },
+            { id: 9, name: "可乐鸡翅", type: "meat", emoji: "🍗", ingredients: "鸡翅、可乐、生抽、姜", method: "1. 鸡翅煎至金黄 2. 加入可乐 3. 炖煮收汁 4. 出锅" },
+            { id: 10, name: "蚝油生菜", type: "vegetable", emoji: "🥬", ingredients: "生菜、蚝油、蒜、盐", method: "1. 生菜焯水 2. 蒜末爆香 3. 加入蚝油和水 4. 淋在生菜上" }
+        ];
+
+        let currentFilter = 'all';
+        let favorites = JSON.parse(localStorage.getItem('eat_favorites')) || [];
+
+        // 选项卡切换
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            document.querySelectorAll('.content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById('tab-' + tabName).classList.add('active');
+        }
+
+        // 生成今日菜单
+        function generateToday() {
+            const meatDishes = DISHES.filter(d => d.type === 'meat');
+            const vegDishes = DISHES.filter(d => d.type === 'vegetable');
+            const soupDishes = DISHES.filter(d => d.type === 'soup');
+            
+            const randomMeat = meatDishes[Math.floor(Math.random() * meatDishes.length)];
+            const randomVeg = vegDishes[Math.floor(Math.random() * vegDishes.length)];
+            const randomSoup = soupDishes[Math.floor(Math.random() * soupDishes.length)];
+            
+            const menuHTML = `
+                <div class="menu-item">${randomMeat.emoji} ${randomMeat.name}</div>
+                <div class="menu-item vegetable">${randomVeg.emoji} ${randomVeg.name}</div>
+                <div class="menu-item soup">${randomSoup.emoji} ${randomSoup.name}</div>
+            `;
+            
+            document.getElementById('menu-display').innerHTML = menuHTML;
+            showToast('今日菜单已生成！');
+        }
+
+        // 生成本周计划
+        function generateWeek() {
+            const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+            let weekHTML = '';
+            
+            days.forEach(day => {
+                const meatDishes = DISHES.filter(d => d.type === 'meat');
+                const vegDishes = DISHES.filter(d => d.type === 'vegetable');
+                const soupDishes = DISHES.filter(d => d.type === 'soup');
+                
+                const randomMeat = meatDishes[Math.floor(Math.random() * meatDishes.length)];
+                const randomVeg = vegDishes[Math.floor(Math.random() * vegDishes.length)];
+                const randomSoup = soupDishes[Math.floor(Math.random() * soupDishes.length)];
+                
+                weekHTML += `
+                    <div class="day-card">
+                        <div class="day-header">${day}</div>
+                        <div class="dish-item">${randomMeat.emoji} ${randomMeat.name}</div>
+                        <div class="dish-item">${randomVeg.emoji} ${randomVeg.name}</div>
+                        <div class="dish-item">${randomSoup.emoji} ${randomSoup.name}</div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('week-plan').innerHTML = weekHTML;
+            showToast('本周菜单已生成！');
+        }
+
+        // 加载菜品列表
+        function loadDishes() {
+            let filteredDishes = DISHES;
+            
+            if (currentFilter !== 'all') {
+                filteredDishes = DISHES.filter(dish => dish.type === currentFilter);
+            }
+            
+            const searchTerm = document.getElementById('search').value.toLowerCase();
+            if (searchTerm) {
+                filteredDishes = filteredDishes.filter(dish => 
+                    dish.name.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            let dishesHTML = '';
+            filteredDishes.forEach(dish => {
+                const typeText = {
+                    'meat': '荤菜',
+                    'vegetable': '素菜',
+                    'soup': '汤',
+                    'half': '半荤'
+                }[dish.type];
+                
+                dishesHTML += `
+                    <div class="dish-card" onclick="showDishModal(${dish.id})">
+                        <div style="display:flex;justify-content:space-between;align-items:start;">
+                            <div>
+                                <div class="dish-name">${dish.emoji} ${dish.name}</div>
+                                <div class="dish-type">${typeText}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('dishes-list').innerHTML = dishesHTML || '<div style="text-align:center;padding:20px;color:var(--sub);">暂无菜品</div>';
+        }
+
+        // 设置筛选
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.tab-nav .tab-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            loadDishes();
+        }
+
+        // 搜索菜品
+        document.getElementById('search')?.addEventListener('input', loadDishes);
+
+        // 显示菜品详情
+        function showDishModal(id) {
+            const dish = DISHES.find(d => d.id === id);
+            if (!dish) return;
+            
+            const typeText = {
+                'meat': '🥩 荤菜',
+                'vegetable': '🥦 素菜',
+                'soup': '🍲 汤',
+                'half': '🍅 半荤'
+            }[dish.type];
+            
+            document.getElementById('modal-title').textContent = dish.name;
+            document.getElementById('modal-type').textContent = typeText;
+            document.getElementById('modal-ingredients').innerHTML = dish.ingredients.split('、').map(i => `<div style="margin:4px 0;">• ${i}</div>`).join('');
+            document.getElementById('modal-method').innerHTML = dish.method.split(' ').map(step => `<div style="margin:8px 0;">${step}</div>`).join('');
+            document.getElementById('dish-modal').style.display = 'flex';
+        }
+
+        // 关闭模态框
+        function closeModal() {
+            document.getElementById('dish-modal').style.display = 'none';
+        }
+
+        // 添加菜品
+        document.getElementById('add-dish-form')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('dish-name').value;
+            const type = document.getElementById('dish-type').value;
+            const ingredients = document.getElementById('dish-ingredients').value;
+            const method = document.getElementById('dish-method').value;
+            
+            if (!name || !type || !ingredients || !method) {
+                showToast('请填写所有信息！', 'error');
+                return;
+            }
+            
+            const emoji = {
+                'meat': '🥩',
+                'vegetable': '🥦',
+                'soup': '🍲',
+                'half': '🍅'
+            }[type] || '🍽️';
+            
+            const newDish = {
+                id: DISHES.length + 1,
+                name,
+                type,
+                emoji,
+                ingredients,
+                method
+            };
+            
+            DISHES.push(newDish);
+            
+            document.getElementById('add-dish-form').reset();
+            showToast('菜品添加成功！');
+            
+            switchTab('dishes');
+            loadDishes();
+        });
+
+        // ============================================
+        // 篮球生涯骰子功能
+        // ============================================
+        const basketballState = {
             stamina: 100,
             money: 500,
             wins: 0,
             gamesPlayed: 0,
             
-            // 属性等级
             shootLevel: 1,
             insideLevel: 1,
             defenseLevel: 1,
             speedLevel: 1,
             
-            // 骰子池
             shootDice: ['d6'],
             insideDice: ['d6'],
             defenseDice: ['d6'],
             speedDice: ['d6'],
             
-            // 道具
-            inventory: [],
-            
-            // 棋盘状态
             boardPosition: 0,
             dayCount: 1,
             totalDays: 120,
             
-            // 赛季状态
-            seasonPhase: 'regular', // regular, playoff
+            seasonPhase: 'regular',
             regularSeasonGames: 0,
             regularSeasonWins: 0,
             playoffSeries: 0,
             playoffWins: 0,
             playoffLosses: 0,
-            playoffRound: 0, // 1: 分区半决赛, 2: 分区决赛, 3: 总决赛
+            playoffRound: 0,
             
-            // 当前骰子选择
             currentAttribute: null,
             currentCheckValue: 0,
             currentEvent: null,
             
-            // 移动骰子
             moveDiceValue: 0,
             canMove: true
         };
-        
-        // 棋盘格类型
+
         const tileTypes = [
             { type: 'train', name: '🏀 训练', color: 'train' },
             { type: 'shop', name: '🛍️ 商店', color: 'shop' },
@@ -598,25 +1080,13 @@
             { type: 'train', name: '🏀 训练', color: 'train' },
             { type: 'game', name: '🏆 比赛', color: 'game' }
         ];
-        
-        // 道具商店
-        const shopItems = [
-            { id: 1, name: '🏀 签名篮球', cost: 100, effect: '下次训练经验+50%', type: 'consumable' },
-            { id: 2, name: '👟 顶级球鞋', cost: 200, effect: '移动骰子+1点数', type: 'permanent' },
-            { id: 3, name: '💪 能量饮料', cost: 50, effect: '立即恢复30体力', type: 'consumable' },
-            { id: 4, name: '📈 商业合同', cost: 300, effect: '商业活动收入+50%', type: 'permanent' },
-            { id: 5, name: '🛡️ 护膝', cost: 150, effect: '避免一次受伤', type: 'consumable' },
-            { id: 6, name: '🎯 瞄准镜', cost: 250, effect: '翻身跳投骰子+1面', type: 'permanent' }
-        ];
-        
-        // 初始化游戏
-        function initGame() {
+
+        function initBasketballGame() {
             renderBoard();
-            updateUI();
-            addLog('🏀 篮球生涯开始！目标：在120天内成为GOAT！', 'info');
+            updateBasketballUI();
+            addBasketballLog('🏀 篮球生涯开始！目标：在120天内成为GOAT！', 'info');
         }
-        
-        // 渲染棋盘
+
         function renderBoard() {
             const board = document.getElementById('game-board');
             board.innerHTML = '';
@@ -624,59 +1094,46 @@
             tileTypes.forEach((tile, index) => {
                 const tileElement = document.createElement('div');
                 tileElement.className = `tile ${tile.color}`;
-                tileElement.textContent = tile.name.split(' ')[1]; // 只显示图标
+                tileElement.textContent = tile.name.split(' ')[1];
                 tileElement.title = tile.name;
                 
-                if (index === gameState.boardPosition) {
+                if (index === basketballState.boardPosition) {
                     tileElement.classList.add('current');
                 }
                 
                 board.appendChild(tileElement);
             });
         }
-        
-        // 更新UI
-        function updateUI() {
-            // 更新基本状态
-            document.getElementById('stamina').textContent = gameState.stamina;
-            document.getElementById('money').textContent = gameState.money;
-            document.getElementById('wins').textContent = gameState.wins;
-            document.getElementById('games-played').textContent = gameState.gamesPlayed;
+
+        function updateBasketballUI() {
+            document.getElementById('stamina').textContent = basketballState.stamina;
+            document.getElementById('money').textContent = basketballState.money;
+            document.getElementById('wins').textContent = basketballState.wins;
+            document.getElementById('games-played').textContent = basketballState.gamesPlayed;
             
-            // 更新属性等级
-            document.getElementById('shoot-level').textContent = gameState.shootLevel;
-            document.getElementById('inside-level').textContent = gameState.insideLevel;
-            document.getElementById('defense-level').textContent = gameState.defenseLevel;
-            document.getElementById('speed-level').textContent = gameState.speedLevel;
+            document.getElementById('shoot-level').textContent = basketballState.shootLevel;
+            document.getElementById('inside-level').textContent = basketballState.insideLevel;
+            document.getElementById('defense-level').textContent = basketballState.defenseLevel;
+            document.getElementById('speed-level').textContent = basketballState.speedLevel;
             
-            // 更新骰子池
-            updateDicePool('shoot-dice', gameState.shootDice);
-            updateDicePool('inside-dice', gameState.insideDice);
-            updateDicePool('defense-dice', gameState.defenseDice);
-            updateDicePool('speed-dice', gameState.speedLevel);
+            updateDicePool('shoot-dice', basketballState.shootDice);
+            updateDicePool('inside-dice', basketballState.insideDice);
+            updateDicePool('defense-dice', basketballState.defenseDice);
+            updateDicePool('speed-dice', basketballState.speedDice);
             
-            // 更新赛季信息
             document.getElementById('season-phase').textContent = 
-                gameState.seasonPhase === 'regular' ? '常规赛' : '季后赛';
-            document.getElementById('day-count').textContent = gameState.dayCount;
-            document.getElementById('board-position').textContent = gameState.boardPosition;
-            document.getElementById('regular-wins').textContent = gameState.regularSeasonWins;
+                basketballState.seasonPhase === 'regular' ? '常规赛' : '季后赛';
+            document.getElementById('day-count').textContent = basketballState.dayCount;
+            document.getElementById('board-position').textContent = basketballState.boardPosition;
+            document.getElementById('regular-wins').textContent = basketballState.regularSeasonWins;
             
-            const regularProgress = Math.min((gameState.regularSeasonWins / 25) * 100, 100);
+            const regularProgress = Math.min((basketballState.regularSeasonWins / 25) * 100, 100);
             document.getElementById('regular-progress').style.width = `${regularProgress}%`;
-            document.getElementById('playoff-series').textContent = gameState.playoffRound;
+            document.getElementById('playoff-series').textContent = basketballState.playoffRound;
             
-            // 更新背包
-            updateInventory();
-            
-            // 更新目标
-            updateGoal();
-            
-            // 更新棋盘
             renderBoard();
         }
-        
-        // 更新骰子池显示
+
         function updateDicePool(elementId, diceArray) {
             const element = document.getElementById(elementId);
             element.innerHTML = '';
@@ -685,607 +1142,89 @@
                 const diceElement = document.createElement('div');
                 diceElement.className = `dice ${dice}`;
                 diceElement.textContent = dice.toUpperCase();
-                diceElement.title = getDiceName(dice);
                 element.appendChild(diceElement);
             });
         }
-        
-        // 获取骰子名称
-        function getDiceName(diceType) {
-            const diceNames = {
-                'd4': '4面骰 (1-4)',
-                'd6': '6面骰 (1-6)',
-                'd8': '8面骰 (1-8)',
-                'd10': '10面骰 (1-10)'
-            };
-            return diceNames[diceType] || diceType;
-        }
-        
-        // 更新背包
-        function updateInventory() {
-            const inventoryElement = document.getElementById('inventory');
-            if (gameState.inventory.length === 0) {
-                inventoryElement.textContent = '暂无道具';
-                return;
-            }
-            
-            inventoryElement.innerHTML = gameState.inventory.map(item => 
-                `<div style="margin: 5px 0; padding: 5px; background: rgba(255,255,255,0.1); border-radius: 5px;">
-                    ${item}
-                </div>`
-            ).join('');
-        }
-        
-        // 更新目标
-        function updateGoal() {
-            const goalElement = document.getElementById('current-goal');
-            
-            if (gameState.seasonPhase === 'regular') {
-                goalElement.textContent = `常规赛: 已赢 ${gameState.regularSeasonWins}/25 场，还需 ${25 - gameState.regularSeasonWins} 场胜利进入季后赛`;
-            } else {
-                goalElement.textContent = `季后赛第 ${gameState.playoffRound} 轮: ${gameState.playoffWins} 胜 ${gameState.playoffLosses} 负 (需4胜晋级)`;
-            }
-        }
-        
-        // 添加日志
-        function addLog(message, type = 'info') {
-            const logElement = document.getElementById('event-log');
+
+        function addBasketballLog(message, type = 'info') {
+            const logElement = document.getElementById('basketball-event-log');
             const entry = document.createElement('div');
             entry.className = `log-entry ${type}`;
-            entry.textContent = `第${gameState.dayCount}天: ${message}`;
+            entry.textContent = `第${basketballState.dayCount}天: ${message}`;
             logElement.prepend(entry);
             
-            // 保持日志长度
             if (logElement.children.length > 10) {
                 logElement.removeChild(logElement.lastChild);
             }
         }
-        
-        // 掷骰移动
+
         function rollMoveDice() {
-            if (!gameState.canMove) return;
+            if (!basketballState.canMove) return;
             
-            gameState.moveDiceValue = Math.floor(Math.random() * 6) + 1; // 1-6
-            addLog(`掷出移动骰子: ${gameState.moveDiceValue}`, 'info');
+            basketballState.moveDiceValue = Math.floor(Math.random() * 6) + 1;
+            addBasketballLog(`掷出移动骰子: ${basketballState.moveDiceValue}`, 'info');
             
-            // 移动
-            movePlayer(gameState.moveDiceValue);
-            gameState.canMove = false;
+            movePlayer(basketballState.moveDiceValue);
+            basketballState.canMove = false;
             document.getElementById('end-turn-btn').disabled = false;
         }
-        
-        // 移动玩家
+
         function movePlayer(spaces) {
-            gameState.boardPosition = (gameState.boardPosition + spaces) % tileTypes.length;
-            gameState.dayCount++;
+            basketballState.boardPosition = (basketballState.boardPosition + spaces) % tileTypes.length;
+            basketballState.dayCount++;
             
-            if (gameState.dayCount > gameState.totalDays) {
-                endGame('时间到！你的篮球生涯结束了。');
+            if (basketballState.dayCount > basketballState.totalDays) {
+                endBasketballGame('时间到！你的篮球生涯结束了。');
                 return;
             }
             
-            // 每10天支付工资
-            if (gameState.dayCount % 10 === 0) {
+            if (basketballState.dayCount % 10 === 0) {
                 paySalary();
             }
             
-            // 检查是否触发比赛
             checkForGame();
-            
-            // 触发格子事件
             triggerTileEvent();
-            
-            updateUI();
+            updateBasketballUI();
         }
-        
-        // 支付工资
+
         function paySalary() {
             const salary = 100;
-            if (gameState.money >= salary) {
-                gameState.money -= salary;
-                addLog(`支付团队工资: -${salary}💰`, 'warning');
+            if (basketballState.money >= salary) {
+                basketballState.money -= salary;
+                addBasketballLog(`支付团队工资: -${salary}💰`, 'warning');
             } else {
-                endGame('资金链断裂！你破产了，篮球生涯结束。');
+                endBasketballGame('资金链断裂！你破产了，篮球生涯结束。');
             }
         }
-        
-        // 检查是否触发比赛
+
         function checkForGame() {
-            if (gameState.seasonPhase === 'regular') {
-                // 常规赛：每3步一场比赛
-                if (gameState.dayCount % 3 === 0) {
-                    gameState.regularSeasonGames++;
-                    if (gameState.regularSeasonGames <= 41) {
+            if (basketballState.seasonPhase === 'regular') {
+                if (basketballState.dayCount % 3 === 0) {
+                    basketballState.regularSeasonGames++;
+                    if (basketballState.regularSeasonGames <= 41) {
                         setTimeout(() => triggerGameEvent('regular'), 500);
                     } else {
-                        // 常规赛结束，检查是否能进入季后赛
-                        if (gameState.regularSeasonWins >= 25) {
-                            addLog('🎉 常规赛结束！你进入了季后赛！', 'success');
-                            gameState.seasonPhase = 'playoff';
-                            gameState.playoffRound = 1;
+                        if (basketballState.regularSeasonWins >= 25) {
+                            addBasketballLog('🎉 常规赛结束！你进入了季后赛！', 'success');
+                            basketballState.seasonPhase = 'playoff';
+                            basketballState.playoffRound = 1;
                         } else {
-                            endGame('常规赛战绩不佳，无缘季后赛。你的GOAT梦想破灭了。');
+                            endBasketballGame('常规赛战绩不佳，无缘季后赛。你的GOAT梦想破灭了。');
                         }
                     }
                 }
             } else {
-                // 季后赛：每10步一轮系列赛
-                if (gameState.dayCount % 10 === 0 && gameState.playoffRound <= 3) {
+                if (basketballState.dayCount % 10 === 0 && basketballState.playoffRound <= 3) {
                     setTimeout(() => startPlayoffSeries(), 500);
                 }
             }
         }
-        
-        // 触发格子事件
+
         function triggerTileEvent() {
-            const tile = tileTypes[gameState.boardPosition];
+            const tile = tileTypes[basketballState.boardPosition];
             
             switch (tile.type) {
                 case 'train':
                     showTrainModal();
                     break;
-                case 'shop':
-                    showShopModal();
-                    break;
-                case 'business':
-                    triggerBusinessEvent();
-                    break;
-                case 'rest':
-                    triggerRestEvent();
-                    break;
-                case 'game':
-                    // 游戏格子已经被checkForGame处理
-                    break;
-            }
-        }
-        
-        // 训练事件
-        function showTrainModal() {
-            const modal = document.getElementById('game-modal');
-            const title = document.getElementById('modal-title');
-            const content = document.getElementById('modal-content');
-            
-            title.textContent = '🏀 专项训练';
-            content.innerHTML = `
-                <p>选择要训练的篮球技术：</p>
-                <div class="upgrade-options">
-                    <div class="upgrade-option" onclick="trainAttribute('shoot')">
-                        <div style="font-weight: bold; color: #2196f3;">翻身跳投</div>
-                        <div>消耗: 50💰</div>
-                        <div>当前等级: ${gameState.shootLevel}</div>
-                    </div>
-                    <div class="upgrade-option" onclick="trainAttribute('inside')">
-                        <div style="font-weight: bold; color: #4caf50;">突破劈扣</div>
-                        <div>消耗: 50💰</div>
-                        <div>当前等级: ${gameState.insideLevel}</div>
-                    </div>
-                </div>
-                <div class="upgrade-options">
-                    <div class="upgrade-option" onclick="trainAttribute('defense')">
-                        <div style="font-weight: bold; color: #9c27b0;">追身大帽</div>
-                        <div>消耗: 50💰</div>
-                        <div>当前等级: ${gameState.defenseLevel}</div>
-                    </div>
-                    <div class="upgrade-option" onclick="trainAttribute('speed')">
-                        <div style="font-weight: bold; color: #ff9800;">快速反击</div>
-                        <div>消耗: 50💰</div>
-                        <div>当前等级: ${gameState.speedLevel}</div>
-                    </div>
-                </div>
-            `;
-            
-            modal.style.display = 'flex';
-        }
-        
-        // 训练属性
-        function trainAttribute(attribute) {
-            if (gameState.money < 50) {
-                addLog('💰 金钱不足，无法训练！', 'failure');
-                closeModal();
-                return;
-            }
-            
-            if (gameState.stamina < 20) {
-                addLog('💪 体力不足，无法训练！', 'failure');
-                closeModal();
-                return;
-            }
-            
-            gameState.money -= 50;
-            gameState.stamina -= 20;
-            
-            let newDice = 'd6';
-            const level = gameState[`${attribute}Level`];
-            
-            if (level < 5) {
-                gameState[`${attribute}Level`]++;
-                
-                // 升级时添加新骰子
-                if (level === 2) newDice = 'd8';
-                else if (level === 4) newDice = 'd10';
-                
-                gameState[`${attribute}Dice`].push(newDice);
-                addLog(`🎯 ${getAttributeName(attribute)} 提升到 ${level+1} 级！获得新的${getDiceName(newDice)}`, 'success');
-            } else {
-                addLog(`🎯 ${getAttributeName(attribute)} 已是最高等级！`, 'info');
-            }
-            
-            closeModal();
-            updateUI();
-        }
-        
-        // 获取属性名称
-        function getAttributeName(attribute) {
-            const names = {
-                'shoot': '翻身跳投',
-                'inside': '突破劈扣',
-                'defense': '追身大帽',
-                'speed': '快速反击'
-            };
-            return names[attribute];
-        }
-        
-        // 商店事件
-        function showShopModal() {
-            const modal = document.getElementById('game-modal');
-            const title = document.getElementById('modal-title');
-            const content = document.getElementById('modal-content');
-            
-            title.textContent = '🛍️ 体育用品店';
-            content.innerHTML = `
-                <p>可购买的道具：</p>
-                <div class="shop-items">
-                    ${shopItems.map(item => `
-                        <div class="shop-item" onclick="buyItem(${item.id})">
-                            <div class="item-name">${item.name}</div>
-                            <div class="item-cost">价格: ${item.cost}💰</div>
-                            <div class="item-desc">${item.effect}</div>
-                        </div>
-                    `).join('')}
-                </div>
-                <p style="margin-top: 20px; color: #bbbbbb;">你的金钱: ${gameState.money}💰</p>
-            `;
-            
-            modal.style.display = 'flex';
-        }
-        
-        // 购买道具
-        function buyItem(itemId) {
-            const item = shopItems.find(i => i.id === itemId);
-            
-            if (!item) return;
-            
-            if (gameState.money < item.cost) {
-                addLog('💰 金钱不足，无法购买！', 'failure');
-                closeModal();
-                return;
-            }
-            
-            gameState.money -= item.cost;
-            gameState.inventory.push(item.name);
-            
-            addLog(`购买了 ${item.name}！效果: ${item.effect}`, 'success');
-            
-            closeModal();
-            updateUI();
-        }
-        
-        // 商业活动
-        function triggerBusinessEvent() {
-            if (gameState.stamina < 15) {
-                addLog('💪 体力不足，无法进行商业活动！', 'failure');
-                return;
-            }
-            
-            const earnings = 80 + Math.floor(Math.random() * 40); // 80-120
-            gameState.stamina -= 15;
-            gameState.money += earnings;
-            
-            addLog(`💼 商业活动获得 ${earnings}💰，体力-15`, 'info');
-            updateUI();
-        }
-        
-        // 休息
-        function triggerRestEvent() {
-            const recovery = 40 + Math.floor(Math.random() * 20); // 40-60
-            gameState.stamina = Math.min(100, gameState.stamina + recovery);
-            
-            addLog(`💤 休息恢复 ${recovery} 体力`, 'info');
-            updateUI();
-        }
-        
-        // 触发比赛事件
-        function triggerGameEvent(gameType) {
-            const modal = document.getElementById('dice-roll-modal');
-            const title = document.getElementById('dice-modal-title');
-            const content = document.getElementById('dice-modal-content');
-            
-            gameState.currentEvent = gameType;
-            
-            if (gameType === 'regular') {
-                title.textContent = '🏆 常规赛比赛';
-                content.innerHTML = `
-                    <p>第 ${gameState.regularSeasonGames} 场常规赛！</p>
-                    <p>选择你的主要进攻/防守方式：</p>
-                    <div class="upgrade-options">
-                        <div class="upgrade-option" onclick="selectGameAttribute('shoot')">
-                            <div style="font-weight: bold; color: #2196f3;">翻身跳投</div>
-                            <div>骰子数量: ${gameState.shootDice.length}</div>
-                        </div>
-                        <div class="upgrade-option" onclick="selectGameAttribute('inside')">
-                            <div style="font-weight: bold; color: #4caf50;">突破劈扣</div>
-                            <div>骰子数量: ${gameState.insideDice.length}</div>
-                        </div>
-                    </div>
-                    <div class="upgrade-options">
-                        <div class="upgrade-option" onclick="selectGameAttribute('defense')">
-                            <div style="font-weight: bold; color: #9c27b0;">追身大帽</div>
-                            <div>骰子数量: ${gameState.defenseDice.length}</div>
-                        </div>
-                        <div class="upgrade-option" onclick="selectGameAttribute('speed')">
-                            <div style="font-weight: bold; color: #ff9800;">快速反击</div>
-                            <div>骰子数量: ${gameState.speedDice.length}</div>
-                        </div>
-                    </div>
-                `;
-            } else {
-                title.textContent = '🏆 季后赛关键战';
-                content.innerHTML = `
-                    <p>季后赛第 ${gameState.playoffRound} 轮，第 ${gameState.playoffWins + gameState.playoffLosses + 1} 场！</p>
-                    <p>选择你的制胜绝招：</p>
-                    <div class="upgrade-options">
-                        <div class="upgrade-option" onclick="selectGameAttribute('shoot')">
-                            <div style="font-weight: bold; color: #2196f3;">翻身跳投</div>
-                            <div>骰子数量: ${gameState.shootDice.length}</div>
-                        </div>
-                        <div class="upgrade-option" onclick="selectGameAttribute('inside')">
-                            <div style="font-weight: bold; color: #4caf50;">突破劈扣</div>
-                            <div>骰子数量: ${gameState.insideDice.length}</div>
-                        </div>
-                    </div>
-                    <div class="upgrade-options">
-                        <div class="upgrade-option" onclick="selectGameAttribute('defense')">
-                            <div style="font-weight: bold; color: #9c27b0;">追身大帽</div>
-                            <div>骰子数量: ${gameState.defenseDice.length}</div>
-                        </div>
-                        <div class="upgrade-option" onclick="selectGameAttribute('speed')">
-                            <div style="font-weight: bold; color: #ff9800;">快速反击</div>
-                            <div>骰子数量: ${gameState.speedDice.length}</div>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            modal.style.display = 'flex';
-        }
-        
-        // 选择比赛属性
-        function selectGameAttribute(attribute) {
-            gameState.currentAttribute = attribute;
-            
-            // 设置判定值
-            if (gameState.currentEvent === 'regular') {
-                gameState.currentCheckValue = 12 + Math.floor(Math.random() * 7); // 12-18
-            } else {
-                gameState.currentCheckValue = 20 + Math.floor(Math.random() * 6); // 20-25
-            }
-            
-            document.getElementById('dice-modal-content').innerHTML = `
-                    <p>使用 <strong>${getAttributeName(attribute)}</strong> 进行比赛！</p>
-                    <p>需要掷出至少 <strong style="color: #ff9800;">${gameState.currentCheckValue}</strong> 点才能获胜</p>
-                    <p>你有 ${gameState[`${attribute}Dice`].length} 个${getAttributeName(attribute)}骰子</p>
-                `;
-            
-            document.getElementById('dice-roll-btn').style.display = 'block';
-            document.getElementById('dice-roll-result').innerHTML = '';
-            document.getElementById('dice-result-text').textContent = '';
-        }
-        
-        // 开始季后赛系列赛
-        function startPlayoffSeries() {
-            if (gameState.playoffRound > 3) {
-                endGame('🎉 恭喜！你赢得了总冠军，成为了真正的GOAT！');
-                return;
-            }
-            
-            gameState.playoffWins = 0;
-            gameState.playoffLosses = 0;
-            
-            addLog(`🏆 季后赛第 ${gameState.playoffRound} 轮开始！先赢4场者晋级`, 'warning');
-            triggerGameEvent('playoff');
-        }
-        
-        // 投掷骰子判定
-        function rollDiceForCheck() {
-            if (!gameState.currentAttribute) return;
-            
-            const diceArray = gameState[`${gameState.currentAttribute}Dice`];
-            const resultElement = document.getElementById('dice-roll-result');
-            resultElement.innerHTML = '';
-            
-            let total = 0;
-            const rolls = [];
-            
-            // 投掷所有骰子
-            diceArray.forEach(diceType => {
-                let max = 6;
-                if (diceType === 'd4') max = 4;
-                else if (diceType === 'd8') max = 8;
-                else if (diceType === 'd10') max = 10;
-                
-                const roll = Math.floor(Math.random() * max) + 1;
-                total += roll;
-                rolls.push(roll);
-                
-                const diceElement = document.createElement('div');
-                diceElement.className = 'roll-dice';
-                diceElement.textContent = roll;
-                diceElement.title = `${diceType}: ${roll}`;
-                resultElement.appendChild(diceElement);
-            });
-            
-            const resultText = document.getElementById('dice-result-text');
-            const success = total >= gameState.currentCheckValue;
-            
-            if (success) {
-                resultText.innerHTML = `<span style="color: #4caf50;">🎯 投出 ${total} 点，成功！(需要 ${gameState.currentCheckValue} 点)</span>`;
-                handleGameSuccess();
-            } else {
-                resultText.innerHTML = `<span style="color: #f44336;">💥 投出 ${total} 点，失败！(需要 ${gameState.currentCheckValue} 点)</span>`;
-                handleGameFailure();
-            }
-            
-            document.getElementById('dice-roll-btn').style.display = 'none';
-            
-            // 3秒后自动关闭
-            setTimeout(() => {
-                if (gameState.currentEvent === 'playoff') {
-                    updatePlayoffStatus();
-                }
-                closeDiceModal();
-            }, 3000);
-        }
-        
-        // 处理比赛成功
-        function handleGameSuccess() {
-            gameState.stamina -= 25;
-            gameState.gamesPlayed++;
-            
-            if (gameState.currentEvent === 'regular') {
-                gameState.wins++;
-                gameState.regularSeasonWins++;
-                gameState.money += 60;
-                addLog(`🏆 常规赛胜利！获得60💰，胜场: ${gameState.regularSeasonWins}/25`, 'success');
-            } else {
-                gameState.wins++;
-                gameState.playoffWins++;
-                gameState.money += 100;
-                addLog(`🏆 季后赛胜利！${gameState.playoffWins}胜${gameState.playoffLosses}负，获得100💰`, 'success');
-            }
-        }
-        
-        // 处理比赛失败
-        function handleGameFailure() {
-            gameState.stamina -= 25;
-            gameState.gamesPlayed++;
-            
-            if (gameState.currentEvent === 'regular') {
-                addLog(`💥 常规赛失利...胜场: ${gameState.regularSeasonWins}/25`, 'failure');
-            } else {
-                gameState.playoffLosses++;
-                addLog(`💥 季后赛失利...${gameState.playoffWins}胜${gameState.playoffLosses}负`, 'failure');
-            }
-        }
-        
-        // 更新季后赛状态
-        function updatePlayoffStatus() {
-            if (gameState.playoffWins >= 4) {
-                gameState.playoffRound++;
-                addLog(`🎉 晋级季后赛第 ${gameState.playoffRound} 轮！`, 'success');
-            } else if (gameState.playoffLosses >= 4) {
-                endGame(`季后赛第 ${gameState.playoffRound} 轮被淘汰。GOAT之路止步于此。`);
-            }
-        }
-        
-        // 结束回合
-        function endTurn() {
-            // 检查资源
-            if (gameState.stamina <= 0) {
-                endGame('体力耗尽！你因伤退役，篮球生涯结束。');
-                return;
-            }
-            
-            if (gameState.money <= 0) {
-                endGame('资金链断裂！你破产了，篮球生涯结束。');
-                return;
-            }
-            
-            // 重置移动
-            gameState.canMove = true;
-            document.getElementById('end-turn-btn').disabled = true;
-            
-            addLog(`第${gameState.dayCount}天结束`, 'info');
-        }
-        
-        // 结束游戏
-        function endGame(message) {
-            const modal = document.getElementById('game-over-modal');
-            const content = document.getElementById('game-over-content');
-            
-            document.getElementById('game-over-title').textContent = '🏀 生涯结束';
-            content.innerHTML = `
-                <p style="margin: 20px 0; font-size: 1.2em;">${message}</p>
-                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
-                    <p>最终统计:</p>
-                    <p>🏆 总胜场: ${gameState.wins}</p>
-                    <p>💰 最终金钱: ${gameState.money}</p>
-                    <p>⏱️ 生存天数: ${gameState.dayCount}</p>
-                    <p>📈 属性等级: 跳投${gameState.shootLevel} 突破${gameState.insideLevel} 防守${gameState.defenseLevel} 速度${gameState.speedLevel}</p>
-                </div>
-            `;
-            
-            modal.style.display = 'flex';
-        }
-        
-        // 新游戏
-        function newGame() {
-            // 重置游戏状态
-            Object.assign(gameState, {
-                stamina: 100,
-                money: 500,
-                wins: 0,
-                gamesPlayed: 0,
-                shootLevel: 1,
-                insideLevel: 1,
-                defenseLevel: 1,
-                speedLevel: 1,
-                shootDice: ['d6'],
-                insideDice: ['d6'],
-                defenseDice: ['d6'],
-                speedDice: ['d6'],
-                inventory: [],
-                boardPosition: 0,
-                dayCount: 1,
-                seasonPhase: 'regular',
-                regularSeasonGames: 0,
-                regularSeasonWins: 0,
-                playoffSeries: 0,
-                playoffWins: 0,
-                playoffLosses: 0,
-                playoffRound: 0,
-                currentAttribute: null,
-                currentCheckValue: 0,
-                currentEvent: null,
-                moveDiceValue: 0,
-                canMove: true
-            });
-            
-            // 关闭所有模态框
-            closeModal();
-            closeDiceModal();
-            document.getElementById('game-over-modal').style.display = 'none';
-            
-            // 清空日志
-            document.getElementById('event-log').innerHTML = '';
-            
-            // 初始化
-            initGame();
-        }
-        
-        // 关闭模态框
-        function closeModal() {
-            document.getElementById('game-modal').style.display = 'none';
-        }
-        
-        function closeDiceModal() {
-            document.getElementById('dice-roll-modal').style.display = 'none';
-            gameState.currentAttribute = null;
-            gameState.currentCheckValue = 0;
-            updateUI();
-        }
-        
-        // 初始化游戏
-        window.onload = initGame;
-    </script>
-</body>
-</html>
+                case '
