@@ -66,58 +66,7 @@
             color: #ffcc00;
         }
         
-        /* 属性面板 */
-        .attributes-panel {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .section-title {
-            font-size: 16px;
-            color: #ffcc00;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        .attributes-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        .attribute {
-            background: rgba(0, 30, 60, 0.7);
-            border-radius: 8px;
-            padding: 12px;
-            position: relative;
-        }
-        .attr-name {
-            font-size: 13px;
-            color: #fff;
-            margin-bottom: 5px;
-        }
-        .attr-level {
-            font-size: 20px;
-            color: #ffcc00;
-            text-align: center;
-        }
-        .attr-dice {
-            position: absolute;
-            right: 8px;
-            top: 8px;
-            background: #ff6b00;
-            color: white;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        
-        /* 决策面板 */
+        /* 决策面板 - 放在上面 */
         .decision-panel {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 12px;
@@ -177,6 +126,79 @@
         .cost-value { color: #ff6b00; }
         .gain-value { color: #4cd964; }
         
+        /* 属性面板 - 缩小并放在下面 */
+        .attributes-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .section-title {
+            font-size: 16px;
+            color: #ffcc00;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .attributes-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .attribute {
+            background: rgba(0, 30, 60, 0.7);
+            border-radius: 6px;
+            padding: 10px;
+            position: relative;
+        }
+        .attr-name {
+            font-size: 12px;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+        .attr-level {
+            font-size: 16px;
+            color: #ffcc00;
+            margin-bottom: 6px;
+        }
+        .attr-exp {
+            font-size: 10px;
+            color: #aaa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .exp-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            flex: 1;
+            margin-right: 8px;
+            overflow: hidden;
+        }
+        .exp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4cd964, #5ac8fa);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+        .attr-dice {
+            position: absolute;
+            right: 6px;
+            top: 6px;
+            background: #ff6b00;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        
         /* 骰子面板 */
         .dice-panel {
             background: rgba(255, 255, 255, 0.05);
@@ -218,6 +240,44 @@
         }
         .dice-button:hover, .dice-button:active {
             transform: scale(1.05);
+        }
+        
+        /* 比赛面板 */
+        .game-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: none;
+        }
+        .game-container {
+            text-align: center;
+        }
+        .game-title {
+            font-size: 20px;
+            color: #ff3b30;
+            margin-bottom: 10px;
+        }
+        .game-info-text {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+        .game-attr {
+            font-size: 18px;
+            color: #ffcc00;
+            margin-bottom: 20px;
+        }
+        .game-target {
+            font-size: 16px;
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+        .game-result {
+            font-size: 16px;
+            margin: 20px 0;
+            min-height: 24px;
         }
         
         /* 日志面板 */
@@ -329,34 +389,7 @@
         </div>
     </div>
     
-    <!-- 属性面板 -->
-    <div class="attributes-panel">
-        <div class="section-title">球员能力</div>
-        <div class="attributes-grid">
-            <div class="attribute">
-                <div class="attr-name">翻身跳投</div>
-                <div class="attr-level">Lv.<span id="levelJumpShot">1</span></div>
-                <div class="attr-dice" id="diceJumpShot">1D6</div>
-            </div>
-            <div class="attribute">
-                <div class="attr-name">突破劈扣</div>
-                <div class="attr-level">Lv.<span id="levelDrive">1</span></div>
-                <div class="attr-dice" id="diceDrive">1D6</div>
-            </div>
-            <div class="attribute">
-                <div class="attr-name">追身大帽</div>
-                <div class="attr-level">Lv.<span id="levelBlock">1</span></div>
-                <div class="attr-dice" id="diceBlock">1D6</div>
-            </div>
-            <div class="attribute">
-                <div class="attr-name">接球快攻</div>
-                <div class="attr-level">Lv.<span id="levelFastBreak">1</span></div>
-                <div class="attr-dice" id="diceFastBreak">1D6</div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- 决策面板 -->
+    <!-- 决策面板 - 放在上面 -->
     <div class="decision-panel" id="decisionPanel">
         <div class="decision-title">今日安排</div>
         <div class="decision-subtitle">选择一个行动</div>
@@ -377,13 +410,64 @@
                 <div class="option-type business-type">商业</div>
                 <div class="option-name">商业活动</div>
                 <div class="option-cost">消耗: <span id="businessCost" class="cost-value">20体</span></div>
-                <div class="option-gain">获得: <span id="businessGain" class="gain-value">500金</span></div>
+                <div class="option-gain">获得: <span id="businessGain" class="gain-value">3500金</span></div>
             </div>
             <div class="option" onclick="selectDecision('rest')">
                 <div class="option-type rest-type">休息</div>
                 <div class="option-name">休息恢复</div>
                 <div class="option-cost">消耗: <span id="restCost" class="cost-value">200金</span></div>
-                <div class="option-gain">恢复: <span id="restGain" class="gain-value">30体</span></div>
+                <div class="option-gain">恢复: <span id="restGain" class="gain-value">100体</span></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 属性面板 - 缩小并放在下面 -->
+    <div class="attributes-panel">
+        <div class="section-title">球员能力</div>
+        <div class="attributes-grid">
+            <div class="attribute">
+                <div class="attr-name">翻身跳投</div>
+                <div class="attr-level">Lv.<span id="levelJumpShot">1</span></div>
+                <div class="attr-exp">
+                    <div class="exp-bar">
+                        <div id="expBarJumpShot" class="exp-fill" style="width: 0%"></div>
+                    </div>
+                    <span id="expTextJumpShot">0/50</span>
+                </div>
+                <div class="attr-dice" id="diceJumpShot">1D6</div>
+            </div>
+            <div class="attribute">
+                <div class="attr-name">突破劈扣</div>
+                <div class="attr-level">Lv.<span id="levelDrive">1</span></div>
+                <div class="attr-exp">
+                    <div class="exp-bar">
+                        <div id="expBarDrive" class="exp-fill" style="width: 0%"></div>
+                    </div>
+                    <span id="expTextDrive">0/50</span>
+                </div>
+                <div class="attr-dice" id="diceDrive">1D6</div>
+            </div>
+            <div class="attribute">
+                <div class="attr-name">追身大帽</div>
+                <div class="attr-level">Lv.<span id="levelBlock">1</span></div>
+                <div class="attr-exp">
+                    <div class="exp-bar">
+                        <div id="expBarBlock" class="exp-fill" style="width: 0%"></div>
+                    </div>
+                    <span id="expTextBlock">0/50</span>
+                </div>
+                <div class="attr-dice" id="diceBlock">1D6</div>
+            </div>
+            <div class="attribute">
+                <div class="attr-name">接球快攻</div>
+                <div class="attr-level">Lv.<span id="levelFastBreak">1</span></div>
+                <div class="attr-exp">
+                    <div class="exp-bar">
+                        <div id="expBarFastBreak" class="exp-fill" style="width: 0%"></div>
+                    </div>
+                    <span id="expTextFastBreak">0/50</span>
+                </div>
+                <div class="attr-dice" id="diceFastBreak">1D6</div>
             </div>
         </div>
     </div>
@@ -395,6 +479,19 @@
             <div class="dice-value" id="diceValue">?</div>
             <div class="target-value" id="targetInfo">目标值: 4</div>
             <button class="dice-button" onclick="rollDice()">掷骰子</button>
+        </div>
+    </div>
+    
+    <!-- 比赛面板 -->
+    <div class="game-panel" id="gamePanel">
+        <div class="game-container">
+            <div class="game-title">第 <span id="gameNumber">1</span> 场常规赛</div>
+            <div class="game-info-text">请掷骰子进行比赛判定</div>
+            <div class="game-attr" id="gameAttrName">翻身跳投</div>
+            <div class="game-target" id="gameTargetInfo">目标值: 3</div>
+            <div class="dice-value" id="gameDiceValue">?</div>
+            <div class="game-result" id="gameResult"></div>
+            <button class="dice-button" onclick="rollGameDice()">掷骰比赛</button>
         </div>
     </div>
     
@@ -430,22 +527,49 @@
             gameTarget: 3,      // 比赛目标值
             
             attributes: {
-                jumpShot: { name: "翻身跳投", level: 1, diceCount: 1 },
-                drive: { name: "突破劈扣", level: 1, diceCount: 1 },
-                block: { name: "追身大帽", level: 1, diceCount: 1 },
-                fastBreak: { name: "接球快攻", level: 1, diceCount: 1 }
+                jumpShot: { 
+                    name: "翻身跳投", 
+                    level: 1, 
+                    diceCount: 1,
+                    exp: 0,
+                    expToNextLevel: 50  // 修订1：降低升级所需经验值
+                },
+                drive: { 
+                    name: "突破劈扣", 
+                    level: 1, 
+                    diceCount: 1,
+                    exp: 0,
+                    expToNextLevel: 50
+                },
+                block: { 
+                    name: "追身大帽", 
+                    level: 1, 
+                    diceCount: 1,
+                    exp: 0,
+                    expToNextLevel: 50
+                },
+                fastBreak: { 
+                    name: "接球快攻", 
+                    level: 1, 
+                    diceCount: 1,
+                    exp: 0,
+                    expToNextLevel: 50
+                }
             },
             
             // 今日决策选项
             decisions: {
                 trainA: { type: "train", attr: "jumpShot", costMoney: 300, costStamina: 20 },
                 trainB: { type: "train", attr: "drive", costMoney: 300, costStamina: 20 },
-                business: { type: "business", costStamina: 20, gainMoney: 500 },
-                rest: { type: "rest", costMoney: 200, gainStamina: 30 }
+                business: { type: "business", costStamina: 20, gainMoney: 3500 },  // 修订3：提高商业活动收益
+                rest: { type: "rest", costMoney: 200, gainStamina: 100 }  // 修订2：休息回满体力
             },
             
             // 当前选择的决策
-            selectedDecision: null
+            selectedDecision: null,
+            
+            // 当前比赛信息
+            currentGameAttr: null
         };
 
         // 属性名映射
@@ -495,9 +619,9 @@
                 costStamina: costStaminaB
             };
             
-            // 商业选项
+            // 商业选项 - 固定收益3500
             const costStaminaBus = 20 + Math.floor(Math.random() * 10);
-            const gainMoneyBus = 400 + Math.floor(Math.random() * 200);
+            const gainMoneyBus = 3500;  // 修订3：固定3500收益
             
             gameState.decisions.business = {
                 type: "business",
@@ -505,9 +629,9 @@
                 gainMoney: gainMoneyBus
             };
             
-            // 休息选项
+            // 休息选项 - 回满体力
             const costMoneyRest = 150 + Math.floor(Math.random() * 100);
-            const gainStaminaRest = 25 + Math.floor(Math.random() * 10);
+            const gainStaminaRest = 100;  // 修订2：固定回满体力
             
             gameState.decisions.rest = {
                 type: "rest",
@@ -567,9 +691,10 @@
             gameState.selectedDecision = { id: decisionId, ...decision };
             
             if (decision.type === "train") {
-                // 显示骰子面板
+                // 显示训练骰子面板
                 document.getElementById('decisionPanel').style.display = 'none';
                 document.getElementById('dicePanel').style.display = 'block';
+                document.getElementById('gamePanel').style.display = 'none';
                 
                 const attrName = attrNames[decision.attr];
                 document.getElementById('diceResultDesc').textContent = `${attrName}训练`;
@@ -581,7 +706,7 @@
             }
         }
 
-        // ===== 骰子系统 =====
+        // ===== 训练骰子系统 =====
         function rollDice() {
             if (!gameState.selectedDecision) return;
             
@@ -624,14 +749,16 @@
                 addLog(`${attrNames[decision.attr]}训练失败。掷出${diceResult}，仅获${expGain}经验，额外消耗${extraCost}体力。`, "train");
             }
             
-            // 属性升级逻辑
-            const level = attr.level;
-            const expNeeded = level * 100;
+            // 增加经验值
+            attr.exp += expGain;
             
-            // 简单经验系统：每100经验升一级
-            if (Math.random() < 0.3) { // 30%几率升级
+            // 检查升级
+            if (attr.exp >= attr.expToNextLevel) {
                 attr.level++;
                 attr.diceCount++; // 升级增加一个骰子
+                attr.exp -= attr.expToNextLevel;
+                // 修订1：降低经验增长速度，但保持可升级
+                attr.expToNextLevel = Math.floor(attr.expToNextLevel * 1.3); // 从1.5降到1.3
                 addLog(`🎉 ${attrNames[decision.attr]} 提升到 ${attr.level} 级！获得一个骰子。`, "important");
             }
             
@@ -646,14 +773,15 @@
             switch (decision.type) {
                 case "business":
                     gameState.stamina -= decision.costStamina;
-                    gameState.money += decision.gainMoney;
+                    gameState.money += decision.gainMoney;  // 修订3：固定3500收益
                     addLog(`商业活动完成，消耗${decision.costStamina}体力，获得${decision.gainMoney}金钱。`, "business");
                     break;
                     
                 case "rest":
                     gameState.money -= decision.costMoney;
-                    gameState.stamina = Math.min(gameState.maxStamina, gameState.stamina + decision.gainStamina);
-                    addLog(`休息恢复，消耗${decision.costMoney}金钱，恢复${decision.gainStamina}体力。`, "rest");
+                    // 修订2：休息回满体力
+                    gameState.stamina = gameState.maxStamina;  // 直接回满
+                    addLog(`休息恢复，消耗${decision.costMoney}金钱，体力恢复到${gameState.maxStamina}。`, "rest");
                     break;
             }
             
@@ -673,56 +801,71 @@
             
             // 检查是否比赛日
             if (gameState.day % 3 === 0) {
-                setTimeout(playRegularGame, 500);
+                startRegularGame();
             } else {
                 // 进入下一天
                 nextDay();
             }
         }
 
-        // 进入下一天
-        function nextDay() {
-            gameState.day++;
-            gameState.selectedDecision = null;
-            
-            // 显示决策面板
-            document.getElementById('decisionPanel').style.display = 'block';
-            document.getElementById('dicePanel').style.display = 'none';
-            
-            // 生成新决策
-            generateDailyDecisions();
-            updateUI();
-            
-            addLog(`进入第${gameState.day}天。`, "important");
-            
-            // 检查游戏结束条件
-            checkGameOver();
-        }
-
-        // ===== 常规赛 =====
-        function playRegularGame() {
+        // 开始常规赛
+        function startRegularGame() {
             gameState.gamesPlayed++;
             
             // 随机选择比赛属性
             const allAttrs = ["jumpShot", "drive", "block", "fastBreak"];
-            const gameAttr = allAttrs[Math.floor(Math.random() * 4)];
-            const attr = gameState.attributes[gameAttr];
-            const attrName = attrNames[gameAttr];
+            gameState.currentGameAttr = allAttrs[Math.floor(Math.random() * 4)];
+            const attrName = attrNames[gameState.currentGameAttr];
             
-            // 掷比赛骰子
+            // 显示比赛面板
+            document.getElementById('decisionPanel').style.display = 'none';
+            document.getElementById('dicePanel').style.display = 'none';
+            document.getElementById('gamePanel').style.display = 'block';
+            
+            document.getElementById('gameNumber').textContent = gameState.gamesPlayed;
+            document.getElementById('gameAttrName').textContent = attrName;
+            document.getElementById('gameTargetInfo').textContent = `目标值: ${gameState.gameTarget}`;
+            document.getElementById('gameDiceValue').textContent = '?';
+            document.getElementById('gameResult').innerHTML = '';
+            
+            addLog(`第${gameState.gamesPlayed}场常规赛开始！使用${attrName}进行比赛。`, "important");
+        }
+
+        // 掷比赛骰子
+        function rollGameDice() {
+            if (!gameState.currentGameAttr) return;
+            
+            const attr = gameState.attributes[gameState.currentGameAttr];
+            const attrName = attrNames[gameState.currentGameAttr];
+            
+            // 掷骰子
             let gameResult = 0;
+            let diceValues = [];
+            
             for (let i = 0; i < attr.diceCount; i++) {
-                gameResult += Math.floor(Math.random() * 6) + 1;
+                const roll = Math.floor(Math.random() * 6) + 1;
+                diceValues.push(roll);
+                gameResult += roll;
             }
             
             const isWin = gameResult >= gameState.gameTarget;
             const staminaCost = 25;
             gameState.stamina -= staminaCost;
             
+            // 显示结果
+            document.getElementById('gameDiceValue').textContent = gameResult;
+            if (diceValues.length > 1) {
+                document.getElementById('gameDiceValue').textContent += ` (${diceValues.join('+')})`;
+            }
+            
             if (isWin) {
                 gameState.wins++;
+                document.getElementById('gameResult').innerHTML = 
+                    `<span style="color: #4cd964;">比赛胜利！掷出${gameResult}≥${gameState.gameTarget}</span>`;
                 addLog(`第${gameState.gamesPlayed}场常规赛胜利！${attrName}掷出${gameResult}≥${gameState.gameTarget}，获得1胜场。`, "game");
             } else {
+                document.getElementById('gameResult').innerHTML = 
+                    `<span style="color: #ff3b30;">比赛失利。掷出${gameResult}<${gameState.gameTarget}</span>`;
                 addLog(`第${gameState.gamesPlayed}场常规赛失利。${attrName}掷出${gameResult}<${gameState.gameTarget}。`, "game");
             }
             
@@ -734,19 +877,41 @@
             // 更新界面
             updateUI();
             
-            // 检查常规赛是否结束
-            if (gameState.gamesPlayed >= 12) {
-                setTimeout(() => {
+            // 1.5秒后继续
+            setTimeout(() => {
+                // 检查常规赛是否结束
+                if (gameState.gamesPlayed >= 12) {
                     if (gameState.wins >= 6) { // 需要至少6胜
                         endGame(true, `恭喜！常规赛结束，获得${gameState.wins}胜，获得季后赛资格！`);
                     } else {
                         endGame(false, `常规赛结束，获得${gameState.wins}胜，未达到6胜，无缘季后赛。`);
                     }
-                }, 1000);
-            } else {
-                // 比赛后进入下一天
-                setTimeout(nextDay, 1500);
-            }
+                } else {
+                    // 进入下一天
+                    nextDay();
+                }
+            }, 1500);
+        }
+
+        // 进入下一天
+        function nextDay() {
+            gameState.day++;
+            gameState.selectedDecision = null;
+            gameState.currentGameAttr = null;
+            
+            // 显示决策面板
+            document.getElementById('decisionPanel').style.display = 'block';
+            document.getElementById('dicePanel').style.display = 'none';
+            document.getElementById('gamePanel').style.display = 'none';
+            
+            // 生成新决策
+            generateDailyDecisions();
+            updateUI();
+            
+            addLog(`进入第${gameState.day}天。`, "important");
+            
+            // 检查游戏结束条件
+            checkGameOver();
         }
 
         // ===== 界面更新 =====
@@ -763,10 +928,24 @@
             // 更新属性
             for (const attrKey in gameState.attributes) {
                 const attr = gameState.attributes[attrKey];
+                
+                // 等级
                 document.getElementById(`level${attrKey.charAt(0).toUpperCase() + attrKey.slice(1)}`).textContent = attr.level;
+                
+                // 骰子数量
                 document.getElementById(`dice${attrKey.charAt(0).toUpperCase() + attrKey.slice(1)}`).textContent = 
                     `${attr.diceCount}D6`;
+                
+                // 经验条
+                const expPercent = Math.min(100, (attr.exp / attr.expToNextLevel) * 100);
+                document.getElementById(`expBar${attrKey.charAt(0).toUpperCase() + attrKey.slice(1)}`).style.width = 
+                    `${expPercent}%`;
+                document.getElementById(`expText${attrKey.charAt(0).toUpperCase() + attrKey.slice(1)}`).textContent = 
+                    `${attr.exp}/${attr.expToNextLevel}`;
             }
+            
+            // 检查游戏结束条件
+            checkGameOver();
         }
 
         // 添加日志
@@ -831,18 +1010,22 @@
             gameState.trainingTarget = 4;
             gameState.gameTarget = 3;
             gameState.selectedDecision = null;
+            gameState.currentGameAttr = null;
             
             // 重置属性
             for (const attrKey in gameState.attributes) {
                 const attr = gameState.attributes[attrKey];
                 attr.level = 1;
                 attr.diceCount = 1;
+                attr.exp = 0;
+                attr.expToNextLevel = 50;  // 修订1：保持降低后的经验值
             }
             
             // 重置界面
             document.getElementById('gameOverModal').style.display = 'none';
             document.getElementById('decisionPanel').style.display = 'block';
             document.getElementById('dicePanel').style.display = 'none';
+            document.getElementById('gamePanel').style.display = 'none';
             
             // 清空日志
             const logEl = document.getElementById('eventLog');
