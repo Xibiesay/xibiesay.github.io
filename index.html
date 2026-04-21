@@ -432,7 +432,7 @@
                     <div class="exp-bar">
                         <div id="expBarJumpShot" class="exp-fill" style="width: 0%"></div>
                     </div>
-                    <span id="expTextJumpShot">0/50</span>
+                    <span id="expTextJumpShot">0/20</span>
                 </div>
                 <div class="attr-dice" id="diceJumpShot">1D6</div>
             </div>
@@ -443,7 +443,7 @@
                     <div class="exp-bar">
                         <div id="expBarDrive" class="exp-fill" style="width: 0%"></div>
                     </div>
-                    <span id="expTextDrive">0/50</span>
+                    <span id="expTextDrive">0/20</span>
                 </div>
                 <div class="attr-dice" id="diceDrive">1D6</div>
             </div>
@@ -454,7 +454,7 @@
                     <div class="exp-bar">
                         <div id="expBarBlock" class="exp-fill" style="width: 0%"></div>
                     </div>
-                    <span id="expTextBlock">0/50</span>
+                    <span id="expTextBlock">0/20</span>
                 </div>
                 <div class="attr-dice" id="diceBlock">1D6</div>
             </div>
@@ -465,7 +465,7 @@
                     <div class="exp-bar">
                         <div id="expBarFastBreak" class="exp-fill" style="width: 0%"></div>
                     </div>
-                    <span id="expTextFastBreak">0/50</span>
+                    <span id="expTextFastBreak">0/20</span>
                 </div>
                 <div class="attr-dice" id="diceFastBreak">1D6</div>
             </div>
@@ -532,28 +532,28 @@
                     level: 1, 
                     diceCount: 1,
                     exp: 0,
-                    expToNextLevel: 50  // 修订1：降低升级所需经验值
+                    expToNextLevel: 20  // 修订：降低升级所需经验值，1级升2级
                 },
                 drive: { 
                     name: "突破劈扣", 
                     level: 1, 
                     diceCount: 1,
                     exp: 0,
-                    expToNextLevel: 50
+                    expToNextLevel: 20
                 },
                 block: { 
                     name: "追身大帽", 
                     level: 1, 
                     diceCount: 1,
                     exp: 0,
-                    expToNextLevel: 50
+                    expToNextLevel: 20
                 },
                 fastBreak: { 
                     name: "接球快攻", 
                     level: 1, 
                     diceCount: 1,
                     exp: 0,
-                    expToNextLevel: 50
+                    expToNextLevel: 20
                 }
             },
             
@@ -561,8 +561,8 @@
             decisions: {
                 trainA: { type: "train", attr: "jumpShot", costMoney: 300, costStamina: 20 },
                 trainB: { type: "train", attr: "drive", costMoney: 300, costStamina: 20 },
-                business: { type: "business", costStamina: 20, gainMoney: 3500 },  // 修订3：提高商业活动收益
-                rest: { type: "rest", costMoney: 200, gainStamina: 100 }  // 修订2：休息回满体力
+                business: { type: "business", costStamina: 20, gainMoney: 3500 },
+                rest: { type: "rest", costMoney: 200, gainStamina: 100 }
             },
             
             // 当前选择的决策
@@ -579,6 +579,20 @@
             block: "追身大帽",
             fastBreak: "接球快攻"
         };
+
+        // 获取下一级所需经验值
+        function getExpForNextLevel(currentLevel) {
+            switch(currentLevel) {
+                case 1: // 1级升2级
+                    return 20;  // 训练1-2次（成功30经验/次，失败10经验/次）
+                case 2: // 2级升3级
+                    return 40;  // 训练2-3次
+                case 3: // 3级升4级
+                    return 100; // 训练5次
+                default: // 4级以上
+                    return Math.floor(100 + (currentLevel - 3) * 30); // 每级增加30经验
+            }
+        }
 
         // ===== 游戏初始化 =====
         function initGame() {
@@ -621,7 +635,7 @@
             
             // 商业选项 - 固定收益3500
             const costStaminaBus = 20 + Math.floor(Math.random() * 10);
-            const gainMoneyBus = 3500;  // 修订3：固定3500收益
+            const gainMoneyBus = 3500;
             
             gameState.decisions.business = {
                 type: "business",
@@ -631,7 +645,7 @@
             
             // 休息选项 - 回满体力
             const costMoneyRest = 150 + Math.floor(Math.random() * 100);
-            const gainStaminaRest = 100;  // 修订2：固定回满体力
+            const gainStaminaRest = 100;
             
             gameState.decisions.rest = {
                 type: "rest",
@@ -757,8 +771,8 @@
                 attr.level++;
                 attr.diceCount++; // 升级增加一个骰子
                 attr.exp -= attr.expToNextLevel;
-                // 修订1：降低经验增长速度，但保持可升级
-                attr.expToNextLevel = Math.floor(attr.expToNextLevel * 1.3); // 从1.5降到1.3
+                // 计算下一级所需经验
+                attr.expToNextLevel = getExpForNextLevel(attr.level);
                 addLog(`🎉 ${attrNames[decision.attr]} 提升到 ${attr.level} 级！获得一个骰子。`, "important");
             }
             
@@ -773,14 +787,13 @@
             switch (decision.type) {
                 case "business":
                     gameState.stamina -= decision.costStamina;
-                    gameState.money += decision.gainMoney;  // 修订3：固定3500收益
+                    gameState.money += decision.gainMoney;
                     addLog(`商业活动完成，消耗${decision.costStamina}体力，获得${decision.gainMoney}金钱。`, "business");
                     break;
                     
                 case "rest":
                     gameState.money -= decision.costMoney;
-                    // 修订2：休息回满体力
-                    gameState.stamina = gameState.maxStamina;  // 直接回满
+                    gameState.stamina = gameState.maxStamina;
                     addLog(`休息恢复，消耗${decision.costMoney}金钱，体力恢复到${gameState.maxStamina}。`, "rest");
                     break;
             }
@@ -881,7 +894,7 @@
             setTimeout(() => {
                 // 检查常规赛是否结束
                 if (gameState.gamesPlayed >= 12) {
-                    if (gameState.wins >= 6) { // 需要至少6胜
+                    if (gameState.wins >= 6) {
                         endGame(true, `恭喜！常规赛结束，获得${gameState.wins}胜，获得季后赛资格！`);
                     } else {
                         endGame(false, `常规赛结束，获得${gameState.wins}胜，未达到6胜，无缘季后赛。`);
@@ -1018,7 +1031,7 @@
                 attr.level = 1;
                 attr.diceCount = 1;
                 attr.exp = 0;
-                attr.expToNextLevel = 50;  // 修订1：保持降低后的经验值
+                attr.expToNextLevel = 20;  // 修订：保持降低后的初始经验值
             }
             
             // 重置界面
