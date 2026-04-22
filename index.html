@@ -586,9 +586,10 @@ body{
 // ════════════════════════════════════════════
 const REG_GAMES    = 20;
 const WINS_NEEDED  = 12;
-const GAME_EVERY   = 3;   // 每3天一场常规赛
 const PO_EVERY     = 10;  // 每10天一场季后赛
-const BASE_TARGET  = 4;   // 常规赛初始判定值（每场+1）
+
+// 修订1：定义具体的常规赛天数
+const REGULAR_GAME_DAYS = [1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34, 37, 40, 43, 46, 49, 52, 55, 58];
 
 const ATTR_KEYS = ['jumpShot','drive','block','fastBreak'];
 const ATTR_NAMES = {jumpShot:'翻身跳投',drive:'突破劈扣',block:'追身大帽',fastBreak:'接球快攻'};
@@ -642,7 +643,7 @@ function generateDecisions(){
 
 function updateDecisionUI(){
   const d=S.decisions;
-  const tgt=BASE_TARGET+S.gamesPlayed;
+  const tgt=3+Math.floor((S.gamesPlayed+1)/2); // 修订3：每触发2次+1
   document.getElementById('tA-name').textContent = ATTR_NAMES[d.trainA.attr];
   document.getElementById('tA-cost').textContent = `消耗 ${d.trainA.costMoney}金 + ${d.trainA.costStam}体`;
   document.getElementById('tA-gain').textContent = `掷骰≥${tgt} 得25经验`;
@@ -663,11 +664,19 @@ function updateGameDayCountdown(){
   const typeEl = document.getElementById('next-game-type');
   
   if(S.season === 'regular'){
-    // 常规赛倒计时
-    const daysToGame = (GAME_EVERY - (S.day % GAME_EVERY)) % GAME_EVERY || GAME_EVERY;
-    countdownEl.textContent = daysToGame + '天';
-    costEl.textContent = '25体力';
-    typeEl.textContent = '下一场：常规赛';
+    // 修订2：计算距离下一个常规赛的天数
+    const nextGameDay = getNextRegularGameDay();
+    if(nextGameDay === null){
+      // 所有常规赛都打完了
+      countdownEl.textContent = '常规赛结束';
+      costEl.textContent = '25体力';
+      typeEl.textContent = '等待季后赛资格';
+    } else {
+      const daysToGame = nextGameDay - S.day;
+      countdownEl.textContent = daysToGame + '天';
+      costEl.textContent = '25体力';
+      typeEl.textContent = '下一场：常规赛';
+    }
   }else{
     // 季后赛倒计时
     const daysToGame = (PO_EVERY - (S.day % PO_EVERY)) % PO_EVERY || PO_EVERY;
@@ -676,6 +685,22 @@ function updateGameDayCountdown(){
     const roundName = PO_ROUNDS[S.playoff.round-1]?.name || '季后赛';
     typeEl.textContent = '下一场：' + roundName;
   }
+}
+
+// 修订2：获取下一个常规赛比赛日
+function getNextRegularGameDay(){
+  // 从已设定的常规赛天数中找到下一个比赛日
+  for(let i = 0; i < REGULAR_GAME_DAYS.length; i++){
+    if(REGULAR_GAME_DAYS[i] > S.day){
+      return REGULAR_GAME_DAYS[i];
+    }
+  }
+  return null; // 没有更多常规赛
+}
+
+// 修订2：检查当前是否是常规赛比赛日
+function isRegularGameDay(){
+  return REGULAR_GAME_DAYS.includes(S.day) && S.gamesPlayed < REG_GAMES;
 }
 
 // ════════════════════════════════════════════
@@ -713,7 +738,7 @@ function selectAction(id){
 // 训练骰子
 // ════════════════════════════════════════════
 function showTrainPanel(attr){
-  const tgt=BASE_TARGET+S.gamesPlayed;
+  const tgt=3+Math.floor((S.gamesPlayed+1)/2); // 修订3：每触发2次+1
   const pool=S.attrs[attr].pool;
   showPanel('trainPanel');
   document.getElementById('tr-title').textContent=ATTR_NAMES[attr]+'训练';
@@ -728,7 +753,7 @@ function showTrainPanel(attr){
 function rollTrainDice(){
   const attr=S.currentAttr;
   const pool=S.attrs[attr].pool;
-  const tgt=BASE_TARGET+S.gamesPlayed;
+  const tgt=3+Math.floor((S.gamesPlayed+1)/2); // 修订3：每触发2次+1
   doRoll('tr-dice',pool,tgt,(rolls,total,pass)=>{
     document.getElementById('tr-total').textContent='合计: '+total;
     document.getElementById('tr-vs').textContent=`需要 ≥ ${tgt}`;
@@ -761,18 +786,24 @@ function finishAction(){
   updateUI();
   checkGameOver();
   if(S.season==='regular'){
-    if(S.day%GAME_EVERY===0 && S.gamesPlayed<REG_GAMES){
+    // 修订2：使用新的比赛日检查逻辑
+    if(isRegularGameDay() && S.gamesPlayed < REG_GAMES){
       // 显示参赛确认弹窗
       showGameConfirmModal();
-    } else if(S.gamesPlayed>=REG_GAMES){
-      if(S.wins>=WINS_NEEDED) startPlayoffs();
+    } else if(S.gamesPlayed >= REG_GAMES){
+      if(S.wins >= WINS_NEEDED) startPlayoffs();
       else endGame(false,`常规赛结束，获得${S.wins}胜，未达到${WINS_NEEDED}胜，无缘季后赛。`);
-    } else nextDay();
+    } else {
+      nextDay();
+    }
   } else {
-    if(S.day%PO_EVERY===0){
+    // 季后赛阶段
+    if(S.day % PO_EVERY === 0){
       // 季后赛比赛日确认
       showGameConfirmModal();
-    } else nextDay();
+    } else {
+      nextDay();
+    }
   }
 }
 
@@ -788,7 +819,7 @@ function showGameConfirmModal(){
   
   if(S.season === 'regular'){
     titleEl.textContent = '常规赛确认';
-    infoEl.textContent = `第${S.gamesPlayed+1}场常规赛`;
+    infoEl.textContent = `第${S.gamesPlayed+1}场常规赛（第${S.day}天）`;
     costEl.textContent = '25体力';
   } else {
     const roundName = PO_ROUNDS[S.playoff.round-1]?.name || '季后赛';
@@ -862,7 +893,7 @@ function proceedToRegularGame(){
   S.gamesPlayed++;
   S.currentAttr=ATTR_KEYS[Math.floor(Math.random()*4)];
   const attr=S.currentAttr;
-  const tgt=BASE_TARGET+S.gamesPlayed; // +1 per game
+  const tgt=3+Math.floor((S.gamesPlayed)/2); // 修订3：每触发2次+1
   const pool=S.attrs[attr].pool;
   showPanel('gamePanel');
   document.getElementById('gm-num').textContent=S.gamesPlayed;
@@ -873,7 +904,7 @@ function proceedToRegularGame(){
   document.getElementById('btn-roll-game').style.display='block';
   document.getElementById('btn-game-next').style.display='none';
   buildSpinDice('gm-dice',pool.length);
-  addLog(`🏀 第${S.gamesPlayed}场常规赛开始！本场使用【${ATTR_NAMES[attr]}】，目标≥${tgt}。`,'g');
+  addLog(`🏀 第${S.gamesPlayed}场常规赛（第${S.day}天）开始！本场使用【${ATTR_NAMES[attr]}】，目标≥${tgt}。`,'g');
 }
 
 function proceedToPlayoffGame(){
@@ -902,7 +933,7 @@ function proceedToPlayoffGame(){
 function rollGameDice(){
   const attr=S.currentAttr;
   const pool=S.attrs[attr].pool;
-  const tgt=BASE_TARGET+S.gamesPlayed;
+  const tgt=3+Math.floor((S.gamesPlayed)/2); // 修订3：每触发2次+1
   doRoll('gm-dice',pool,tgt,(rolls,total,pass)=>{
     document.getElementById('gm-total').textContent='合计: '+total;
     document.getElementById('gm-vs').textContent=`需要 ≥ ${tgt}`;
@@ -927,10 +958,12 @@ function rollGameDice(){
 
 function afterGame(){
   checkGameOver();
-  if(S.gamesPlayed>=REG_GAMES){
-    if(S.wins>=WINS_NEEDED) startPlayoffs();
+  if(S.gamesPlayed >= REG_GAMES){
+    if(S.wins >= WINS_NEEDED) startPlayoffs();
     else endGame(false,`常规赛结束，获得${S.wins}胜，未达到${WINS_NEEDED}胜，无缘季后赛。`);
-  } else nextDay();
+  } else {
+    nextDay();
+  }
 }
 
 // ════════════════════════════════════════════
@@ -1166,6 +1199,8 @@ function restartGame(){
   showPanel('decisionPanel');
   updateUI();
 }
+
+ 
 
 // ════════════════════════════════════════════
 // 日志
