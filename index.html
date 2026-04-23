@@ -114,10 +114,9 @@ body{
   inset:-2px;
   border-radius:12px;
   background:conic-gradient(from 0deg,
-    transparent 0%,transparent 52%,
-    rgba(249,115,22,.08) 62%,rgba(249,115,22,.35) 72%,
-    rgba(251,191,36,.85) 83%,#f97316 88%,
-    rgba(249,115,22,.4) 93%,transparent 100%
+    transparent 0%,transparent 96%,
+    rgba(249,115,22,.5) 97%,#fbbf24 97.8%,
+    rgba(249,115,22,.5) 98.6%,transparent 100%
   );
   z-index:-1;
   animation:orbit-glow 2.8s linear infinite;
@@ -647,6 +646,15 @@ body{
   </div>
 </div>
 
+<!-- 常规赛结束汇报弹窗 -->
+<div class="modal" id="regularSummaryModal">
+  <div class="modal-box">
+    <div class="modal-title">🏀 常规赛结束！</div>
+    <div class="modal-msg" id="rs-summary-msg"></div>
+    <button class="modal-btn" onclick="enterPlayoffs()">进入季后赛 🏆</button>
+  </div>
+</div>
+
 <!-- 游戏结束弹窗 -->
 <div class="modal" id="endModal">
   <div class="modal-box">
@@ -719,7 +727,7 @@ function generateDecisions(){
 
 function updateDecisionUI(){
   const d=S.decisions;
-  const tgt=3+Math.floor((S.gamesPlayed+1)/2); // 修订3：每触发2次+1
+  const tgt=3+S.gamesPlayed;
   document.getElementById('tA-name').textContent = ATTR_NAMES[d.trainA.attr];
   document.getElementById('tA-cost').textContent = `消耗 ${d.trainA.costMoney}金 + ${d.trainA.costStam}体`;
   document.getElementById('tA-gain').textContent = `掷骰≥${tgt} 得25经验`;
@@ -781,7 +789,7 @@ function selectAction(id){
 // 训练骰子
 // ════════════════════════════════════════════
 function showTrainPanel(attr){
-  const tgt=3+Math.floor((S.gamesPlayed+1)/2); // 修订3：每触发2次+1
+  const tgt=3+S.gamesPlayed;
   const pool=S.attrs[attr].pool;
   showPanel('trainPanel');
   document.getElementById('tr-title').textContent=ATTR_NAMES[attr]+'训练';
@@ -796,7 +804,7 @@ function showTrainPanel(attr){
 function rollTrainDice(){
   const attr=S.currentAttr;
   const pool=S.attrs[attr].pool;
-  const tgt=3+Math.floor((S.gamesPlayed+1)/2); // 修订3：每触发2次+1
+  const tgt=3+S.gamesPlayed;
   doRoll('tr-dice',pool,tgt,(rolls,total,pass)=>{
     document.getElementById('tr-total').textContent='合计: '+total;
     document.getElementById('tr-vs').textContent=`需要 ≥ ${tgt}`;
@@ -890,7 +898,7 @@ function skipGame(){
     updateUI();
     
     if(S.gamesPlayed >= REG_GAMES){
-      if(S.wins >= WINS_NEEDED) startPlayoffs();
+      if(S.wins >= WINS_NEEDED) showRegularSummaryModal();
       else endGame(false, `常规赛结束，获得${S.wins}胜，未达到${WINS_NEEDED}胜，无缘季后赛。`);
     } else {
       nextDay();
@@ -917,7 +925,7 @@ function proceedToRegularGame(){
   S.gamesPlayed++;
   S.currentAttr=ATTR_KEYS[Math.floor(Math.random()*4)];
   const attr=S.currentAttr;
-  const tgt=3+Math.floor((S.gamesPlayed)/2); // 修订3：每触发2次+1
+  const tgt=3+S.gamesPlayed;
   const pool=S.attrs[attr].pool;
   showPanel('gamePanel');
   document.getElementById('gm-num').textContent=S.gamesPlayed;
@@ -957,7 +965,7 @@ function proceedToPlayoffGame(){
 function rollGameDice(){
   const attr=S.currentAttr;
   const pool=S.attrs[attr].pool;
-  const tgt=3+Math.floor((S.gamesPlayed)/2); // 修订3：每触发2次+1
+  const tgt=3+S.gamesPlayed;
   doRoll('gm-dice',pool,tgt,(rolls,total,pass)=>{
     document.getElementById('gm-total').textContent='合计: '+total;
     document.getElementById('gm-vs').textContent=`需要 ≥ ${tgt}`;
@@ -983,11 +991,28 @@ function rollGameDice(){
 function afterGame(){
   checkGameOver();
   if(S.gamesPlayed >= REG_GAMES){
-    if(S.wins >= WINS_NEEDED) startPlayoffs();
+    if(S.wins >= WINS_NEEDED) showRegularSummaryModal();
     else endGame(false,`常规赛结束，获得${S.wins}胜，未达到${WINS_NEEDED}胜，无缘季后赛。`);
   } else {
     nextDay();
   }
+}
+
+function showRegularSummaryModal(){
+  const losses=S.gamesPlayed-S.wins;
+  const rate=S.gamesPlayed>0?Math.round(S.wins/S.gamesPlayed*100):0;
+  document.getElementById('rs-summary-msg').innerHTML=
+    `完成全部 ${S.gamesPlayed} 场常规赛！<br><br>`+
+    `🏆 胜场：<strong style="color:#4ade80">${S.wins} 场</strong><br>`+
+    `❌ 负场：<strong style="color:#f87171">${losses} 场</strong><br>`+
+    `📊 胜率：<strong style="color:#fbbf24">${rate}%</strong><br><br>`+
+    `<span style="color:#94a3b8;font-size:.85em">达到 ${WINS_NEEDED} 胜，晋级季后赛！</span>`;
+  document.getElementById('regularSummaryModal').classList.add('show');
+}
+
+function enterPlayoffs(){
+  document.getElementById('regularSummaryModal').classList.remove('show');
+  startPlayoffs();
 }
 
 // ════════════════════════════════════════════
@@ -1264,6 +1289,7 @@ function restartGame(){
   document.getElementById('endModal').classList.remove('show');
   document.getElementById('luModal').classList.remove('show');
   document.getElementById('gameConfirmModal').classList.remove('show');
+  document.getElementById('regularSummaryModal').classList.remove('show');
   const logEl=document.getElementById('eventLog');
   logEl.innerHTML='<div class="le li">重新开始！加油！</div>';
   initState();
@@ -1306,6 +1332,7 @@ function goHome(){
   document.getElementById('endModal').classList.remove('show');
   document.getElementById('luModal').classList.remove('show');
   document.getElementById('gameConfirmModal').classList.remove('show');
+  document.getElementById('regularSummaryModal').classList.remove('show');
   document.getElementById('screen-home').style.display='flex';
 }
 
