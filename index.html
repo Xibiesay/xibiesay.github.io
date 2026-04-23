@@ -94,6 +94,8 @@ body{
 .cal-day.cal-today{border-color:#f97316;background:rgba(249,115,22,.15)}
 .cal-day.cal-game{border-color:#4ade80}
 .cal-day.cal-today.cal-game{border-color:#fbbf24;background:rgba(251,191,36,.12)}
+.cal-day.cal-shop{border-color:#38bdf8}
+.cal-day.cal-today.cal-shop{border-color:#38bdf8;background:rgba(56,189,248,.12)}
 .cal-day-num{font-size:0.55em;color:#64748b;margin-bottom:1px}
 .cal-day-icon{font-size:0.88em;margin-bottom:0;min-height:15px;line-height:15px}
 .cal-day-label{font-size:0.46em;color:#94a3b8}
@@ -234,28 +236,24 @@ body{
   padding:10px;
   border:1px solid rgba(255,255,255,.08);
 }
-.items-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.items-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:3px}
 .item-slot{
-  background:rgba(0,20,50,.7);
-  border-radius:6px;
-  border:1.5px dashed rgba(255,255,255,.15);
+  background:rgba(0,20,50,.6);
+  border-radius:4px;
+  border:1px dashed rgba(255,255,255,.12);
   aspect-ratio:1;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  padding:3px;cursor:default;
-  min-height:46px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1em;cursor:default;
 }
 .item-slot.filled{
-  border-style:solid;
-  border-color:rgba(249,115,22,.5);
-  background:rgba(40,15,0,.8);
+  border:1px solid rgba(249,115,22,.55);
+  background:rgba(40,15,0,.85);
   cursor:pointer;
 }
-.item-slot.filled:active{transform:scale(.93)}
-.item-icon{font-size:1.1em;line-height:1;margin-bottom:1px}
-.item-name-slot{font-size:0.4em;color:#cbd5e1;text-align:center;line-height:1.2}
-.item-type-ind{width:4px;height:4px;border-radius:50%;margin-top:2px}
-.itd-passive{background:#38bdf8}.itd-consume{background:#4ade80}
+.item-slot.filled:active{transform:scale(.88)}
+/* ── 星级颜色 ── */
+.star-核心{color:#fbbf24}.star-5星{color:#c084fc}.star-4星{color:#38bdf8}
+.star-3星{color:#4ade80}.star-2星{color:#94a3b8}.star-1星{color:#cbd5e1}
 /* ── 商店弹窗 ── */
 .shop-grid{display:flex;flex-direction:column;gap:8px;margin:10px 0}
 .shop-item{
@@ -286,7 +284,17 @@ body{
 .exp-fill{height:100%;background:linear-gradient(90deg,#22c55e,#3b82f6);border-radius:2px;transition:width .3s}
 .exp-txt{font-size:0.55em;color:#475569;flex-shrink:0}
 .dice-pool{display:flex;gap:2px;flex-wrap:wrap}
-.dc{font-size:0.58em;padding:1px 4px;border-radius:3px;font-weight:700;color:#111}
+.dc{font-size:1em;padding:2px 3px;border-radius:4px;cursor:default;transition:transform .1s;display:inline-block}
+.dc:hover{transform:scale(1.25)}
+#dice-tooltip{
+  display:none;position:fixed;z-index:9999;
+  background:rgba(0,10,28,.97);
+  border:1px solid rgba(249,115,22,.55);
+  border-radius:8px;padding:8px 14px;
+  pointer-events:none;text-align:center;
+  min-width:110px;
+  box-shadow:0 4px 18px rgba(0,0,0,.55);
+}
 
 /* ── 日志 ── */
 .log-panel{
@@ -601,7 +609,7 @@ body{
       <div class="attrs-grid" id="attrs-grid"></div>
     </div>
     <div class="items-panel">
-      <div class="panel-title" style="font-size:0.84em;margin-bottom:8px">🎒 物品栏</div>
+      <div class="panel-title" style="font-size:0.84em;margin-bottom:8px">🎒 宝物栏</div>
       <div class="items-grid" id="items-grid"></div>
     </div>
   </div>
@@ -655,6 +663,30 @@ body{
   </div>
 </div>
 
+<!-- 宝物详情弹窗 -->
+<div class="modal" id="itemDetailModal">
+  <div class="modal-box" style="max-width:280px;padding:22px 20px">
+    <div id="idet-icon" style="font-size:2.6em;margin-bottom:6px"></div>
+    <div class="modal-title" id="idet-name" style="font-size:1.1em"></div>
+    <div style="margin-bottom:14px">
+      <span id="idet-star" style="font-size:0.72em;font-weight:700;padding:2px 10px;border-radius:10px;background:rgba(255,255,255,.1)"></span>
+    </div>
+    <div class="modal-msg" id="idet-desc" style="font-size:0.82em;margin-bottom:18px"></div>
+    <button class="modal-btn" onclick="closeItemDetail()">关闭</button>
+  </div>
+</div>
+
+<!-- 装备商店弹窗 -->
+<div class="modal" id="shopModal">
+  <div class="modal-box" style="max-width:380px;max-height:85vh;overflow-y:auto;padding:18px">
+    <div class="modal-title" id="shop-modal-title">🛒 今日购物日</div>
+    <div class="shop-inv-info" id="shop-inv-info">宝物栏 0/36 · 💰 5000</div>
+    <div style="font-size:0.65em;color:#94a3b8;text-align:center;margin-bottom:4px" id="shop-hint">本次可购买 1 件宝物</div>
+    <div class="shop-grid" id="shop-grid"></div>
+    <button class="modal-btn" style="margin-top:4px" onclick="closeShop()">离开商店</button>
+  </div>
+</div>
+
 <!-- 游戏结束弹窗 -->
 <div class="modal" id="endModal">
   <div class="modal-box">
@@ -679,13 +711,106 @@ const ATTR_KEYS = ['jumpShot','drive','block','fastBreak'];
 const ATTR_NAMES = {jumpShot:'翻身跳投',drive:'突破劈扣',block:'追身大帽',fastBreak:'接球快攻'};
 const PO_ROUNDS = [{name:'分区半决赛',target:8},{name:'分区决赛',target:11},{name:'总决赛',target:14}];
 
+// 骰子系统 — 13种篮球技巧骰子
+// 面朝上数字即点数分布，玩家只可见分布，不可见评级/均值/方差
 const DICE_INFO = {
-  D4: {faces:[1,1,1,6,6,6],color:'#93c5fd',label:'三分骰子',desc:'1,1,1,6,6,6'},
-  D6: {faces:[1,2,3,4,5,6],color:'#86efac',label:'普通骰子',desc:'1,2,3,4,5,6'},
-  D8: {faces:[2,2,3,4,5,5],color:'#fde68a',label:'防守悍将',desc:'2,2,3,4,5,5'},
-  KEY:{faces:[3,3,3,4,4,4],color:'#f9a8d4',label:'关键球',  desc:'3,3,3,4,4,4'},
-  DEF:{sides:6,color:'#c4b5fd',label:'悍将',desc:'结果+1',fn:r=>r+1},
+  // ── 起始 ──
+  STD:  {faces:[1,2,3,4,5,6],  color:'#86efac',icon:'🏅',label:'基础出手',  desc:'1-2-3-4-5-6'},
+  // ── B 级 ──
+  SCR:  {faces:[1,3,3,3,5,6],  color:'#fbbf24',icon:'🤝',label:'策应配合',  desc:'1-3-3-3-5-6'},
+  PRK:  {faces:[1,2,3,5,5,5],  color:'#2dd4bf',icon:'📋',label:'挡拆战术',  desc:'1-2-3-5-5-5'},
+  POST: {faces:[1,3,4,4,4,5],  color:'#f9a8d4',icon:'💪',label:'低位单打',  desc:'1-3-4-4-4-5'},
+  HOOK: {faces:[2,2,2,4,5,6],  color:'#fcd34d',icon:'🔄',label:'勾手上篮',  desc:'2-2-2-4-5-6'},
+  // ── A 级 ──
+  TRE:  {faces:[1,1,5,5,5,5],  color:'#60a5fa',icon:'🎯',label:'三分绝杀',  desc:'1-1-5-5-5-5'},
+  DRV:  {faces:[1,1,4,4,6,6],  color:'#fb923c',icon:'⚡',label:'突破上篮',  desc:'1-1-4-4-6-6'},
+  BRK:  {faces:[1,3,3,4,5,6],  color:'#22d3ee',icon:'🏃',label:'快攻反击',  desc:'1-3-3-4-5-6'},
+  // ── S 级 ──
+  AIM:  {faces:[3,3,3,3,5,5],  color:'#a78bfa',icon:'🏹',label:'精准中投',  desc:'3-3-3-3-5-5'},
+  MID:  {faces:[3,3,4,4,4,6],  color:'#4ade80',icon:'🎱',label:'后仰跳投',  desc:'3-3-4-4-4-6'},
+  // ── SSS ──
+  DUNK: {faces:[5,5,5,5,6,6],  color:'#ff6b6b',icon:'🔥',label:'暴力灌篮',  desc:'5-5-5-5-6-6'},
+  // ── 高风险 ──
+  GAMB: {faces:[1,1,1,6,6,6],  color:'#94a3b8',icon:'🎲',label:'全力一搏',  desc:'1-1-1-6-6-6'},
+  CLUTCH:{faces:[1,1,1,1,1,9], color:'#fde68a',icon:'⭐',label:'绝杀时刻',  desc:'1-1-1-1-1-9'},
 };
+
+// 升级时随机从指定池中取n颗骰子供选
+function pickChoices(pool,n=2){
+  return [...pool].sort(()=>Math.random()-.5).slice(0,n);
+}
+
+// ════════════════════════════════════════════
+// 装备道具定义
+// 属性映射：力气→drive 魅力→jumpShot 运气→fastBreak 智慧→block 气力→stamina
+// ════════════════════════════════════════════
+const STAR_W={'核心':2,'5星':5,'4星':12,'3星':25,'2星':28,'1星':28};
+const STAR_CLR={'核心':'#fbbf24','5星':'#c084fc','4星':'#38bdf8','3星':'#4ade80','2星':'#94a3b8','1星':'#cbd5e1'};
+
+const SHOP_ITEMS=[
+  // ── 核心 ──
+  {id:'goggles',   name:'魔法护目镜',icon:'🥽',star:'核心',price:5000,
+   desc:'出现2或5时，合计+5',         eff:{type:'onDie',vals:[2,5],bonus:5,stat:'total'}},
+  {id:'champring', name:'冠军戒指',  icon:'💍',star:'核心',price:5000,
+   desc:'出现3或4时，合计+5',         eff:{type:'onDie',vals:[3,4],bonus:5,stat:'total'}},
+  {id:'legshoe',   name:'传奇球鞋',  icon:'👟',star:'核心',price:5000,
+   desc:'出现1或6时，合计+5',         eff:{type:'onDie',vals:[1,6],bonus:5,stat:'total'}},
+  {id:'wristband', name:'暴君护腕',  icon:'💢',star:'核心',price:5000,
+   desc:'有相同点数时，金钱+1000',    eff:{type:'onPair',bonus:1000,stat:'money'}},
+  {id:'headband',  name:'神秘头带',  icon:'🎽',star:'核心',price:5000,
+   desc:'出现3344合计+5，5555合计+10',eff:{type:'onPattern',stat:'total'}},
+  {id:'angelkit',  name:'天使护具',  icon:'😇',star:'核心',price:5000,
+   desc:'掷出相同偶数时，体力+30',    eff:{type:'onEvenPair',bonus:30,stat:'stamina'}},
+  // ── 5星 ──
+  {id:'vitamin',   name:'超级维他命',icon:'💊',star:'5星',price:3000,
+   desc:'体力上限+50（立即生效）',    eff:{type:'passive',stat:'maxStam',val:50}},
+  {id:'icebag',    name:'恢复冰袋',  icon:'🧊',star:'5星',price:3000,
+   desc:'每次判定后体力回复+10',      eff:{type:'afterRoll',stat:'stamina',val:10}},
+  {id:'tactician', name:'战术大师',  icon:'🧠',star:'5星',price:3000,
+   desc:'追身大帽判定时，额外经验+2', eff:{type:'attrExp',attr:'block',val:2}},
+  {id:'magician',  name:'球场魔术师',icon:'🎩',star:'5星',price:3000,
+   desc:'翻身跳投判定时，额外经验+2', eff:{type:'attrExp',attr:'jumpShot',val:2}},
+  {id:'prowatch',  name:'精准腕表',  icon:'⌚',star:'5星',price:3000,
+   desc:'同时出现2和5时，合计+5',     eff:{type:'onCombo',vals:[2,5],bonus:5,stat:'total'}},
+  {id:'allstar',   name:'全明星票',  icon:'🌟',star:'5星',price:3000,
+   desc:'升级时可选骰子数目+1',       eff:{type:'moreLUChoice',val:1}},
+  {id:'powerbelt', name:'力量绷带',  icon:'💪',star:'5星',price:3000,
+   desc:'突破劈扣升级可选骰子+1',     eff:{type:'moreLUChoiceAttr',attr:'drive',val:1}},
+  // ── 4星 ──
+  {id:'armor',     name:'防弹护甲',  icon:'🛡️',star:'4星',price:1800,
+   desc:'突破劈扣判定出6时，经验+2',  eff:{type:'onDieAttr',attr:'drive',val:6,bonus:2,stat:'exp'}},
+  {id:'scout5',    name:'全明星球探',icon:'🔍',star:'4星',price:1800,
+   desc:'训练成功时，额外获得500金',   eff:{type:'onTrainWin',stat:'money',val:500}},
+  {id:'speedbelt', name:'速度皮带',  icon:'⚡',star:'4星',price:1800,
+   desc:'接球快攻升级可选骰子+1',     eff:{type:'moreLUChoiceAttr',attr:'fastBreak',val:1}},
+  // ── 3星 ──
+  {id:'jersey',    name:'经典球衣',  icon:'🏅',star:'3星',price:1000,
+   desc:'翻身跳投判定出3时，经验+1',  eff:{type:'onDieAttr',attr:'jumpShot',val:3,bonus:1,stat:'exp'}},
+  {id:'mvpball',   name:'MVP签名球', icon:'⭐',star:'3星',price:1000,
+   desc:'翻身跳投判定出4时，经验+1',  eff:{type:'onDieAttr',attr:'jumpShot',val:4,bonus:1,stat:'exp'}},
+  {id:'weightvest',name:'负重背心',  icon:'🏋️',star:'3星',price:1000,
+   desc:'突破劈扣判定出3时，经验+1',  eff:{type:'onDieAttr',attr:'drive',val:3,bonus:1,stat:'exp'}},
+  {id:'tactboard', name:'战术板',    icon:'📋',star:'3星',price:1000,
+   desc:'追身大帽判定出3时，经验+1',  eff:{type:'onDieAttr',attr:'block',val:3,bonus:1,stat:'exp'}},
+  {id:'luckshoe',  name:'幸运战靴',  icon:'🍀',star:'3星',price:1000,
+   desc:'接球快攻判定出2时，经验+1',  eff:{type:'onDieAttr',attr:'fastBreak',val:2,bonus:1,stat:'exp'}},
+  {id:'kneepad',   name:'护膝贴片',  icon:'🩹',star:'3星',price:1000,
+   desc:'所有骰子≤3时，合计+3×骰子数',eff:{type:'onAllLow',stat:'total'}},
+  // ── 2星 ──
+  {id:'scoutbook', name:'球探笔记本',icon:'📓',star:'2星',price:600,
+   desc:'每次训练完成额外+100金',     eff:{type:'afterTrain',stat:'money',val:100}},
+  {id:'signedcap', name:'球员签名帽',icon:'🧢',star:'2星',price:600,
+   desc:'接球快攻判定出2时，经验+1',  eff:{type:'onDieAttr',attr:'fastBreak',val:2,bonus:1,stat:'exp'}},
+  // ── 1星 ──
+  {id:'sportsdrink',name:'运动饮料', icon:'🥤',star:'1星',price:300,
+   desc:'出现1时，合计+1',            eff:{type:'onDie',vals:[1],bonus:1,stat:'total'}},
+  {id:'gloves',    name:'训练手套',  icon:'🧤',star:'1星',price:300,
+   desc:'出现6时，合计+1',            eff:{type:'onDie',vals:[6],bonus:1,stat:'total'}},
+  {id:'energybar', name:'能量棒',    icon:'🍫',star:'1星',price:300,
+   desc:'出现1时，体力+10',           eff:{type:'onDie',vals:[1],bonus:10,stat:'stamina'}},
+  {id:'fanphoto',  name:'球迷合影',  icon:'📸',star:'1星',price:300,
+   desc:'出现1时，金钱+10',           eff:{type:'onDie',vals:[1],bonus:10,stat:'money'}},
+];
 
 // ════════════════════════════════════════════
 // 游戏状态
@@ -700,13 +825,16 @@ function initState(){
     playoff:{round:0,wins:0,losses:0,gamesPlayed:0},
     attrs:{},
     decisions:{},
-    currentAttr:null,  // 当前比赛/训练用的属性
-    levelupQ:[],       // 待处理升级队列
+    currentAttr:null,
+    levelupQ:[],
     levelupCallback:null,
     gameConfirmCallback:null,
+    inventory:[],   // 已购宝物（最多36件）
+    shopItems:[],   // 当前商店商品
+    shopBought:false, // 本次购物日是否已购买
   };
   ATTR_KEYS.forEach(k=>{
-    S.attrs[k]={level:1,diceCount:1,exp:0,expNeeded:20,pool:['D6']};
+    S.attrs[k]={level:1,diceCount:1,exp:0,expNeeded:20,pool:['STD']};
   });
   generateDecisions();
 }
@@ -738,6 +866,19 @@ function updateDecisionUI(){
   document.getElementById('biz-gain').textContent = `获得 ${d.biz.earn}金`;
   document.getElementById('rest-cost').textContent = `消耗 ${d.rest.costMoney}金`;
 }
+
+// ════════════════════════════════════════════
+// 购物日逻辑（第5天起每10天，与比赛日重合则取消）
+// ════════════════════════════════════════════
+function isShoppingDayForDay(d){
+  if(d<5||(d-5)%10!==0) return false;
+  // 与常规赛比赛日重合 → 取消
+  if(S.season==='regular'&&REGULAR_GAME_DAYS.includes(d)) return false;
+  // 与季后赛比赛日重合 → 取消
+  if(S.season==='playoff'&&d%PO_EVERY===0) return false;
+  return true;
+}
+function isShoppingDay(){ return isShoppingDayForDay(S.day); }
 
 // 获取下一个常规赛比赛日
 function getNextRegularGameDay(){
@@ -805,29 +946,34 @@ function rollTrainDice(){
   const attr=S.currentAttr;
   const pool=S.attrs[attr].pool;
   const tgt=3+S.gamesPlayed;
-  doRoll('tr-dice',pool,tgt,(rolls,total,pass)=>{
+  doRoll('tr-dice',pool,tgt,(rolls,total,pass,itemFx)=>{
     document.getElementById('tr-total').textContent='合计: '+total;
     document.getElementById('tr-vs').textContent=`需要 ≥ ${tgt}`;
     const v=document.getElementById('tr-verdict');
     v.textContent=pass?'✅ 训练成功！':'❌ 训练失败';
     v.className='roll-verdict '+(pass?'rv-ok':'rv-no');
     document.getElementById('tr-result').style.display='block';
-    const expGain=pass?25:15;
+    const baseExp=pass?25:15;
+    const expGain=baseExp+itemFx.expBonus;
     const extraStam=pass?0:10;
     if(extraStam>0) S.stamina=Math.max(0,S.stamina-extraStam);
     gainExp(attr,expGain);
+    // afterTrain / onTrainWin 道具效果
+    const trainM=getAfterTrainMoney()+(pass?getAfterTrainWinMoney():0);
+    if(trainM>0){S.money+=trainM;}
+    const itemNote=itemFx.msgs.length?` [${itemFx.msgs.join(' ')}]`:'';
+    const trainNote=trainM>0?` / 道具+${trainM}金`:'';
     const msg=pass
-      ?`获得${expGain}经验！`
-      :`训练失败，额外消耗${extraStam}体力，获得${expGain}经验。`;
-    document.getElementById('tr-effect').textContent=msg;
+      ?`获得${expGain}经验！${trainNote}`
+      :`训练失败，额外消耗${extraStam}体，获得${expGain}经验。`;
+    document.getElementById('tr-effect').textContent=msg+itemNote;
     addLog(`🏋️ ${ATTR_NAMES[attr]}训练${pass?'成功':'失败'}，掷出${total}，${msg}`,'t');
     document.getElementById('btn-roll-train').style.display='none';
     updateUI();
-    // 处理升级后才能继续
     processLevelups(()=>{
       document.getElementById('btn-train-next').style.display='block';
     });
-  });
+  },attr);
 }
 
 // ════════════════════════════════════════════
@@ -966,7 +1112,7 @@ function rollGameDice(){
   const attr=S.currentAttr;
   const pool=S.attrs[attr].pool;
   const tgt=3+S.gamesPlayed;
-  doRoll('gm-dice',pool,tgt,(rolls,total,pass)=>{
+  doRoll('gm-dice',pool,tgt,(rolls,total,pass,itemFx)=>{
     document.getElementById('gm-total').textContent='合计: '+total;
     document.getElementById('gm-vs').textContent=`需要 ≥ ${tgt}`;
     const v=document.getElementById('gm-verdict');
@@ -975,9 +1121,13 @@ function rollGameDice(){
     document.getElementById('gm-result').style.display='block';
     const stamCost=25;
     S.stamina=Math.max(0,S.stamina-stamCost);
-    if(pass){S.wins++;gainExp(attr,10);}
-    else gainExp(attr,5);
-    const eff=pass?`胜利！+1胜场 / 体力-${stamCost}\n${ATTR_NAMES[attr]}+10经验`:`败北... 体力-${stamCost}\n${ATTR_NAMES[attr]}+5经验`;
+    if(pass){S.wins++;gainExp(attr,10+itemFx.expBonus);}
+    else gainExp(attr,5+itemFx.expBonus);
+    const expBase=pass?10:5;
+    const itemNote=itemFx.msgs.length?`\n道具：${itemFx.msgs.join(' ')}`:'';
+    const eff=pass
+      ?`胜利！+1胜场 / 体力-${stamCost}\n${ATTR_NAMES[attr]}+${expBase+itemFx.expBonus}经验${itemNote}`
+      :`败北... 体力-${stamCost}\n${ATTR_NAMES[attr]}+${expBase+itemFx.expBonus}经验${itemNote}`;
     document.getElementById('gm-effect').textContent=eff;
     addLog(`${pass?'🏆 胜利':'😤 失败'}！第${S.gamesPlayed}场 ${S.wins}胜${S.gamesPlayed-S.wins}负，掷出${total}${pass?'≥':'<'}${tgt}。`,'g');
     document.getElementById('btn-roll-game').style.display='none';
@@ -985,7 +1135,7 @@ function rollGameDice(){
     processLevelups(()=>{
       document.getElementById('btn-game-next').style.display='block';
     });
-  });
+  },attr);
 }
 
 function afterGame(){
@@ -1032,7 +1182,7 @@ function rollPlayoffDice(){
   const pool=S.attrs[attr].pool;
   const rd=PO_ROUNDS[S.playoff.round-1];
   const tgt=rd.target+S.playoff.gamesPlayed;
-  doRoll('po-dice',pool,tgt,(rolls,total,pass)=>{
+  doRoll('po-dice',pool,tgt,(rolls,total,pass,itemFx)=>{
     document.getElementById('po-total').textContent='合计: '+total;
     document.getElementById('po-vs').textContent=`需要 ≥ ${tgt}`;
     const v=document.getElementById('po-verdict');
@@ -1041,11 +1191,14 @@ function rollPlayoffDice(){
     document.getElementById('po-result').style.display='block';
     const stamCost=pass?30:40;
     S.stamina=Math.max(0,S.stamina-stamCost);
-    if(pass){S.playoff.wins++;gainExp(attr,15);}
-    else{S.playoff.losses++;gainExp(attr,8);}
+    if(pass){S.playoff.wins++;gainExp(attr,15+itemFx.expBonus);}
+    else{S.playoff.losses++;gainExp(attr,8+itemFx.expBonus);}
     document.getElementById('po-sw').textContent=S.playoff.wins;
     document.getElementById('po-sl').textContent=S.playoff.losses;
-    const eff=pass?`胜利！系列赛 ${S.playoff.wins}-${S.playoff.losses}\n体力-${stamCost}`:`失败... 系列赛 ${S.playoff.wins}-${S.playoff.losses}\n体力-${stamCost}`;
+    const itemNote=itemFx.msgs.length?`\n道具：${itemFx.msgs.join(' ')}`:'';
+    const eff=pass
+      ?`胜利！系列赛 ${S.playoff.wins}-${S.playoff.losses}\n体力-${stamCost}${itemNote}`
+      :`失败... 系列赛 ${S.playoff.wins}-${S.playoff.losses}\n体力-${stamCost}${itemNote}`;
     document.getElementById('po-effect').textContent=eff;
     addLog(`${pass?'🏆 季后赛胜':'😤 季后赛败'}！G${S.playoff.gamesPlayed} 掷出${total}，${rd.name} ${S.playoff.wins}-${S.playoff.losses}。`,'p');
     document.getElementById('btn-roll-po').style.display='none';
@@ -1053,7 +1206,7 @@ function rollPlayoffDice(){
     processLevelups(()=>{
       document.getElementById('btn-po-next').style.display='block';
     });
-  });
+  },attr);
 }
 
 function afterPlayoffGame(){
@@ -1094,6 +1247,10 @@ function checkDayStart(){
   } else if(S.season==='playoff' && S.day % PO_EVERY === 0){
     showPanel('decisionPanel');
     showGameConfirmModal();
+  } else if(isShoppingDay()){
+    showPanel('decisionPanel');
+    addLog(`🛒 第${S.day}天 — 购物日到来！商店已刷新。`,'b');
+    openShop();
   } else {
     showPanel('decisionPanel');
   }
@@ -1112,7 +1269,22 @@ function gainExp(attr,amount){
     a.level++;
     a.diceCount++;
     a.expNeeded=getExpNeeded(a.level);
-    const choices=a.level<=2?['D4','D6']:a.level<=4?['D6','D8']:['D8','KEY','DEF'];
+    // 按等级解锁骰子层级：B→A→S→精英
+    const tierB=['SCR','PRK','POST','HOOK'];
+    const tierA=['TRE','DRV','BRK'];
+    const tierS=['AIM','MID'];
+    const tierE=['DUNK','GAMB','CLUTCH'];
+    const base = a.level<=2 ? pickChoices(tierB) :
+                 a.level<=4 ? pickChoices(tierA) :
+                 a.level<=6 ? pickChoices(tierS.concat(tierA)) :
+                 pickChoices(tierE.concat(tierS));
+    // 装备额外选项（去重）
+    const extra=getLevelupExtraChoices(attr);
+    const allPool=['STD','SCR','PRK','POST','HOOK','TRE','DRV','BRK','AIM','MID','DUNK','GAMB','CLUTCH'];
+    const choices=[...base];
+    if(extra>0){
+      allPool.filter(c=>!choices.includes(c)).slice(0,extra).forEach(c=>choices.push(c));
+    }
     S.levelupQ.push({attr,choices});
   }
 }
@@ -1133,8 +1305,9 @@ function showLevelupModal(attr,choices,cb){
     const d=DICE_INFO[dt];
     const el=document.createElement('div');
     el.className='lu-die';
-    el.style.background=d.color;
-    el.innerHTML=`<span class="lu-type">${d.label}</span><span class="lu-desc">${d.desc}</span>`;
+    el.style.background=d.color+'33';
+    el.style.border=`2px solid ${d.color}`;
+    el.innerHTML=`<span style="font-size:1.5em;display:block;margin-bottom:2px">${d.icon}</span><span class="lu-type">${d.label}</span><span class="lu-desc" style="font-family:monospace;letter-spacing:1px">${d.desc}</span>`;
     el.onclick=()=>{
       a.pool.push(dt);
       addLog(`✅ ${ATTR_NAMES[attr]} Lv${a.level}！加入 [${d.label}] 骰子！`,'i');
@@ -1156,18 +1329,21 @@ function buildSpinDice(containerId,n){
   for(let i=0;i<n;i++){const d=document.createElement('div');d.className='die spin';d.textContent='?';c.appendChild(d)}
 }
 
-function doRoll(containerId,pool,threshold,callback){
+function doRoll(containerId,pool,threshold,callback,attr=null){
   const rolls=pool.map(dt=>{
     const di=DICE_INFO[dt];
     const base=di.faces?di.faces[Math.floor(Math.random()*di.faces.length)]:Math.ceil(Math.random()*di.sides);
     return di.fn?di.fn(base):base;
   });
-  const total=rolls.reduce((s,v)=>s+v,0);
+  const itemFx=applyItemRollEffects(rolls,attr);
+  let total=rolls.reduce((s,v)=>s+v,0)+itemFx.totalBonus;
+  if(itemFx.moneyBonus>0){S.money+=itemFx.moneyBonus;}
+  if(itemFx.stamBonus>0){S.stamina=Math.min(S.maxStam,S.stamina+itemFx.stamBonus);}
   const pass=total>=threshold;
   setTimeout(()=>{
     const dice=document.getElementById(containerId).querySelectorAll('.die');
     dice.forEach((d,i)=>{d.className='die land '+(pass?'pass':'fail');d.textContent=rolls[i]});
-    callback(rolls,total,pass);
+    callback(rolls,total,pass,itemFx);
   },600);
 }
 
@@ -1201,14 +1377,17 @@ function renderCalendar(){
     const isToday=(i===0);
     const isGameDay=S.season==='regular' && REGULAR_GAME_DAYS.includes(d) && S.gamesPlayed<REG_GAMES;
     const isPoDay=S.season==='playoff' && d%PO_EVERY===0;
+    const isShopDay=isShoppingDayForDay(d);
     const el=document.createElement('div');
     let cls='cal-day';
     if(isToday) cls+=' cal-today';
     if(isGameDay||isPoDay) cls+=' cal-game';
+    if(isShopDay) cls+=' cal-shop';
     el.className=cls;
     let icon='📋',label='训练日';
     if(isGameDay){icon='🏀';label='常规赛';}
     else if(isPoDay){icon='🏆';label=(PO_ROUNDS[S.playoff.round-1]?.name||'季后赛').slice(0,3);}
+    else if(isShopDay){icon='🛒';label='购物日';}
     el.innerHTML=`<div class="cal-day-num">第${d}天</div><div class="cal-day-icon">${icon}</div><div class="cal-day-label">${label}</div>`;
     grid.appendChild(el);
   }
@@ -1245,7 +1424,7 @@ function updateUI(){
   ATTR_KEYS.forEach(k=>{
     const a=S.attrs[k];
     const pct=Math.min(100,(a.exp/a.expNeeded*100));
-    const poolHtml=a.pool.map(dt=>`<span class="dc" style="background:${DICE_INFO[dt].color}">${DICE_INFO[dt].label}</span>`).join('');
+    const poolHtml=a.pool.map(dt=>`<span class="dc" style="background:${DICE_INFO[dt].color}" onmouseenter="showDiceTooltip(event,'${dt}')" onmousemove="moveDiceTooltip(event)" onmouseleave="hideDiceTooltip()">${DICE_INFO[dt].icon}</span>`).join('');
     grid.innerHTML+=`<div class="attr-card">
       <div class="attr-name">${ATTR_NAMES[k]}</div>
       <div class="attr-lv">Lv.${a.level} <small style="font-size:.65em;color:#475569">${a.diceCount}颗骰子</small></div>
@@ -1260,11 +1439,32 @@ function renderItems(){
   const grid=document.getElementById('items-grid');
   if(!grid)return;
   grid.innerHTML='';
-  for(let i=0;i<9;i++){
+  for(let i=0;i<36;i++){
     const div=document.createElement('div');
-    div.className='item-slot';
+    const item=S.inventory[i];
+    if(item){
+      div.className='item-slot filled';
+      div.title=item.name;
+      div.textContent=item.icon;
+      div.onclick=()=>showItemDetail(item);
+    } else {
+      div.className='item-slot';
+    }
     grid.appendChild(div);
   }
+}
+
+function showItemDetail(item){
+  document.getElementById('idet-icon').textContent=item.icon;
+  document.getElementById('idet-name').textContent=item.name;
+  const starEl=document.getElementById('idet-star');
+  starEl.textContent=item.star;
+  starEl.style.color=STAR_CLR[item.star]||'#94a3b8';
+  document.getElementById('idet-desc').textContent=item.desc;
+  document.getElementById('itemDetailModal').classList.add('show');
+}
+function closeItemDetail(){
+  document.getElementById('itemDetailModal').classList.remove('show');
 }
 
 // ════════════════════════════════════════════
@@ -1285,11 +1485,173 @@ function endGame(win,msg){
   addLog('游戏结束: '+msg,'i');
 }
 
+// ════════════════════════════════════════════
+// 道具效果计算
+// ════════════════════════════════════════════
+function applyItemRollEffects(rolls, attr){
+  let totalBonus=0, moneyBonus=0, stamBonus=0, expBonus=0;
+  const msgs=[];
+  S.inventory.forEach(item=>{
+    const e=item.eff;
+    switch(e.type){
+      case 'onDie':
+        rolls.forEach(r=>{
+          if(e.vals.includes(r)){
+            if(e.stat==='total'){totalBonus+=e.bonus;msgs.push(`${item.icon}+${e.bonus}`);}
+            else if(e.stat==='money') moneyBonus+=e.bonus;
+            else if(e.stat==='stamina') stamBonus+=e.bonus;
+          }
+        });
+        break;
+      case 'onPair':{
+        const cnt={};rolls.forEach(r=>cnt[r]=(cnt[r]||0)+1);
+        if(Object.values(cnt).some(c=>c>=2)){
+          if(e.stat==='money'){moneyBonus+=e.bonus;msgs.push(`${item.icon}金钱+${e.bonus}`);}
+        }
+        break;
+      }
+      case 'onEvenPair':{
+        const cnt={};rolls.forEach(r=>{if(r%2===0)cnt[r]=(cnt[r]||0)+1;});
+        if(Object.values(cnt).some(c=>c>=2)){
+          if(e.stat==='stamina'){stamBonus+=e.bonus;msgs.push(`${item.icon}体力+${e.bonus}`);}
+        }
+        break;
+      }
+      case 'onCombo':
+        if(e.vals.every(v=>rolls.includes(v))){
+          if(e.stat==='total'){totalBonus+=e.bonus;msgs.push(`${item.icon}组合+${e.bonus}`);}
+        }
+        break;
+      case 'onAllLow':
+        if(rolls.every(r=>r<=3)){
+          const b=3*rolls.length;totalBonus+=b;msgs.push(`${item.icon}低点+${b}`);
+        }
+        break;
+      case 'onPattern':{
+        const s=[...rolls].sort((a,b)=>a-b);
+        if(s.filter(r=>r===3).length>=2&&s.filter(r=>r===4).length>=2){totalBonus+=5;msgs.push(`${item.icon}3344+5`);}
+        if(s.filter(r=>r===5).length>=4){totalBonus+=10;msgs.push(`${item.icon}5555+10`);}
+        break;
+      }
+      case 'attrExp':
+        if(attr===e.attr){expBonus+=e.val;msgs.push(`${item.icon}经验+${e.val}`);}
+        break;
+      case 'onDieAttr':
+        if(attr===e.attr){
+          rolls.forEach(r=>{if(r===e.val){expBonus+=e.bonus;msgs.push(`${item.icon}经验+${e.bonus}`);}});
+        }
+        break;
+      case 'afterRoll':
+        if(e.stat==='stamina'){stamBonus+=e.val;msgs.push(`${item.icon}体力+${e.val}`);}
+        break;
+    }
+  });
+  return {totalBonus,moneyBonus,stamBonus,expBonus,msgs};
+}
+
+function getAfterTrainMoney(){
+  return S.inventory.reduce((s,i)=>(i.eff.type==='afterTrain'&&i.eff.stat==='money'?s+i.eff.val:s),0);
+}
+function getAfterTrainWinMoney(){
+  return S.inventory.reduce((s,i)=>(i.eff.type==='onTrainWin'&&i.eff.stat==='money'?s+i.eff.val:s),0);
+}
+function getLevelupExtraChoices(attr){
+  return S.inventory.reduce((s,i)=>{
+    const e=i.eff;
+    if(e.type==='moreLUChoice') return s+e.val;
+    if(e.type==='moreLUChoiceAttr'&&e.attr===attr) return s+e.val;
+    return s;
+  },0);
+}
+
+// ════════════════════════════════════════════
+// 装备商店
+// ════════════════════════════════════════════
+function generateShopItems(){
+  const owned=new Set(S.inventory.map(i=>i.id));
+  const pool=SHOP_ITEMS.filter(i=>!owned.has(i.id));
+  if(!pool.length) return [];
+  const weighted=[];
+  pool.forEach(item=>{ const w=STAR_W[item.star]||10; for(let k=0;k<w;k++) weighted.push(item); });
+  const chosen=[],seen=new Set();
+  for(let t=0;t<400&&chosen.length<2;t++){
+    const pick=weighted[Math.floor(Math.random()*weighted.length)];
+    if(!seen.has(pick.id)){seen.add(pick.id);chosen.push(pick);}
+  }
+  return chosen;
+}
+
+function openShop(){
+  S.shopItems=generateShopItems();
+  S.shopBought=false;
+  renderShop();
+  document.getElementById('shopModal').classList.add('show');
+}
+function closeShop(){
+  document.getElementById('shopModal').classList.remove('show');
+}
+
+function renderShop(){
+  document.getElementById('shop-inv-info').textContent=
+    `宝物栏 ${S.inventory.length}/36  ·  💰 ${S.money} 金`;
+  const hintEl=document.getElementById('shop-hint');
+  if(hintEl) hintEl.textContent=S.shopBought?'✅ 本次已购买，可离开商店':'本次可购买 1 件宝物';
+  const grid=document.getElementById('shop-grid');
+  grid.innerHTML='';
+  if(!S.shopItems.length){
+    grid.innerHTML='<div style="text-align:center;color:#64748b;padding:16px">宝物已全部收集！</div>';
+    return;
+  }
+  S.shopItems.forEach(item=>{
+    const alreadyOwn=!!S.inventory.find(i=>i.id===item.id);
+    const full=S.inventory.length>=36;
+    const afford=S.money>=item.price;
+    const div=document.createElement('div');
+    div.className='shop-item';
+    div.innerHTML=
+      `<div class="shop-item-icon">${item.icon}</div>`+
+      `<div class="shop-item-info">`+
+        `<div class="shop-item-name">${item.name} `+
+          `<span style="font-size:.58em;color:${STAR_CLR[item.star]}">${item.star}</span></div>`+
+        `<div class="shop-item-desc">${item.desc}</div>`+
+      `</div>`+
+      `<div class="shop-item-price">${item.price}💰</div>`;
+    if(S.shopBought||alreadyOwn){
+      div.style.cssText='opacity:.35;pointer-events:none';
+    } else if(!afford||full){
+      div.style.opacity='.55';
+      div.onclick=()=>addLog(`${full?'宝物栏已满':'金钱不足'}，无法购入【${item.name}】。`,'i');
+    } else {
+      div.onclick=()=>buyItem(item.id);
+    }
+    grid.appendChild(div);
+  });
+}
+
+function buyItem(id){
+  const item=SHOP_ITEMS.find(i=>i.id===id);
+  if(!item||S.shopBought||S.inventory.length>=36||S.money<item.price) return;
+  S.money-=item.price;
+  S.inventory.push({...item});
+  S.shopBought=true;
+  // 立即生效：体力上限
+  if(item.eff.type==='passive'&&item.eff.stat==='maxStam'){
+    S.maxStam+=item.eff.val;
+    addLog(`🛒 购入【${item.icon}${item.name}】！体力上限+${item.eff.val} → ${S.maxStam}`,'i');
+  } else {
+    addLog(`🛒 购入【${item.icon}${item.name}】！${item.desc}`,'i');
+  }
+  updateUI();
+  closeShop();
+}
+
 function restartGame(){
   document.getElementById('endModal').classList.remove('show');
   document.getElementById('luModal').classList.remove('show');
   document.getElementById('gameConfirmModal').classList.remove('show');
   document.getElementById('regularSummaryModal').classList.remove('show');
+  document.getElementById('shopModal').classList.remove('show');
+  document.getElementById('itemDetailModal').classList.remove('show');
   const logEl=document.getElementById('eventLog');
   logEl.innerHTML='<div class="le li">重新开始！加油！</div>';
   initState();
@@ -1333,11 +1695,42 @@ function goHome(){
   document.getElementById('luModal').classList.remove('show');
   document.getElementById('gameConfirmModal').classList.remove('show');
   document.getElementById('regularSummaryModal').classList.remove('show');
+  document.getElementById('shopModal').classList.remove('show');
+  document.getElementById('itemDetailModal').classList.remove('show');
   document.getElementById('screen-home').style.display='flex';
 }
 
 // 确保首页在加载时显示
 document.getElementById('screen-home').style.display='flex';
+
+// ════════════════════════════════════════════
+// 骰子悬停提示
+// ════════════════════════════════════════════
+function showDiceTooltip(e, dt){
+  const d=DICE_INFO[dt]; if(!d) return;
+  const tip=document.getElementById('dice-tooltip');
+  tip.querySelector('#dtt-icon').textContent=d.icon;
+  tip.querySelector('#dtt-name').textContent=d.label;
+  tip.querySelector('#dtt-desc').textContent=d.desc;
+  tip.style.display='block';
+  moveDiceTooltip(e);
+}
+function moveDiceTooltip(e){
+  const tip=document.getElementById('dice-tooltip');
+  const x=e.clientX+14, y=e.clientY-70;
+  tip.style.left=Math.min(x, window.innerWidth-140)+'px';
+  tip.style.top=Math.max(y,8)+'px';
+}
+function hideDiceTooltip(){
+  document.getElementById('dice-tooltip').style.display='none';
+}
 </script>
+
+<!-- 骰子悬停提示浮层 -->
+<div id="dice-tooltip">
+  <div id="dtt-icon" style="font-size:1.6em;margin-bottom:3px"></div>
+  <div id="dtt-name" style="font-size:0.78em;font-weight:700;color:#fbbf24;margin-bottom:4px"></div>
+  <div id="dtt-desc" style="font-size:0.68em;color:#94a3b8;font-family:monospace;letter-spacing:2px"></div>
+</div>
 </body>
 </html>
