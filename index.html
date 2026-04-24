@@ -524,13 +524,13 @@ body{
         <span class="opt-tag tag-train">训练</span>
         <div class="opt-name" id="tA-name">翻身跳投</div>
         <div class="opt-cost" id="tA-cost">消耗 300金 + 20体</div>
-        <div class="opt-gain" id="tA-gain">掷骰≥4 得25经验</div>
+        <div class="opt-gain" id="tA-gain">掷骰≥4 得40经验</div>
       </div>
       <div class="option" id="opt-trainB" onclick="selectAction('trainB')">
         <span class="opt-tag tag-train">训练</span>
         <div class="opt-name" id="tB-name">突破劈扣</div>
         <div class="opt-cost" id="tB-cost">消耗 300金 + 20体</div>
-        <div class="opt-gain" id="tB-gain">掷骰≥4 得25经验</div>
+        <div class="opt-gain" id="tB-gain">掷骰≥4 得40经验</div>
       </div>
       <div class="option" id="opt-biz" onclick="selectAction('biz')">
         <span class="opt-tag tag-biz">商业</span>
@@ -859,10 +859,10 @@ function updateDecisionUI(){
   const tgt=3+S.gamesPlayed;
   document.getElementById('tA-name').textContent = ATTR_NAMES[d.trainA.attr];
   document.getElementById('tA-cost').textContent = `消耗 ${d.trainA.costMoney}金 + ${d.trainA.costStam}体`;
-  document.getElementById('tA-gain').textContent = `掷骰≥${tgt} 得25经验`;
+  document.getElementById('tA-gain').textContent = `掷骰≥${tgt} 得40经验`;
   document.getElementById('tB-name').textContent = ATTR_NAMES[d.trainB.attr];
   document.getElementById('tB-cost').textContent = `消耗 ${d.trainB.costMoney}金 + ${d.trainB.costStam}体`;
-  document.getElementById('tB-gain').textContent = `掷骰≥${tgt} 得25经验`;
+  document.getElementById('tB-gain').textContent = `掷骰≥${tgt} 得40经验`;
   document.getElementById('biz-cost').textContent = `消耗 ${d.biz.costStam}体`;
   document.getElementById('biz-gain').textContent = `获得 ${d.biz.earn}金`;
   document.getElementById('rest-cost').textContent = `消耗 ${d.rest.costMoney}金`;
@@ -954,7 +954,7 @@ function rollTrainDice(){
     v.textContent=pass?'✅ 训练成功！':'❌ 训练失败';
     v.className='roll-verdict '+(pass?'rv-ok':'rv-no');
     document.getElementById('tr-result').style.display='block';
-    const baseExp=pass?25:15;
+    const baseExp=pass?40:15;
     const expGain=baseExp+itemFx.expBonus;
     const extraStam=pass?0:10;
     if(extraStam>0) S.stamina=Math.max(0,S.stamina-extraStam);
