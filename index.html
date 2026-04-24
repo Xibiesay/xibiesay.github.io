@@ -1575,7 +1575,7 @@ function generateShopItems(){
   const weighted=[];
   pool.forEach(item=>{ const w=STAR_W[item.star]||10; for(let k=0;k<w;k++) weighted.push(item); });
   const chosen=[],seen=new Set();
-  for(let t=0;t<400&&chosen.length<2;t++){
+  for(let t=0;t<400&&chosen.length<6;t++){
     const pick=weighted[Math.floor(Math.random()*weighted.length)];
     if(!seen.has(pick.id)){seen.add(pick.id);chosen.push(pick);}
   }
