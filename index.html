@@ -376,14 +376,25 @@ body{
   filter:drop-shadow(0 0 35px rgba(249,115,22,.25));
 }
 .home-btn-area{
-  padding:20px 18px 24px;flex-shrink:0;
-  display:flex;justify-content:center;
+  padding:14px 18px 26px;flex-shrink:0;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
   background:linear-gradient(0deg,rgba(0,0,0,.95),rgba(0,0,0,.7));
 }
+.home-char-btns{display:flex;gap:10px;width:100%;max-width:320px}
+.btn-char-action{
+  flex:1;padding:11px 6px;
+  border:1.5px solid rgba(249,115,22,.5);
+  background:rgba(249,115,22,.08);
+  color:#fbbf24;border-radius:10px;
+  font-size:0.8em;font-weight:700;cursor:pointer;
+  letter-spacing:.5px;transition:all .15s;
+}
+.btn-char-action:active{transform:scale(.95);background:rgba(249,115,22,.2)}
+.btn-char-action.has-char{border-color:#4ade80;color:#4ade80;background:rgba(74,222,128,.1);font-size:0.68em}
 .btn-start-game{
   background:linear-gradient(135deg,#f97316,#dc2626);
   color:#fff;border:none;
-  padding:15px 65px;border-radius:45px;
+  padding:14px 60px;border-radius:45px;
   font-size:1.1em;font-weight:900;
   cursor:pointer;letter-spacing:3px;
   box-shadow:0 0 25px rgba(249,115,22,.5);
@@ -394,6 +405,162 @@ body{
   50%{box-shadow:0 0 45px rgba(249,115,22,.85),0 0 70px rgba(249,115,22,.3)}
 }
 .btn-start-game:active{transform:scale(.96);animation:none}
+
+/* ══ 角色创建屏 ══ */
+#screen-create{
+  position:fixed;inset:0;z-index:9998;
+  display:none;flex-direction:column;
+  background:linear-gradient(135deg,#080c1a 0%,#111827 100%);
+}
+.cc-inner{
+  max-width:500px;margin:0 auto;width:100%;
+  display:flex;flex-direction:column;height:100%;overflow:hidden;
+}
+.cc-hdr{
+  padding:12px 14px 8px;flex-shrink:0;
+  background:rgba(0,0,0,.55);
+  border-bottom:2px solid rgba(249,115,22,.45);text-align:center;
+}
+.cc-hdr-title{font-size:1.1em;font-weight:900;color:#fbbf24;letter-spacing:4px}
+.cc-hdr-sub{font-size:0.62em;color:#64748b;margin-top:2px;letter-spacing:1px}
+.cc-body{flex:1;overflow-y:auto;padding:10px 12px;display:flex;gap:10px}
+.cc-body::-webkit-scrollbar{width:3px}
+.cc-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:2px}
+.cc-left{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:7px}
+#charCanvas{
+  border-radius:10px;
+  background:radial-gradient(ellipse at 50% 65%,#1a2540 0%,#080c1a 100%);
+  border:1.5px solid rgba(249,115,22,.35);
+  image-rendering:pixelated;image-rendering:crisp-edges;display:block;
+}
+.cc-tag{
+  text-align:center;background:rgba(0,15,35,.9);
+  border-radius:7px;padding:5px 10px;width:100%;
+  border:1px solid rgba(255,255,255,.07);
+}
+.cc-tag-num{font-size:1.15em;font-weight:900;color:#fbbf24;line-height:1.2}
+.cc-tag-name{font-size:0.68em;color:#e2e8f0;margin-top:2px;word-break:break-all;min-height:1em}
+.cc-right{flex:1;display:flex;flex-direction:column;gap:7px;min-width:0}
+.csec{background:rgba(0,12,30,.88);border-radius:8px;padding:7px 9px;border:1px solid rgba(255,255,255,.07)}
+.csec-lbl{font-size:0.58em;color:#64748b;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px}
+.cc-input{
+  width:100%;background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.14);border-radius:5px;
+  color:#e2e8f0;font-size:0.82em;padding:5px 8px;
+  outline:none;font-family:inherit;
+}
+.cc-input:focus{border-color:rgba(249,115,22,.6)}
+.cc-input::placeholder{color:#374151}
+.cc-opt-row{display:flex;gap:5px;align-items:center}
+.skin-dot{
+  width:24px;height:24px;border-radius:50%;
+  border:2px solid transparent;cursor:pointer;flex-shrink:0;
+  transition:transform .12s,border-color .12s;
+}
+.skin-dot.sel{border-color:#fbbf24;transform:scale(1.22)}
+.skin-dot:active{transform:scale(.85)}
+.tag-btn{
+  flex:1;background:rgba(0,20,50,.8);
+  border:1.5px solid rgba(255,255,255,.1);border-radius:5px;
+  color:#64748b;font-size:0.6em;font-weight:700;
+  padding:4px 2px;cursor:pointer;text-align:center;
+  transition:all .1s;line-height:1.3;min-width:0;font-family:inherit;
+}
+.tag-btn.sel{border-color:#f97316;color:#fbbf24;background:rgba(249,115,22,.15)}
+.tag-btn:active{transform:scale(.92)}
+.jersey-sw{
+  width:26px;height:26px;border-radius:6px;
+  border:2px solid transparent;cursor:pointer;flex-shrink:0;
+  transition:transform .12s,border-color .12s;
+}
+.jersey-sw.sel{border-color:#fff;transform:scale(1.22)}
+.jersey-sw:active{transform:scale(.85)}
+.cc-foot{
+  padding:11px 14px 22px;flex-shrink:0;
+  background:linear-gradient(0deg,rgba(0,0,0,.95),transparent);
+  display:flex;gap:8px;
+}
+.btn-cc-back{
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);
+  color:#64748b;border-radius:25px;padding:12px 18px;
+  font-size:0.8em;font-weight:700;cursor:pointer;white-space:nowrap;
+}
+.btn-cc-back:active{opacity:.6}
+.btn-cc-confirm{
+  flex:1;padding:13px;
+  background:linear-gradient(135deg,#f97316,#dc2626);
+  color:#fff;border:none;border-radius:25px;
+  font-size:0.95em;font-weight:900;cursor:pointer;letter-spacing:2px;
+  box-shadow:0 0 20px rgba(249,115,22,.35);
+  animation:gbtn 2s ease-in-out infinite;
+}
+.btn-cc-confirm:active{transform:scale(.96);animation:none}
+
+/* ══ 选择角色屏 ══ */
+#screen-select{
+  position:fixed;inset:0;z-index:9997;
+  display:none;flex-direction:column;
+  background:linear-gradient(135deg,#080c1a 0%,#111827 100%);
+}
+.ss-inner{max-width:500px;margin:0 auto;width:100%;display:flex;flex-direction:column;height:100%;overflow:hidden}
+.ss-hdr{
+  padding:12px 14px 8px;flex-shrink:0;
+  background:rgba(0,0,0,.55);border-bottom:2px solid rgba(249,115,22,.45);text-align:center;
+}
+.ss-hdr-title{font-size:1.1em;font-weight:900;color:#fbbf24;letter-spacing:4px}
+.ss-hdr-sub{font-size:0.62em;color:#64748b;margin-top:2px}
+.ss-body{flex:1;overflow-y:auto;padding:12px}
+.ss-body::-webkit-scrollbar{width:3px}
+.ss-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:2px}
+.ss-empty{text-align:center;color:#64748b;padding:50px 20px;font-size:0.85em;line-height:2}
+.char-card{
+  background:rgba(0,15,35,.9);border-radius:12px;
+  border:1.5px solid rgba(255,255,255,.1);
+  padding:11px 12px;margin-bottom:10px;
+  display:flex;align-items:center;gap:12px;
+  cursor:pointer;transition:border-color .15s;
+}
+.char-card:active{transform:scale(.97)}
+.char-card.active-char{border-color:#f97316;background:rgba(249,115,22,.08)}
+.char-card-mini{
+  flex-shrink:0;border-radius:6px;background:rgba(0,20,50,.8);
+  image-rendering:pixelated;image-rendering:crisp-edges;
+}
+.char-card-info{flex:1;min-width:0}
+.char-card-name{font-size:0.9em;font-weight:700;color:#e2e8f0;margin-bottom:1px}
+.char-card-num{font-size:1.05em;font-weight:900;color:#fbbf24}
+.char-card-stats{font-size:0.6em;color:#64748b;margin-top:3px;line-height:1.6}
+.char-card-del{
+  background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);
+  color:#f87171;border-radius:5px;padding:5px 9px;
+  font-size:0.65em;font-weight:700;cursor:pointer;flex-shrink:0;
+}
+.char-card-del:active{opacity:.6}
+.ss-foot{
+  padding:10px 14px 22px;flex-shrink:0;
+  background:linear-gradient(0deg,rgba(0,0,0,.95),transparent);
+  display:flex;gap:8px;
+}
+.btn-ss-back{
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);
+  color:#64748b;border-radius:25px;padding:12px 14px;
+  font-size:0.8em;font-weight:700;cursor:pointer;white-space:nowrap;
+}
+.btn-ss-back:active{opacity:.6}
+.btn-ss-new{
+  flex:1;padding:12px;
+  background:rgba(249,115,22,.12);border:1.5px solid rgba(249,115,22,.45);
+  color:#fbbf24;border-radius:25px;
+  font-size:0.82em;font-weight:700;cursor:pointer;
+}
+.btn-ss-new:active{opacity:.7}
+.btn-ss-confirm{
+  flex:1;padding:12px;
+  background:linear-gradient(135deg,#f97316,#dc2626);
+  color:#fff;border:none;border-radius:25px;
+  font-size:0.88em;font-weight:900;cursor:pointer;letter-spacing:1px;
+}
+.btn-ss-confirm:active{transform:scale(.96)}
 </style>
 </head>
 <body>
@@ -487,7 +654,78 @@ body{
     </svg>
   </div>
   <div class="home-btn-area">
-    <button class="btn-start-game" onclick="enterGame()">开始游戏</button>
+    <div class="home-char-btns">
+      <button class="btn-char-action" id="btn-create-char" onclick="openCreateScreen()">✨ 创建新角色</button>
+      <button class="btn-char-action" id="btn-select-char" onclick="openSelectScreen()">🏀 选择角色</button>
+    </div>
+    <button class="btn-start-game" onclick="startGame()">开始游戏</button>
+  </div>
+</div>
+
+<!-- ═══ 角色创建 ═══ -->
+<div id="screen-create">
+  <div class="cc-inner">
+    <div class="cc-hdr">
+      <div class="cc-hdr-title">✨ 创建新角色</div>
+      <div class="cc-hdr-sub">定制你的专属球星</div>
+    </div>
+    <div class="cc-body">
+      <!-- 左：像素预览 -->
+      <div class="cc-left">
+        <canvas id="charCanvas" width="140" height="210"></canvas>
+        <div class="cc-tag">
+          <div class="cc-tag-num" id="ctag-num">#23</div>
+          <div class="cc-tag-name" id="ctag-name">无名球员</div>
+        </div>
+      </div>
+      <!-- 右：选项 -->
+      <div class="cc-right">
+        <div class="csec">
+          <div class="csec-lbl">球员姓名</div>
+          <input id="inp-name" class="cc-input" type="text" placeholder="输入名字…" maxlength="8">
+        </div>
+        <div class="csec">
+          <div class="csec-lbl">球衣号码 (0-99)</div>
+          <input id="inp-num" class="cc-input" type="number" min="0" max="99" value="23">
+        </div>
+        <div class="csec">
+          <div class="csec-lbl">肤色</div>
+          <div class="cc-opt-row" id="skin-opts"></div>
+        </div>
+        <div class="csec">
+          <div class="csec-lbl">身高</div>
+          <div class="cc-opt-row" id="height-opts"></div>
+        </div>
+        <div class="csec">
+          <div class="csec-lbl">体重</div>
+          <div class="cc-opt-row" id="weight-opts"></div>
+        </div>
+        <div class="csec">
+          <div class="csec-lbl">球衣颜色</div>
+          <div class="cc-opt-row" id="jersey-opts"></div>
+        </div>
+      </div>
+    </div>
+    <div class="cc-foot">
+      <button class="btn-cc-back" onclick="cancelCreate()">← 返回</button>
+      <button class="btn-cc-confirm" onclick="confirmCreate()">保存角色 ✅</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 选择角色 ═══ -->
+<div id="screen-select">
+  <div class="ss-inner">
+    <div class="ss-hdr">
+      <div class="ss-hdr-title">🏀 选择角色</div>
+      <div class="ss-hdr-sub">选中后点击"出发"开始游戏</div>
+    </div>
+    <div class="ss-body" id="ss-body"></div>
+    <div class="ss-foot">
+      <button class="btn-ss-back" onclick="cancelSelect()">← 返回</button>
+      <button class="btn-ss-new" onclick="openCreateScreen()">✨ 新建</button>
+      <button class="btn-ss-confirm" onclick="selectAndStart()">出发 🏀</button>
+    </div>
   </div>
 </div>
 
@@ -501,7 +739,7 @@ body{
 <!-- 游戏信息（右上1/2） -->
 <div class="game-info">
   <div class="gi-item"><div class="gi-label">今天</div><div id="g-day-val" class="gi-value gv-day">第1天</div></div>
-  <div class="gi-item"><div class="gi-label">赛季</div><div id="g-season-type" class="gi-value gv-season">常规赛</div></div>
+  <div class="gi-item"><div class="gi-label" id="g-season-label">第1赛季</div><div id="g-season-type" class="gi-value gv-season">常规赛</div></div>
   <div class="gi-item"><div class="gi-label">比赛日</div><div id="g-next-game" class="gi-value gv-game">第4天</div></div>
 </div>
 <!-- 主内容区 -->
@@ -693,7 +931,7 @@ body{
   <div class="modal-box">
     <div class="modal-title" id="end-title">赛季结束</div>
     <div class="modal-msg" id="end-msg"></div>
-    <button class="modal-btn" onclick="restartGame()">重新开始</button>
+    <button class="modal-btn" onclick="restartGame()">返回主界面 →</button>
   </div>
 </div>
 
@@ -821,7 +1059,7 @@ let S = {};
 function initState(){
   S = {
     day:1, stamina:100, maxStam:100, money:5000,
-    wins:0, gamesPlayed:0,
+    wins:0, gamesPlayed:0, ended:false,
     season:'regular',
     playoff:{round:0,wins:0,losses:0,gamesPlayed:0},
     attrs:{},
@@ -832,7 +1070,6 @@ function initState(){
     gameConfirmCallback:null,
     inventory:[],   // 已购宝物（最多36件）
     shopItems:[],   // 当前商店商品
-    shopBought:false, // 本次购物日是否已购买
   };
   ATTR_KEYS.forEach(k=>{
     S.attrs[k]={level:1,diceCount:1,exp:0,expNeeded:20,pool:['STD']};
@@ -1402,6 +1639,10 @@ function updateUI(){
   document.getElementById('sv-money').textContent=S.money;
   document.getElementById('g-day-val').textContent=`第${S.day}天`;
 
+  // 赛季编号标签
+  const snLabel=document.getElementById('g-season-label');
+  if(snLabel) snLabel.textContent=`第${S.seasonNum||1}赛季`;
+
   if(S.season==='regular'){
     document.getElementById('wins-label').textContent='胜率';
     const rate=S.gamesPlayed>0?Math.round(S.wins/S.gamesPlayed*100)+'%':'-%';
@@ -1477,13 +1718,67 @@ function checkGameOver(){
 }
 
 function endGame(win,msg){
+  if(S.ended) return; // 防止重复触发
+  S.ended=true;
+
+  const seasonNum=S.seasonNum||1;
+
+  // ── 判断结果类型 ──
+  let resultType;
+  if(win){
+    resultType='champion';
+  } else if(S.stamina<=0){
+    resultType='injury';
+  } else if(S.money<=0){
+    resultType='bankrupt';
+  } else if(S.season==='playoff'){
+    resultType=S.playoff.round>=3?'finals_loss':S.playoff.round>=2?'conf_loss':'playoff_loss';
+  } else {
+    resultType='no_playoff';
+  }
+
+  // ── 写入角色存档 ──
+  if(currentChar){
+    const ci=savedChars.findIndex(c=>c.id===currentChar.id);
+    if(ci>=0){
+      savedChars[ci].seasons.push({
+        season: seasonNum,
+        result: resultType,
+        wins: S.wins,
+        gamesPlayed: S.gamesPlayed,
+        money: S.money,
+        date: new Date().toLocaleDateString('zh-CN')
+      });
+      savedChars[ci].currentSeason=seasonNum+1;
+      currentChar=savedChars[ci]; // 同步引用
+      persistChars();
+    }
+  }
+
+  // ── 构建弹窗内容 ──
   const modal=document.getElementById('endModal');
   const title=document.getElementById('end-title');
-  title.textContent=win?'🏆 总冠军！':'🏀 赛季结束';
+  title.textContent=win?`🏆 第${seasonNum}赛季 · 总冠军！`:`🏀 第${seasonNum}赛季 结束`;
   title.style.color=win?'#fbbf24':'#f87171';
-  document.getElementById('end-msg').textContent=msg;
+
+  // 赛季统计
+  const winRate=S.gamesPlayed>0?Math.round(S.wins/S.gamesPlayed*100):0;
+  let statLine=`常规赛 ${S.wins}胜${S.gamesPlayed-S.wins}负（胜率${winRate}%）`;
+  if(S.season==='playoff') statLine+=`\n季后赛进入第${S.playoff.round}轮`;
+
+  // 角色生涯统计
+  let careerLine='';
+  if(currentChar&&(currentChar.seasons||[]).length>0){
+    const all=currentChar.seasons;
+    const champs=all.filter(s=>s.result==='champion').length;
+    careerLine=`\n\n──────────\n${currentChar.name||'球员'} 生涯：共${all.length}赛季`+
+      (champs>0?` · 🏆×${champs}`:' · 尚未夺冠')+
+      `\n第${seasonNum+1}赛季 即将到来…`;
+  }
+
+  document.getElementById('end-msg').textContent=msg+'\n\n'+statLine+careerLine;
   modal.classList.add('show');
-  addLog('游戏结束: '+msg,'i');
+  addLog(`第${seasonNum}赛季结束（${SEASON_LABELS[resultType]||resultType}）：`+msg,'i');
 }
 
 // ════════════════════════════════════════════
@@ -1584,7 +1879,6 @@ function generateShopItems(){
 
 function openShop(){
   S.shopItems=generateShopItems();
-  S.shopBought=false;
   renderShop();
   document.getElementById('shopModal').classList.add('show');
 }
@@ -1596,7 +1890,7 @@ function renderShop(){
   document.getElementById('shop-inv-info').textContent=
     `宝物栏 ${S.inventory.length}/36  ·  💰 ${S.money} 金`;
   const hintEl=document.getElementById('shop-hint');
-  if(hintEl) hintEl.textContent=S.shopBought?'✅ 本次已购买，可离开商店':'本次可购买 1 件宝物';
+  if(hintEl) hintEl.textContent=`💰 ${S.money} 金 · 宝物栏剩余 ${36-S.inventory.length} 格`;
   const grid=document.getElementById('shop-grid');
   grid.innerHTML='';
   if(!S.shopItems.length){
@@ -1617,7 +1911,7 @@ function renderShop(){
         `<div class="shop-item-desc">${item.desc}</div>`+
       `</div>`+
       `<div class="shop-item-price">${item.price}💰</div>`;
-    if(S.shopBought||alreadyOwn){
+    if(alreadyOwn){
       div.style.cssText='opacity:.35;pointer-events:none';
     } else if(!afford||full){
       div.style.opacity='.55';
@@ -1631,10 +1925,9 @@ function renderShop(){
 
 function buyItem(id){
   const item=SHOP_ITEMS.find(i=>i.id===id);
-  if(!item||S.shopBought||S.inventory.length>=36||S.money<item.price) return;
+  if(!item||S.inventory.length>=36||S.money<item.price) return;
   S.money-=item.price;
   S.inventory.push({...item});
-  S.shopBought=true;
   // 立即生效：体力上限
   if(item.eff.type==='passive'&&item.eff.stat==='maxStam'){
     S.maxStam+=item.eff.val;
@@ -1643,22 +1936,12 @@ function buyItem(id){
     addLog(`🛒 购入【${item.icon}${item.name}】！${item.desc}`,'i');
   }
   updateUI();
-  closeShop();
+  renderShop(); // 刷新商店（不关闭），继续购买
 }
 
 function restartGame(){
   document.getElementById('endModal').classList.remove('show');
-  document.getElementById('luModal').classList.remove('show');
-  document.getElementById('gameConfirmModal').classList.remove('show');
-  document.getElementById('regularSummaryModal').classList.remove('show');
-  document.getElementById('shopModal').classList.remove('show');
-  document.getElementById('itemDetailModal').classList.remove('show');
-  const logEl=document.getElementById('eventLog');
-  logEl.innerHTML='<div class="le li">重新开始！加油！</div>';
-  initState();
-  updateUI();
-  addLog(`📅 进入第${S.day}天。`,'i');
-  checkDayStart();
+  goHome(); // 回首页重新选角色
 }
 
  
@@ -1680,28 +1963,423 @@ function addLog(text,type='i'){
 }
 
 // ════════════════════════════════════════════
+// 角色创建系统
+// ════════════════════════════════════════════
+const SKIN_TONES=[
+  {label:'白皙',color:'#FDDBB4',shadow:'#D4906A'},
+  {label:'小麦',color:'#E8A87C',shadow:'#B87040'},
+  {label:'蜜糖',color:'#C87941',shadow:'#8A4E20'},
+  {label:'深棕',color:'#8B4513',shadow:'#5C2D0E'},
+  {label:'黑曜',color:'#4A2512',shadow:'#2A1208'},
+];
+const HEIGHT_OPTS=['170cm','180cm','190cm','200cm','210+'];
+const WEIGHT_OPTS=['65kg','75kg','85kg','95kg','105+'];
+const JERSEY_COLORS=[
+  {label:'烈焰红',color:'#E53E3E',shorts:'#9B2C2C'},
+  {label:'皇者蓝',color:'#2B6CB0',shorts:'#1A365D'},
+  {label:'森林绿',color:'#276749',shorts:'#1C4532'},
+  {label:'暗夜紫',color:'#6B46C1',shorts:'#44337A'},
+  {label:'荣耀金',color:'#B7791F',shorts:'#744210'},
+];
+
+let charCreate={name:'',number:23,skinIdx:1,heightIdx:2,weightIdx:2,jerseyIdx:0};
+let savedChars=[];    // 已保存的角色列表（最多5个）
+let currentChar=null; // 当前选中角色
+
+// ══ 赛季结果标识 ══
+const SEASON_ICONS={
+  champion:'🏆', finals_loss:'🥈', conf_loss:'🏅',
+  playoff_loss:'🏀', no_playoff:'❌', injury:'💔', bankrupt:'💸'
+};
+const SEASON_LABELS={
+  champion:'夺冠', finals_loss:'总决赛败', conf_loss:'分区赛败',
+  playoff_loss:'首轮败', no_playoff:'未进季后赛', injury:'伤退', bankrupt:'破产'
+};
+
+// ══ LocalStorage 存档 ══
+const SAVE_KEY='goat_chars_v2';
+function loadSavedChars(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY);
+    if(raw){
+      savedChars=JSON.parse(raw);
+      // 兼容旧存档（无 seasons 字段）
+      savedChars.forEach(c=>{
+        if(!c.seasons) c.seasons=[];
+        if(!c.currentSeason) c.currentSeason=1;
+      });
+    }
+  }catch(e){ savedChars=[]; }
+}
+function persistChars(){
+  try{ localStorage.setItem(SAVE_KEY,JSON.stringify(savedChars)); }catch(e){}
+}
+
+// ── 打开创建屏 ──
+function openCreateScreen(){
+  document.getElementById('screen-home').style.display='none';
+  document.getElementById('screen-select').style.display='none';
+  document.getElementById('screen-create').style.display='flex';
+  charCreate={name:'',number:23,skinIdx:1,heightIdx:2,weightIdx:2,jerseyIdx:0};
+  buildCreateUI();
+}
+function cancelCreate(){
+  document.getElementById('screen-create').style.display='none';
+  document.getElementById('screen-home').style.display='flex';
+  updateHomeCharBtns();
+}
+
+// ── 构建创建UI ──
+function buildCreateUI(){
+  // 肤色
+  const skinEl=document.getElementById('skin-opts');
+  skinEl.innerHTML='';
+  SKIN_TONES.forEach((s,i)=>{
+    const d=document.createElement('div');
+    d.className='skin-dot'+(i===charCreate.skinIdx?' sel':'');
+    d.style.background=s.color;
+    d.title=s.label;
+    d.onclick=()=>{charCreate.skinIdx=i;refreshCC();drawCharCanvas();};
+    skinEl.appendChild(d);
+  });
+  // 身高
+  const htEl=document.getElementById('height-opts');
+  htEl.innerHTML='';
+  HEIGHT_OPTS.forEach((h,i)=>{
+    const b=document.createElement('button');
+    b.className='tag-btn'+(i===charCreate.heightIdx?' sel':'');
+    b.textContent=h;
+    b.onclick=()=>{charCreate.heightIdx=i;refreshCC();drawCharCanvas();};
+    htEl.appendChild(b);
+  });
+  // 体重
+  const wtEl=document.getElementById('weight-opts');
+  wtEl.innerHTML='';
+  WEIGHT_OPTS.forEach((w,i)=>{
+    const b=document.createElement('button');
+    b.className='tag-btn'+(i===charCreate.weightIdx?' sel':'');
+    b.textContent=w;
+    b.onclick=()=>{charCreate.weightIdx=i;refreshCC();drawCharCanvas();};
+    wtEl.appendChild(b);
+  });
+  // 球衣
+  const jrEl=document.getElementById('jersey-opts');
+  jrEl.innerHTML='';
+  JERSEY_COLORS.forEach((j,i)=>{
+    const d=document.createElement('div');
+    d.className='jersey-sw'+(i===charCreate.jerseyIdx?' sel':'');
+    d.style.background=j.color;
+    d.title=j.label;
+    d.onclick=()=>{charCreate.jerseyIdx=i;refreshCC();drawCharCanvas();};
+    jrEl.appendChild(d);
+  });
+  // 姓名输入
+  const nEl=document.getElementById('inp-name');
+  nEl.value=charCreate.name;
+  nEl.oninput=()=>{
+    charCreate.name=nEl.value;
+    document.getElementById('ctag-name').textContent=charCreate.name||'无名球员';
+  };
+  // 号码输入
+  const numEl=document.getElementById('inp-num');
+  numEl.value=charCreate.number;
+  numEl.oninput=()=>{
+    let v=parseInt(numEl.value);
+    if(isNaN(v)||v<0)v=0;
+    if(v>99)v=99;
+    charCreate.number=v;
+    document.getElementById('ctag-num').textContent='#'+v;
+    drawCharCanvas();
+  };
+  document.getElementById('ctag-name').textContent=charCreate.name||'无名球员';
+  document.getElementById('ctag-num').textContent='#'+charCreate.number;
+  setTimeout(drawCharCanvas,60);
+}
+
+function refreshCC(){
+  document.querySelectorAll('.skin-dot').forEach((d,i)=>d.classList.toggle('sel',i===charCreate.skinIdx));
+  document.querySelectorAll('#height-opts .tag-btn').forEach((b,i)=>b.classList.toggle('sel',i===charCreate.heightIdx));
+  document.querySelectorAll('#weight-opts .tag-btn').forEach((b,i)=>b.classList.toggle('sel',i===charCreate.weightIdx));
+  document.querySelectorAll('.jersey-sw').forEach((d,i)=>d.classList.toggle('sel',i===charCreate.jerseyIdx));
+}
+
+// ── 保存角色 ──
+function confirmCreate(){
+  charCreate.name=(document.getElementById('inp-name').value.trim())||'无名球员';
+  let v=parseInt(document.getElementById('inp-num').value);
+  if(isNaN(v)||v<0||v>99)v=23;
+  charCreate.number=v;
+  if(savedChars.length>=5) savedChars.shift();
+  const newChar={...charCreate, id:Date.now(), seasons:[], currentSeason:1};
+  savedChars.push(newChar);
+  currentChar=newChar;
+  persistChars();
+  document.getElementById('screen-create').style.display='none';
+  document.getElementById('screen-home').style.display='flex';
+  updateHomeCharBtns();
+}
+
+// ── 选择角色屏 ──
+function openSelectScreen(){
+  document.getElementById('screen-home').style.display='none';
+  document.getElementById('screen-create').style.display='none';
+  document.getElementById('screen-select').style.display='flex';
+  renderSelectScreen();
+}
+function cancelSelect(){
+  document.getElementById('screen-select').style.display='none';
+  document.getElementById('screen-home').style.display='flex';
+  updateHomeCharBtns();
+}
+function selectAndStart(){
+  if(!currentChar){
+    const b=document.getElementById('btn-ss-new');
+    b.style.borderColor='#f87171';
+    setTimeout(()=>b.style.borderColor='',800);
+    return;
+  }
+  document.getElementById('screen-select').style.display='none';
+  enterGame();
+}
+
+function renderSelectScreen(){
+  const body=document.getElementById('ss-body');
+  body.innerHTML='';
+  if(!savedChars.length){
+    body.innerHTML=`<div class="ss-empty">📭 还没有角色<br><br>先创建你的第一个球员吧！</div>`;
+    return;
+  }
+  savedChars.slice().reverse().forEach((ch,revIdx)=>{
+    const idx=savedChars.length-1-revIdx;
+    const isActive=currentChar&&currentChar.id===ch.id;
+    const card=document.createElement('div');
+    card.className='char-card'+(isActive?' active-char':'');
+
+    // 缩略像素图
+    const cvs=document.createElement('canvas');
+    cvs.width=60;cvs.height=90;
+    cvs.className='char-card-mini';
+    cvs.style.cssText='width:60px;height:90px;flex-shrink:0';
+    card.appendChild(cvs);
+    setTimeout(()=>drawCharToCanvas(cvs,ch,3),0);
+
+    // 信息区
+    const info=document.createElement('div');
+    info.className='char-card-info';
+
+    const seasons=ch.seasons||[];
+    const nextSeason=ch.currentSeason||1;
+    const totalSeasons=seasons.length;
+    // 最近5赛季结果图标（倒序，最新在前）
+    const recentIcons=seasons.slice(-5).reverse()
+      .map(s=>`<span title="第${s.season}赛季·${SEASON_LABELS[s.result]||s.result}">${SEASON_ICONS[s.result]||'❓'}</span>`).join('');
+    // 最佳战绩
+    const bestLabel=seasons.find(s=>s.result==='champion')
+      ? '<span style="color:#fbbf24;font-weight:700">🏆 含冠军赛季</span>'
+      : '';
+
+    info.innerHTML=
+      `<div class="char-card-name">${ch.name||'无名球员'}`+
+        (isActive?'  <span style="font-size:.68em;color:#f97316;font-weight:700">▶ 当前</span>':'')+
+      `</div>`+
+      `<div class="char-card-num">#${ch.number}</div>`+
+      `<div class="char-card-stats">`+
+        `<span style="color:#fbbf24;font-weight:700">第${nextSeason}赛季</span>`+
+        (totalSeasons>0?`  共${totalSeasons}季`:'  全新球员')+`<br>`+
+        (totalSeasons>0
+          ? `近况：${recentIcons}  ${bestLabel}`
+          : `${HEIGHT_OPTS[ch.heightIdx]||''} · ${WEIGHT_OPTS[ch.weightIdx]||''}`)+
+      `</div>`;
+    card.appendChild(info);
+
+    // 删除按钮
+    const del=document.createElement('button');
+    del.className='char-card-del';
+    del.textContent='删除';
+    del.onclick=(e)=>{
+      e.stopPropagation();
+      savedChars.splice(idx,1);
+      if(currentChar&&currentChar.id===ch.id) currentChar=savedChars[savedChars.length-1]||null;
+      persistChars();
+      updateHomeCharBtns();
+      renderSelectScreen();
+    };
+    card.appendChild(del);
+    card.onclick=()=>{currentChar=ch;updateHomeCharBtns();renderSelectScreen();};
+    body.appendChild(card);
+  });
+}
+
+// ── 首页按钮状态 ──
+function updateHomeCharBtns(){
+  const selBtn=document.getElementById('btn-select-char');
+  if(!selBtn)return;
+  if(currentChar){
+    selBtn.classList.add('has-char');
+    const sn=currentChar.currentSeason||1;
+    selBtn.textContent=`✅ ${currentChar.name||'球员'} · 第${sn}季`;
+  } else {
+    selBtn.classList.remove('has-char');
+    selBtn.textContent='🏀 选择角色';
+  }
+}
+
+// ── 首页开始游戏 ──
+function startGame(){
+  if(!currentChar){
+    const btn=document.getElementById('btn-create-char');
+    const orig=btn.style.borderColor;
+    btn.style.borderColor='#f87171';btn.style.color='#f87171';
+    setTimeout(()=>{btn.style.borderColor='';btn.style.color='';},900);
+    return;
+  }
+  enterGame();
+}
+
+// ════════════════════════════════════════════
+// 像素角色绘制引擎
+// ════════════════════════════════════════════
+function drawCharCanvas(){
+  const canvas=document.getElementById('charCanvas');
+  if(!canvas)return;
+  drawCharToCanvas(canvas,charCreate,7);
+}
+
+function drawCharToCanvas(canvas,cd,PS){
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  const GW=Math.floor(W/PS); // 格宽（20）
+  const GH=Math.floor(H/PS); // 格高（30）
+  const CX=Math.floor(GW/2); // 中心列（10）
+
+  const sk=SKIN_TONES[cd.skinIdx]||SKIN_TONES[1];
+  const jr=JERSEY_COLORS[cd.jerseyIdx]||JERSEY_COLORS[0];
+  const BW=4+(cd.weightIdx||0);  // 躯干宽4-8
+  const LH=4+(cd.heightIdx||0);  // 腿长4-8
+
+  // 总高: 头(5)+颈(1)+身(7)+短裤(3)+腿(LH)+鞋(1) = 17+LH
+  const TH=17+LH;
+  const SY=Math.max(1,Math.floor((GH-TH)/2));
+
+  // 填充辅助
+  const F=(gx,gy,gw,gh,c)=>{
+    ctx.fillStyle=c;
+    ctx.fillRect(Math.round(gx*PS),Math.round(gy*PS),Math.round(gw*PS),Math.round(gh*PS));
+  };
+
+  // ─── 头部（6宽×5高）───
+  const HX=CX-3, HY=SY;
+  F(HX,    HY,    6,2,'#1a0d07');      // 头发
+  F(HX,    HY+2,  6,3,sk.color);      // 脸
+  F(HX,    HY+2,  1,2,sk.shadow);     // 左耳阴影
+  F(HX+5,  HY+2,  1,2,sk.shadow);     // 右耳阴影
+  F(HX+1,  HY+1,  2,1,sk.shadow);     // 左眉
+  F(HX+3,  HY+1,  2,1,sk.shadow);     // 右眉
+  F(HX+1,  HY+2,  1,1,'#111827');     // 左眼
+  F(HX+4,  HY+2,  1,1,'#111827');     // 右眼
+  F(HX+2,  HY+3,  1,1,sk.shadow);     // 鼻
+  F(HX+2,  HY+4,  2,1,'#b85050');     // 嘴
+
+  // ─── 颈部 ───
+  F(CX-1,HY+5,2,1,sk.color);
+
+  // ─── 球衣躯干（BW宽×7高）───
+  const BX=CX-Math.floor(BW/2), BY=HY+6;
+  F(BX,BY,BW,7,jr.color);
+  // 球衣右边阴影
+  F(BX+BW-1,BY,1,7,darkenColor(jr.color));
+
+  // 球衣号码（PS≥5时显示）
+  if(PS>=5){
+    ctx.save();
+    ctx.fillStyle='rgba(255,255,255,.92)';
+    ctx.font=`bold ${Math.round(PS*1.9)}px monospace`;
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.fillText(String(cd.number!=null?cd.number:23),CX*PS,(BY+3.5)*PS);
+    ctx.restore();
+  }
+
+  // ─── 手臂（皮肤色，无袖球衣）───
+  F(BX-1,  BY,    1,6,sk.color);
+  F(BX+BW, BY,    1,6,sk.color);
+  F(BX-1,  BY+6,  1,1,sk.shadow); // 左手
+  F(BX+BW, BY+6,  1,1,sk.shadow); // 右手
+
+  // ─── 短裤（BW+2宽×3高）───
+  const SHY=BY+7;
+  F(BX-1,SHY,  BW+2,3,jr.shorts);
+  F(BX-1,SHY,  BW+2,1,jr.color);  // 顶部条纹
+
+  // ─── 腿部 ───
+  const LY=SHY+3;
+  const LW=Math.max(2,Math.floor(BW/2)-1);
+  const LLX=BX, RLX=BX+BW-LW;
+  F(LLX,LY,LW,LH,sk.color);
+  F(RLX,LY,LW,LH,sk.color);
+  F(LLX+LW-1,LY,1,LH,sk.shadow); // 内侧阴影
+  F(RLX,     LY,1,LH,sk.shadow);
+
+  // ─── 鞋子 ───
+  const SHOEY=LY+LH;
+  F(LLX-1,SHOEY,LW+2,1,'#1a1a1a');
+  F(RLX-1,SHOEY,LW+2,1,'#1a1a1a');
+
+  // ─── 地面阴影 ───
+  ctx.save();
+  ctx.fillStyle='rgba(0,0,0,.2)';
+  ctx.beginPath();
+  ctx.ellipse(CX*PS,H-Math.round(PS*0.3),BW*PS*.7,Math.round(PS*.45),0,0,Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function darkenColor(hex){
+  try{
+    const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+    return `rgb(${Math.max(0,r-40)},${Math.max(0,g-40)},${Math.max(0,b-40)})`;
+  }catch(e){return hex;}
+}
+
+// ════════════════════════════════════════════
 // 启动
 // ════════════════════════════════════════════
 function enterGame(){
-  document.getElementById('screen-home').style.display='none';
+  ['screen-home','screen-create','screen-select'].forEach(id=>{
+    document.getElementById(id).style.display='none';
+  });
   initState();
+  if(currentChar){
+    S.playerName=currentChar.name||'无名球员';
+    S.playerNumber=currentChar.number;
+    S.seasonNum=currentChar.currentSeason||1;
+    S.charData={...currentChar};
+  } else {
+    S.seasonNum=1;
+  }
   updateUI();
-  addLog('🏀 篮球生涯开始！比赛日自动触发，训练日自由选择行动。','i');
+  const pn=S.playerName||'球员';
+  const pnum=S.playerNumber!=null?` #${S.playerNumber}`:'';
+  addLog(`🏀 ${pn}${pnum}　第 ${S.seasonNum} 赛季　开始！`,'i');
   addLog(`📅 进入第${S.day}天。`,'i');
   checkDayStart();
 }
 
 function goHome(){
-  document.getElementById('endModal').classList.remove('show');
-  document.getElementById('luModal').classList.remove('show');
-  document.getElementById('gameConfirmModal').classList.remove('show');
-  document.getElementById('regularSummaryModal').classList.remove('show');
-  document.getElementById('shopModal').classList.remove('show');
-  document.getElementById('itemDetailModal').classList.remove('show');
+  ['endModal','luModal','gameConfirmModal','regularSummaryModal','shopModal','itemDetailModal'].forEach(id=>{
+    document.getElementById(id).classList.remove('show');
+  });
+  document.getElementById('screen-create').style.display='none';
+  document.getElementById('screen-select').style.display='none';
   document.getElementById('screen-home').style.display='flex';
+  updateHomeCharBtns();
 }
 
-// 确保首页在加载时显示
+// 加载本地存档 + 初始化首页
+loadSavedChars();
+updateHomeCharBtns();
 document.getElementById('screen-home').style.display='flex';
 
 // ════════════════════════════════════════════
