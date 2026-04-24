@@ -339,6 +339,39 @@ body{
 }
 .confirm-play{background:linear-gradient(135deg,#16a34a,#15803d)}
 .confirm-skip{background:linear-gradient(135deg,#64748b,#475569)}
+/* ── 对阵球队卡片 ── */
+.opp-card{
+  display:flex;align-items:center;gap:10px;
+  border-radius:10px;padding:10px 12px;
+  margin:10px 0 4px;
+  border:1.5px solid rgba(255,255,255,.15);
+}
+.opp-abbr{
+  width:44px;height:44px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.72em;font-weight:900;letter-spacing:.5px;
+  flex-shrink:0;
+}
+.opp-info{flex:1;text-align:left}
+.opp-team-name{font-size:1em;font-weight:800;line-height:1.2}
+.opp-star{font-size:0.78em;color:#e2e8f0;margin-top:2px}
+.opp-star span{color:#fbbf24}
+.opp-diff{font-size:0.7em;font-weight:700;padding:2px 7px;border-radius:99px;align-self:flex-end}
+/* 游戏面板内的对阵徽章 */
+.gm-opp-badge{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(0,0,0,.25);border-radius:7px;
+  padding:5px 10px;margin:4px 0 8px;
+  border-left:3px solid #fbbf24;
+}
+.gm-opp-abbr{
+  font-size:0.72em;font-weight:900;
+  padding:3px 6px;border-radius:5px;
+}
+.gm-opp-text{font-size:0.8em;line-height:1.3}
+.gm-opp-name{font-weight:700}
+.gm-opp-star{color:#94a3b8;font-size:0.9em}
+
 /* levelup choice grid */
 .lu-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
 .lu-die{border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all .15s}
@@ -806,6 +839,13 @@ body{
   <div class="active-panel" id="gamePanel">
     <div class="ap-tag" style="color:#f87171">🏀 常规赛</div>
     <div class="ap-title">第 <span id="gm-num">1</span> 场 / 20</div>
+    <div class="gm-opp-badge" id="gm-opp-badge" style="display:none">
+      <div class="gm-opp-abbr" id="gm-opp-abbr">LAL</div>
+      <div class="gm-opp-text">
+        <div class="gm-opp-name" id="gm-opp-name">湖人</div>
+        <div class="gm-opp-star" id="gm-opp-star">⭐ 勒布朗·詹姆斯</div>
+      </div>
+    </div>
     <div class="ap-attr" id="gm-attr">翻身跳投</div>
     <div class="ap-target" id="gm-target">目标: ≥ 5</div>
     <div class="dice-row" id="gm-dice"></div>
@@ -880,10 +920,10 @@ body{
   <div class="modal-box">
     <div class="modal-title" id="confirm-title">比赛日确认</div>
     <div class="modal-msg" id="confirm-msg">
-      今天是比赛日，是否参赛？<br><br>
+      今天是比赛日，是否参赛？<br>
       <span id="confirm-game-info">第1场常规赛</span><br>
-      参赛消耗：<span id="confirm-cost">25体力</span><br>
-      当前体力：<span id="confirm-current">100/100</span><br><br>
+      参赛消耗：<span id="confirm-cost">25体力</span>　当前体力：<span id="confirm-current">100/100</span>
+      <div id="confirm-opp-card"></div>
       <small style="color:#94a3b8">注意：参赛后体力耗尽将导致游戏失败</small>
     </div>
     <div class="confirm-btns">
@@ -944,7 +984,39 @@ const WINS_NEEDED  = 12;
 const PO_EVERY     = 10;  // 每10天一场季后赛
 
 // 修订1：定义具体的常规赛天数
-const REGULAR_GAME_DAYS = [1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34, 37, 40, 43, 46, 49, 52, 55, 58];
+const REGULAR_GAME_DAYS = [1, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57, 61, 65, 69, 73, 77];
+// 购物日：每3场比赛后的次日（自动跟随比赛日计算）
+const SHOPPING_DAYS = (()=>{
+  const days=[];
+  for(let i=2; i<REGULAR_GAME_DAYS.length; i+=3)
+    days.push(REGULAR_GAME_DAYS[i]+1);
+  return days;
+})();
+
+// 20支NBA球队（每赛季随机排列作为常规赛对阵顺序）
+// mainAttr: jumpShot翻身跳投 / drive突破劈扣 / block追身大帽 / fastBreak接球快攻
+const NBA_TEAMS=[
+  {name:'湖人',     abbr:'LAL',color:'#552583',accent:'#FDB927',star:'勒布朗·詹姆斯',   pos:'小前锋',  mainAttr:'drive'},
+  {name:'勇士',     abbr:'GSW',color:'#1D428A',accent:'#FFC72C',star:'斯蒂芬·库里',    pos:'控球后卫', mainAttr:'jumpShot'},
+  {name:'凯尔特人', abbr:'BOS',color:'#007A33',accent:'#BA9653',star:'杰伦·布朗',      pos:'得分后卫', mainAttr:'drive'},
+  {name:'热火',     abbr:'MIA',color:'#98002E',accent:'#F9A01B',star:'吉米·巴特勒',    pos:'小前锋',  mainAttr:'drive'},
+  {name:'雄鹿',     abbr:'MIL',color:'#00471B',accent:'#EEE1C6',star:'字母哥',         pos:'大前锋',  mainAttr:'drive'},
+  {name:'尼克斯',   abbr:'NYK',color:'#006BB6',accent:'#F58426',star:'卡尔-安东尼·唐斯',pos:'中锋',   mainAttr:'jumpShot'},
+  {name:'76人',     abbr:'PHI',color:'#006BB6',accent:'#ED174C',star:'乔尔·恩比德',    pos:'中锋',    mainAttr:'jumpShot'},
+  {name:'掘金',     abbr:'DEN',color:'#0E2240',accent:'#FEC524',star:'尼科拉·约基奇',  pos:'中锋',    mainAttr:'drive'},
+  {name:'太阳',     abbr:'PHX',color:'#1D1160',accent:'#E56020',star:'凯文·杜兰特',    pos:'小前锋',  mainAttr:'jumpShot'},
+  {name:'独行侠',   abbr:'DAL',color:'#00538C',accent:'#002B5E',star:'卢卡·东契奇',    pos:'控球后卫', mainAttr:'jumpShot'},
+  {name:'雷霆',     abbr:'OKC',color:'#007AC1',accent:'#EF3B24',star:'SGA',            pos:'控球后卫', mainAttr:'drive'},
+  {name:'快船',     abbr:'LAC',color:'#C8102E',accent:'#1D428A',star:'卡瓦伊·莱纳德',  pos:'小前锋',  mainAttr:'jumpShot'},
+  {name:'猛龙',     abbr:'TOR',color:'#CE1141',accent:'#A1A1AA',star:'斯科蒂·巴恩斯',  pos:'小前锋',  mainAttr:'fastBreak'},
+  {name:'公牛',     abbr:'CHI',color:'#CE1141',accent:'#000000',star:'德罗赞',          pos:'得分后卫', mainAttr:'jumpShot'},
+  {name:'篮网',     abbr:'BKN',color:'#1A1A1A',accent:'#FFFFFF',star:'卡梅隆·约翰逊',  pos:'小前锋',  mainAttr:'jumpShot'},
+  {name:'国王',     abbr:'SAC',color:'#5A2D81',accent:'#63727A',star:'德阿龙·福克斯',  pos:'控球后卫', mainAttr:'fastBreak'},
+  {name:'灰熊',     abbr:'MEM',color:'#5D76A9',accent:'#12173F',star:'贾·莫兰特',      pos:'控球后卫', mainAttr:'fastBreak'},
+  {name:'步行者',   abbr:'IND',color:'#002D62',accent:'#FDBB30',star:'哈利伯顿',        pos:'控球后卫', mainAttr:'fastBreak'},
+  {name:'马刺',     abbr:'SAS',color:'#8A9BA8',accent:'#000000',star:'文班亚马',         pos:'中锋',    mainAttr:'block'},
+  {name:'火箭',     abbr:'HOU',color:'#CE1141',accent:'#C4CED4',star:'贾伦·格林',      pos:'得分后卫', mainAttr:'jumpShot'},
+];
 
 const ATTR_KEYS = ['jumpShot','drive','block','fastBreak'];
 const ATTR_NAMES = {jumpShot:'翻身跳投',drive:'突破劈扣',block:'追身大帽',fastBreak:'接球快攻'};
@@ -1070,6 +1142,9 @@ function initState(){
     gameConfirmCallback:null,
     inventory:[],   // 已购宝物（最多36件）
     shopItems:[],   // 当前商店商品
+    shopBought:0,   // 本次购物日已购件数
+    schedule:[...NBA_TEAMS].sort(()=>Math.random()-.5), // 本赛季对阵顺序（随机排列）
+    currentOpponent:null, // 当前场次对阵球队
   };
   ATTR_KEYS.forEach(k=>{
     S.attrs[k]={level:1,diceCount:1,exp:0,expNeeded:20,pool:['STD']};
@@ -1106,15 +1181,11 @@ function updateDecisionUI(){
 }
 
 // ════════════════════════════════════════════
-// 购物日逻辑（第5天起每10天，与比赛日重合则取消）
+// 购物日逻辑（每3场常规赛后的次日）
 // ════════════════════════════════════════════
 function isShoppingDayForDay(d){
-  if(d<5||(d-5)%10!==0) return false;
-  // 与常规赛比赛日重合 → 取消
-  if(S.season==='regular'&&REGULAR_GAME_DAYS.includes(d)) return false;
-  // 与季后赛比赛日重合 → 取消
-  if(S.season==='playoff'&&d%PO_EVERY===0) return false;
-  return true;
+  if(S.season!=='regular') return false;
+  return SHOPPING_DAYS.includes(d);
 }
 function isShoppingDay(){ return isShoppingDayForDay(S.day); }
 
@@ -1226,24 +1297,41 @@ function finishAction(){
 // ════════════════════════════════════════════
 // 参赛确认弹窗
 // ════════════════════════════════════════════
+function buildOppCard(opp){
+  if(!opp) return '';
+  return `<div class="opp-card" style="background:${opp.color}22;border-color:${opp.accent}55">
+    <div class="opp-abbr" style="background:${opp.color};color:${opp.accent}">${opp.abbr}</div>
+    <div class="opp-info">
+      <div class="opp-team-name" style="color:${opp.accent}">${opp.name}</div>
+      <div class="opp-star">⭐ <span>${opp.star}</span> · ${opp.pos}</div>
+      <div class="opp-star" style="margin-top:2px;color:#94a3b8">主属性：<span style="color:#e2e8f0">${ATTR_NAMES[opp.mainAttr]}</span></div>
+    </div>
+  </div>`;
+}
+
 function showGameConfirmModal(){
   const modal = document.getElementById('gameConfirmModal');
   const titleEl = document.getElementById('confirm-title');
   const infoEl = document.getElementById('confirm-game-info');
   const costEl = document.getElementById('confirm-cost');
   const currentEl = document.getElementById('confirm-current');
-  
+  const oppCardEl = document.getElementById('confirm-opp-card');
+
   if(S.season === 'regular'){
     titleEl.textContent = '常规赛确认';
     infoEl.textContent = `第${S.gamesPlayed+1}场常规赛（第${S.day}天）`;
     costEl.textContent = '25体力';
+    // 显示对阵球队
+    const opp = S.schedule[S.gamesPlayed] || null;
+    oppCardEl.innerHTML = opp ? buildOppCard(opp) : '';
   } else {
     const roundName = PO_ROUNDS[S.playoff.round-1]?.name || '季后赛';
     titleEl.textContent = `${roundName}确认`;
     infoEl.textContent = `${roundName} G${S.playoff.gamesPlayed+1}`;
     costEl.textContent = '30体力';
+    oppCardEl.innerHTML = '';
   }
-  
+
   currentEl.textContent = `${S.stamina}/${S.maxStam}`;
   modal.classList.add('show');
 }
@@ -1271,14 +1359,16 @@ function confirmPlayGame(play){
 function skipGame(){
   if(S.season === 'regular'){
     // 常规赛缺阵：记录负场，恢复体力，扣钱
+    const opp = S.schedule[S.gamesPlayed] || null;
+    S.currentOpponent = opp;
     S.gamesPlayed++;
     const fine = 500; // 缺阵罚款
     S.money = Math.max(0, S.money - fine);
     const oldStam = S.stamina;
     S.stamina = Math.min(S.maxStam, S.stamina + 80);
     const gained = S.stamina - oldStam;
-    
-    addLog(`🏀 当家球星缺阵，球队惨败！罚款${fine}金，体力+${gained}。`,'g');
+    const oppTxt = opp ? ` vs ${opp.name}` : '';
+    addLog(`🏀 第${S.gamesPlayed}场${oppTxt} 当家球星缺阵，球队惨败！罚款${fine}金，体力+${gained}。`,'g');
     updateUI();
     
     if(S.gamesPlayed >= REG_GAMES){
@@ -1306,6 +1396,8 @@ function skipGame(){
 // 确认参赛后的处理
 // ============================================
 function proceedToRegularGame(){
+  // 记录当前对阵（gamesPlayed还未+1，所以index正好对应本场）
+  S.currentOpponent = S.schedule[S.gamesPlayed] || null;
   S.gamesPlayed++;
   S.currentAttr=ATTR_KEYS[Math.floor(Math.random()*4)];
   const attr=S.currentAttr;
@@ -1320,7 +1412,22 @@ function proceedToRegularGame(){
   document.getElementById('btn-roll-game').style.display='block';
   document.getElementById('btn-game-next').style.display='none';
   buildSpinDice('gm-dice',pool.length);
-  addLog(`🏀 第${S.gamesPlayed}场常规赛（第${S.day}天）开始！本场使用【${ATTR_NAMES[attr]}】，目标≥${tgt}。`,'g');
+  // 显示对阵徽章
+  const opp = S.currentOpponent;
+  const badge = document.getElementById('gm-opp-badge');
+  if(opp){
+    document.getElementById('gm-opp-abbr').textContent = opp.abbr;
+    document.getElementById('gm-opp-abbr').style.background = opp.color;
+    document.getElementById('gm-opp-abbr').style.color = opp.accent;
+    document.getElementById('gm-opp-name').textContent = `对阵：${opp.name}`;
+    document.getElementById('gm-opp-name').style.color = opp.accent;
+    document.getElementById('gm-opp-star').textContent = `⭐ ${opp.star} · ${opp.pos}`;
+    badge.style.display='flex';
+    addLog(`🏀 第${S.gamesPlayed}场常规赛 vs ${opp.name}【${opp.star}】开始！使用【${ATTR_NAMES[attr]}】，目标≥${tgt}。`,'g');
+  } else {
+    badge.style.display='none';
+    addLog(`🏀 第${S.gamesPlayed}场常规赛（第${S.day}天）开始！本场使用【${ATTR_NAMES[attr]}】，目标≥${tgt}。`,'g');
+  }
 }
 
 function proceedToPlayoffGame(){
@@ -1877,8 +1984,11 @@ function generateShopItems(){
   return chosen;
 }
 
+const SHOP_LIMIT=3; // 每次购物日限购件数
+
 function openShop(){
   S.shopItems=generateShopItems();
+  S.shopBought=0;
   renderShop();
   document.getElementById('shopModal').classList.add('show');
 }
@@ -1889,14 +1999,24 @@ function closeShop(){
 function renderShop(){
   document.getElementById('shop-inv-info').textContent=
     `宝物栏 ${S.inventory.length}/36  ·  💰 ${S.money} 金`;
+  const remain=SHOP_LIMIT-S.shopBought;
   const hintEl=document.getElementById('shop-hint');
-  if(hintEl) hintEl.textContent=`💰 ${S.money} 金 · 宝物栏剩余 ${36-S.inventory.length} 格`;
+  if(hintEl){
+    if(remain<=0){
+      hintEl.textContent='✅ 本次购物已达上限（3件）';
+      hintEl.style.color='#4ade80';
+    } else {
+      hintEl.textContent=`本次还可购买 ${remain} 件（限购${SHOP_LIMIT}件）`;
+      hintEl.style.color='';
+    }
+  }
   const grid=document.getElementById('shop-grid');
   grid.innerHTML='';
   if(!S.shopItems.length){
     grid.innerHTML='<div style="text-align:center;color:#64748b;padding:16px">宝物已全部收集！</div>';
     return;
   }
+  const quotaFull=S.shopBought>=SHOP_LIMIT;
   S.shopItems.forEach(item=>{
     const alreadyOwn=!!S.inventory.find(i=>i.id===item.id);
     const full=S.inventory.length>=36;
@@ -1911,7 +2031,7 @@ function renderShop(){
         `<div class="shop-item-desc">${item.desc}</div>`+
       `</div>`+
       `<div class="shop-item-price">${item.price}💰</div>`;
-    if(alreadyOwn){
+    if(alreadyOwn||quotaFull){
       div.style.cssText='opacity:.35;pointer-events:none';
     } else if(!afford||full){
       div.style.opacity='.55';
@@ -1925,7 +2045,8 @@ function renderShop(){
 
 function buyItem(id){
   const item=SHOP_ITEMS.find(i=>i.id===id);
-  if(!item||S.inventory.length>=36||S.money<item.price) return;
+  if(!item||S.shopBought>=SHOP_LIMIT||S.inventory.length>=36||S.money<item.price) return;
+  S.shopBought++;
   S.money-=item.price;
   S.inventory.push({...item});
   // 立即生效：体力上限
