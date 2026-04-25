@@ -418,6 +418,51 @@ body{
   font-size:0.65em;color:#475569;padding-top:4px;
 }
 
+/* ── 季后赛系列赛比分行 ── */
+.po-series-row{
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  margin:4px 0 8px;
+}
+.po-series-score{
+  font-size:1.6em;font-weight:900;
+  display:flex;align-items:center;gap:8px;
+}
+.po-score-mine{color:#4ade80}
+.po-score-sep{color:#475569;font-size:.7em}
+.po-score-theirs{color:#f87171}
+.po-series-label{font-size:0.7em;color:#94a3b8}
+/* ── 季后赛对阵图 ── */
+.bracket-wrap{display:flex;gap:6px;margin:10px 0}
+.bracket-conf{flex:1;min-width:0}
+.bracket-conf-hd{
+  text-align:center;font-size:0.72em;font-weight:800;
+  padding:3px 0 5px;letter-spacing:.5px;
+}
+.bracket-matchup{
+  border-radius:8px;padding:5px 7px;margin-bottom:5px;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.03);
+}
+.bracket-matchup.is-player{
+  border-color:#fbbf2488;background:rgba(251,191,36,.08);
+}
+.bracket-team{
+  display:flex;align-items:center;gap:5px;padding:2px 0;
+}
+.bracket-seed{font-size:0.6em;color:#64748b;width:10px;flex-shrink:0}
+.bracket-abbr{
+  font-size:0.58em;font-weight:900;letter-spacing:.3px;
+  padding:1px 4px;border-radius:3px;flex-shrink:0;
+}
+.bracket-tname{font-size:0.72em;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bracket-divider{
+  text-align:center;font-size:0.55em;color:#475569;
+  margin:1px 0;line-height:1;
+}
+.bracket-finals-row{
+  text-align:center;margin:8px 0 4px;
+  font-size:0.7em;color:#fbbf24;font-weight:700;letter-spacing:.5px;
+}
 /* levelup choice grid */
 .lu-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
 .lu-die{border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all .15s}
@@ -942,24 +987,67 @@ body{
 
   <!-- 季后赛面板 -->
   <div class="active-panel" id="playoffPanel">
-    <div class="ap-tag" style="color:#a78bfa">🏆 季后赛</div>
-    <div class="ap-title" id="po-round-name">分区半决赛</div>
-    <div class="ap-series">
-      <div class="ser-box"><div class="ser-num mine" id="po-sw">0</div><div class="ser-lbl">我方</div></div>
-      <div class="ser-sep">—</div>
-      <div class="ser-box"><div class="ser-num theirs" id="po-sl">0</div><div class="ser-lbl">对手</div></div>
+    <div class="gm-header">
+      <div class="ap-tag" style="color:#a78bfa;margin:0">🏆 季后赛</div>
+      <div class="ap-title" id="po-round-name" style="margin:0;font-size:0.95em">分区半决赛</div>
     </div>
-    <div class="ap-attr" id="po-attr">翻身跳投</div>
-    <div class="ap-target" id="po-target">目标: ≥ 8</div>
-    <div class="dice-row" id="po-dice"></div>
+
+    <!-- 系列赛比分 -->
+    <div class="po-series-row">
+      <div class="po-series-score">
+        <span class="po-score-mine" id="po-sw">0</span>
+        <span class="po-score-sep">—</span>
+        <span class="po-score-theirs" id="po-sl">0</span>
+      </div>
+      <div class="po-series-label">七局四胜 · 第<span id="po-game-num">1</span>场</div>
+    </div>
+
+    <!-- 左右肖像拼点 -->
+    <div class="gm-versus-row">
+      <div class="gm-player-side">
+        <div class="gm-portrait-wrap">
+          <canvas id="po-player-canvas" width="80" height="120"></canvas>
+        </div>
+        <div class="gm-side-name" id="po-player-name" style="color:#4ade80">我方</div>
+        <div class="gm-side-attr" id="po-attr">翻身跳投</div>
+      </div>
+      <div class="gm-vs-center"><div class="gm-vs-text">VS</div></div>
+      <div class="gm-star-side">
+        <div class="gm-portrait-wrap" id="po-star-portrait-wrap">
+          <canvas id="po-star-canvas" width="80" height="120"></canvas>
+        </div>
+        <div class="gm-side-name" id="po-star-name" style="color:#f87171">对手</div>
+        <div class="gm-side-attr" id="po-target">主属性</div>
+      </div>
+    </div>
+
+    <!-- 双方骰子 -->
+    <div class="gm-dice-split">
+      <div class="gm-dice-half" id="po-dice"></div>
+      <div class="gm-dice-sep">⚔️</div>
+      <div class="gm-dice-half" id="po-opp-dice"></div>
+    </div>
+
+    <!-- 单场结果 -->
     <div id="po-result" style="display:none">
-      <div class="roll-total" id="po-total"></div>
-      <div class="roll-vs" id="po-vs"></div>
+      <div class="gm-score-row">
+        <div class="gm-score-box">
+          <div class="gm-score-num" id="po-total" style="color:#4ade80">0</div>
+          <div class="gm-score-lbl">我方</div>
+        </div>
+        <div class="gm-score-sep">VS</div>
+        <div class="gm-score-box">
+          <div class="gm-score-num" id="po-vs" style="color:#f87171">0</div>
+          <div class="gm-score-lbl" id="po-opp-score-lbl">对手</div>
+        </div>
+      </div>
       <div class="roll-verdict" id="po-verdict"></div>
     </div>
+
     <div class="roll-effect" id="po-effect"></div>
     <button class="btn-main" id="btn-roll-po" onclick="rollPlayoffDice()">🎲 掷骰比赛</button>
-    <button class="btn-main" id="btn-po-next" style="display:none;background:linear-gradient(135deg,#1e40af,#1d4ed8)" onclick="afterPlayoffGame()">继续 →</button>
+    <button class="btn-main" id="btn-po-next-game" style="display:none;background:linear-gradient(135deg,#6d28d9,#7c3aed)" onclick="nextPlayoffGame()">下一场 →</button>
+    <button class="btn-main" id="btn-po-series-end" style="display:none;background:linear-gradient(135deg,#1e40af,#1d4ed8)" onclick="afterPlayoffSeries()">继续 →</button>
   </div>
 
   <!-- 属性 + 占位（右侧预留） -->
@@ -1003,7 +1091,7 @@ body{
     <div class="modal-msg" id="confirm-msg">
       今天是比赛日，是否参赛？<br>
       <span id="confirm-game-info">第1场常规赛</span><br>
-      参赛消耗：<span id="confirm-cost">25体力</span>　当前体力：<span id="confirm-current">100/100</span>
+      参赛消耗：<span id="confirm-cost">20体力</span>　当前体力：<span id="confirm-current">100/100</span>
       <div id="confirm-opp-card"></div>
       <small style="color:#94a3b8">注意：参赛后体力耗尽将导致游戏失败</small>
     </div>
@@ -1020,6 +1108,25 @@ body{
     <div class="modal-title">🏀 常规赛结束！</div>
     <div class="modal-msg" id="rs-summary-msg"></div>
     <button class="modal-btn" onclick="enterPlayoffs()">进入季后赛 🏆</button>
+  </div>
+</div>
+
+<!-- 季后赛体力恢复弹窗 -->
+<div class="modal" id="poStaminaModal">
+  <div class="modal-box" style="text-align:center">
+    <div style="font-size:2.4em;margin-bottom:8px">💪</div>
+    <div class="modal-title">体力完全恢复！</div>
+    <div class="modal-msg" id="po-stamina-msg">备战结束，体力已恢复满，准备迎战！</div>
+    <button class="modal-btn" onclick="closeStaminaAndStartGames()">进入赛场 🏀</button>
+  </div>
+</div>
+
+<!-- 季后赛对阵图弹窗 -->
+<div class="modal" id="bracketModal">
+  <div class="modal-box">
+    <div class="modal-title">🏆 季后赛对阵图</div>
+    <div id="bracket-display"></div>
+    <button class="modal-btn" onclick="closeBracketAndStart()">开始征程 🏀</button>
   </div>
 </div>
 
@@ -1078,45 +1185,45 @@ const SHOPPING_DAYS = (()=>{
 // mainAttr: jumpShot翻身跳投 / drive突破劈扣 / block追身大帽 / fastBreak接球快攻
 // starCd: skinIdx 0-4 / heightIdx 0-4 / weightIdx 0-4 / number / hairColor(optional)
 const NBA_TEAMS=[
-  {name:'湖人',     abbr:'LAL',color:'#552583',accent:'#FDB927',star:'勒布朗·詹姆斯',   pos:'小前锋',  mainAttr:'drive',
+  {name:'湖人',     abbr:'LAL',conf:'west',color:'#552583',accent:'#FDB927',star:'勒布朗·詹姆斯',   pos:'小前锋',  mainAttr:'drive',
    starCd:{skinIdx:3,heightIdx:3,weightIdx:4,number:23}},
-  {name:'勇士',     abbr:'GSW',color:'#1D428A',accent:'#FFC72C',star:'斯蒂芬·库里',    pos:'控球后卫', mainAttr:'jumpShot',
+  {name:'勇士',     abbr:'GSW',conf:'west',color:'#1D428A',accent:'#FFC72C',star:'斯蒂芬·库里',    pos:'控球后卫', mainAttr:'jumpShot',
    starCd:{skinIdx:2,heightIdx:2,weightIdx:2,number:30}},
-  {name:'凯尔特人', abbr:'BOS',color:'#007A33',accent:'#BA9653',star:'杰伦·布朗',      pos:'得分后卫', mainAttr:'drive',
+  {name:'凯尔特人', abbr:'BOS',conf:'east',color:'#007A33',accent:'#BA9653',star:'杰伦·布朗',      pos:'得分后卫', mainAttr:'drive',
    starCd:{skinIdx:3,heightIdx:2,weightIdx:3,number:7}},
-  {name:'热火',     abbr:'MIA',color:'#98002E',accent:'#F9A01B',star:'吉米·巴特勒',    pos:'小前锋',  mainAttr:'drive',
+  {name:'热火',     abbr:'MIA',conf:'east',color:'#98002E',accent:'#F9A01B',star:'吉米·巴特勒',    pos:'小前锋',  mainAttr:'drive',
    starCd:{skinIdx:3,heightIdx:3,weightIdx:3,number:22}},
-  {name:'雄鹿',     abbr:'MIL',color:'#00471B',accent:'#EEE1C6',star:'字母哥',         pos:'大前锋',  mainAttr:'drive',
+  {name:'雄鹿',     abbr:'MIL',conf:'east',color:'#00471B',accent:'#EEE1C6',star:'字母哥',         pos:'大前锋',  mainAttr:'drive',
    starCd:{skinIdx:4,heightIdx:4,weightIdx:4,number:34}},
-  {name:'尼克斯',   abbr:'NYK',color:'#006BB6',accent:'#F58426',star:'卡尔-安东尼·唐斯',pos:'中锋',   mainAttr:'jumpShot',
+  {name:'尼克斯',   abbr:'NYK',conf:'east',color:'#006BB6',accent:'#F58426',star:'卡尔-安东尼·唐斯',pos:'中锋',   mainAttr:'jumpShot',
    starCd:{skinIdx:2,heightIdx:4,weightIdx:4,number:32}},
-  {name:'76人',     abbr:'PHI',color:'#006BB6',accent:'#ED174C',star:'乔尔·恩比德',    pos:'中锋',    mainAttr:'jumpShot',
+  {name:'76人',     abbr:'PHI',conf:'east',color:'#006BB6',accent:'#ED174C',star:'乔尔·恩比德',    pos:'中锋',    mainAttr:'jumpShot',
    starCd:{skinIdx:3,heightIdx:4,weightIdx:4,number:11}},
-  {name:'掘金',     abbr:'DEN',color:'#0E2240',accent:'#FEC524',star:'尼科拉·约基奇',  pos:'中锋',    mainAttr:'drive',
+  {name:'掘金',     abbr:'DEN',conf:'west',color:'#0E2240',accent:'#FEC524',star:'尼科拉·约基奇',  pos:'中锋',    mainAttr:'drive',
    starCd:{skinIdx:0,heightIdx:4,weightIdx:4,number:15,hairColor:'#c8a055'}},
-  {name:'太阳',     abbr:'PHX',color:'#1D1160',accent:'#E56020',star:'凯文·杜兰特',    pos:'小前锋',  mainAttr:'jumpShot',
+  {name:'太阳',     abbr:'PHX',conf:'west',color:'#1D1160',accent:'#E56020',star:'凯文·杜兰特',    pos:'小前锋',  mainAttr:'jumpShot',
    starCd:{skinIdx:3,heightIdx:4,weightIdx:4,number:35}},
-  {name:'独行侠',   abbr:'DAL',color:'#00538C',accent:'#C4CED4',star:'卢卡·东契奇',    pos:'控球后卫', mainAttr:'jumpShot',
+  {name:'独行侠',   abbr:'DAL',conf:'west',color:'#00538C',accent:'#C4CED4',star:'卢卡·东契奇',    pos:'控球后卫', mainAttr:'jumpShot',
    starCd:{skinIdx:0,heightIdx:3,weightIdx:3,number:77,hairColor:'#8b6914'}},
-  {name:'雷霆',     abbr:'OKC',color:'#007AC1',accent:'#EF3B24',star:'SGA',            pos:'控球后卫', mainAttr:'drive',
+  {name:'雷霆',     abbr:'OKC',conf:'west',color:'#007AC1',accent:'#EF3B24',star:'SGA',            pos:'控球后卫', mainAttr:'drive',
    starCd:{skinIdx:2,heightIdx:2,weightIdx:2,number:2}},
-  {name:'快船',     abbr:'LAC',color:'#C8102E',accent:'#1D428A',star:'卡瓦伊·莱纳德',  pos:'小前锋',  mainAttr:'jumpShot',
+  {name:'快船',     abbr:'LAC',conf:'west',color:'#C8102E',accent:'#1D428A',star:'卡瓦伊·莱纳德',  pos:'小前锋',  mainAttr:'jumpShot',
    starCd:{skinIdx:3,heightIdx:3,weightIdx:3,number:2}},
-  {name:'猛龙',     abbr:'TOR',color:'#CE1141',accent:'#A1A1AA',star:'斯科蒂·巴恩斯',  pos:'小前锋',  mainAttr:'fastBreak',
+  {name:'猛龙',     abbr:'TOR',conf:'east',color:'#CE1141',accent:'#A1A1AA',star:'斯科蒂·巴恩斯',  pos:'小前锋',  mainAttr:'fastBreak',
    starCd:{skinIdx:3,heightIdx:3,weightIdx:3,number:14}},
-  {name:'公牛',     abbr:'CHI',color:'#CE1141',accent:'#f9a8a8',star:'德罗赞',          pos:'得分后卫', mainAttr:'jumpShot',
+  {name:'公牛',     abbr:'CHI',conf:'east',color:'#CE1141',accent:'#f9a8a8',star:'德罗赞',          pos:'得分后卫', mainAttr:'jumpShot',
    starCd:{skinIdx:3,heightIdx:2,weightIdx:3,number:11}},
-  {name:'篮网',     abbr:'BKN',color:'#1A1A1A',accent:'#FFFFFF',star:'卡梅隆·约翰逊',  pos:'小前锋',  mainAttr:'jumpShot',
+  {name:'篮网',     abbr:'BKN',conf:'east',color:'#1A1A1A',accent:'#FFFFFF',star:'卡梅隆·约翰逊',  pos:'小前锋',  mainAttr:'jumpShot',
    starCd:{skinIdx:1,heightIdx:3,weightIdx:3,number:2}},
-  {name:'国王',     abbr:'SAC',color:'#5A2D81',accent:'#63727A',star:'德阿龙·福克斯',  pos:'控球后卫', mainAttr:'fastBreak',
+  {name:'国王',     abbr:'SAC',conf:'west',color:'#5A2D81',accent:'#63727A',star:'德阿龙·福克斯',  pos:'控球后卫', mainAttr:'fastBreak',
    starCd:{skinIdx:3,heightIdx:2,weightIdx:2,number:5}},
-  {name:'灰熊',     abbr:'MEM',color:'#5D76A9',accent:'#12173F',star:'贾·莫兰特',      pos:'控球后卫', mainAttr:'fastBreak',
+  {name:'灰熊',     abbr:'MEM',conf:'west',color:'#5D76A9',accent:'#12173F',star:'贾·莫兰特',      pos:'控球后卫', mainAttr:'fastBreak',
    starCd:{skinIdx:3,heightIdx:2,weightIdx:1,number:12}},
-  {name:'步行者',   abbr:'IND',color:'#002D62',accent:'#FDBB30',star:'哈利伯顿',        pos:'控球后卫', mainAttr:'fastBreak',
+  {name:'步行者',   abbr:'IND',conf:'east',color:'#002D62',accent:'#FDBB30',star:'哈利伯顿',        pos:'控球后卫', mainAttr:'fastBreak',
    starCd:{skinIdx:2,heightIdx:2,weightIdx:2,number:0}},
-  {name:'马刺',     abbr:'SAS',color:'#8A9BA8',accent:'#c8d8e4',star:'文班亚马',         pos:'中锋',    mainAttr:'block',
+  {name:'马刺',     abbr:'SAS',conf:'west',color:'#8A9BA8',accent:'#c8d8e4',star:'文班亚马',         pos:'中锋',    mainAttr:'block',
    starCd:{skinIdx:3,heightIdx:4,weightIdx:3,number:1}},
-  {name:'火箭',     abbr:'HOU',color:'#CE1141',accent:'#C4CED4',star:'贾伦·格林',      pos:'得分后卫', mainAttr:'jumpShot',
+  {name:'火箭',     abbr:'HOU',conf:'west',color:'#CE1141',accent:'#C4CED4',star:'贾伦·格林',      pos:'得分后卫', mainAttr:'jumpShot',
    starCd:{skinIdx:2,heightIdx:2,weightIdx:2,number:4}},
 ];
 
@@ -1235,7 +1342,7 @@ function initState(){
     day:1, stamina:100, maxStam:100, money:5000,
     wins:0, gamesPlayed:0, ended:false,
     season:'regular',
-    playoff:{round:0,wins:0,losses:0,gamesPlayed:0},
+    playoff:{round:0,phase:'prep',prepStep:0,seriesWins:0,seriesLosses:0,seriesGame:0,nextGameDay:null,oppAttrs:null},
     attrs:{},
     decisions:{},
     currentAttr:null,
@@ -1422,16 +1529,16 @@ function showGameConfirmModal(){
   if(S.season === 'regular'){
     titleEl.textContent = '常规赛确认';
     infoEl.textContent = `第${S.gamesPlayed+1}场常规赛（第${S.day}天）`;
-    costEl.textContent = '25体力';
-    // 显示对阵球队
+    costEl.textContent = '20体力';
     const opp = S.schedule[S.gamesPlayed] || null;
     oppCardEl.innerHTML = opp ? buildOppCard(opp) : '';
   } else {
     const roundName = PO_ROUNDS[S.playoff.round-1]?.name || '季后赛';
-    titleEl.textContent = `${roundName}确认`;
-    infoEl.textContent = `${roundName} G${S.playoff.gamesPlayed+1}`;
-    costEl.textContent = '30体力';
-    oppCardEl.innerHTML = '';
+    titleEl.textContent = `${roundName}`;
+    infoEl.textContent = `七局四胜制 · 第${S.day}天`;
+    costEl.textContent = '无体力消耗';
+    const opp = S.playoffBracket?.roundOpps[S.playoff.round-1] || null;
+    oppCardEl.innerHTML = opp ? buildOppCard(opp) : '';
   }
 
   currentEl.textContent = `${S.stamina}/${S.maxStam}`;
@@ -1621,7 +1728,7 @@ function rollGameDice(){
     v.className='roll-verdict '+(pass?'rv-ok':'rv-no');
     document.getElementById('gm-result').style.display='block';
 
-    const stamCost=25;
+    const stamCost=20;
     S.stamina=Math.max(0,S.stamina-stamCost);
     if(pass){S.wins++;gainExp(attr,10+itemFx.expBonus);}
     else gainExp(attr,5+itemFx.expBonus);
@@ -1664,6 +1771,78 @@ function showRegularSummaryModal(){
 
 function enterPlayoffs(){
   document.getElementById('regularSummaryModal').classList.remove('show');
+  generatePlayoffBracket();
+  showBracketModal();
+}
+
+function generatePlayoffBracket(){
+  // 玩家是西部 #1 种子
+  const westPool = S.schedule.filter(t=>t.conf==='west');
+  const eastPool  = S.schedule.filter(t=>t.conf==='east');
+  // 随机取西部3支、东部4支
+  const shuffle = a=>[...a].sort(()=>Math.random()-.5);
+  const w3 = shuffle(westPool).slice(0,3); // seeds 2,3,4
+  const e4 = shuffle(eastPool).slice(0,4);  // seeds 1,2,3,4
+  // 玩家条目
+  const playerEntry = {
+    name: S.playerName||'我方', abbr:'ME',
+    color:'#14532d', accent:'#4ade80',
+    isPlayer:true, conf:'west'
+  };
+  // 西部对阵：#1(玩家) vs #4，#2 vs #3
+  // 东部对阵：#1 vs #4，#2 vs #3
+  const west = [playerEntry, w3[0], w3[1], w3[2]]; // seeds 1-4
+  const east  = [e4[0], e4[1], e4[2], e4[3]];       // seeds 1-4
+  // 玩家对手安排：分区半决赛 vs W4，分区决赛 vs W2/W3胜者(取W2)，总决赛 vs E1
+  S.playoffBracket = { west, east, roundOpps:[w3[2], w3[0], e4[0]] };
+}
+
+function showBracketModal(){
+  const b = S.playoffBracket;
+  const teamCard = (t, seed, isPlayer)=>{
+    const bg  = t.color||'#1e293b';
+    const fg  = t.accent||'#fff';
+    const cls = isPlayer?'bracket-matchup is-player':'bracket-matchup';
+    return {bg,fg,cls,seed,name:t.name,abbr:t.abbr,isPlayer};
+  };
+  const renderMatchup = (tA, seedA, tB, seedB)=>{
+    const ipA = tA.isPlayer, ipB = tB.isPlayer;
+    const cls = (ipA||ipB)?'bracket-matchup is-player':'bracket-matchup';
+    return `<div class="${cls}">
+      <div class="bracket-team">
+        <span class="bracket-seed">${seedA}</span>
+        <span class="bracket-abbr" style="background:${tA.color};color:${tA.accent}">${tA.abbr}</span>
+        <span class="bracket-tname" style="color:${ipA?tA.accent:'#e2e8f0'}">${tA.name}</span>
+      </div>
+      <div class="bracket-divider">vs</div>
+      <div class="bracket-team">
+        <span class="bracket-seed">${seedB}</span>
+        <span class="bracket-abbr" style="background:${tB.color};color:${tB.accent}">${tB.abbr}</span>
+        <span class="bracket-tname" style="color:${ipB?tB.accent:'#e2e8f0'}">${tB.name}</span>
+      </div>
+    </div>`;
+  };
+  const w=b.west, e=b.east;
+  const html=`
+    <div class="bracket-wrap">
+      <div class="bracket-conf">
+        <div class="bracket-conf-hd" style="color:#f97316">🌵 西部</div>
+        ${renderMatchup(w[0],1,w[3],4)}
+        ${renderMatchup(w[1],2,w[2],3)}
+      </div>
+      <div class="bracket-conf">
+        <div class="bracket-conf-hd" style="color:#38bdf8">🌊 东部</div>
+        ${renderMatchup(e[0],1,e[3],4)}
+        ${renderMatchup(e[1],2,e[2],3)}
+      </div>
+    </div>
+    <div class="bracket-finals-row">🏆 总决赛：西部冠军 vs 东部冠军</div>`;
+  document.getElementById('bracket-display').innerHTML=html;
+  document.getElementById('bracketModal').classList.add('show');
+}
+
+function closeBracketAndStart(){
+  document.getElementById('bracketModal').classList.remove('show');
   startPlayoffs();
 }
 
@@ -1672,9 +1851,8 @@ function enterPlayoffs(){
 // ════════════════════════════════════════════
 function startPlayoffs(){
   S.season='playoff';
-  S.playoff={round:1,wins:0,losses:0,gamesPlayed:0};
-  addLog(`🎉 以${S.wins}胜进入季后赛！`, 'i');
-  addLog(`🏀 ${PO_ROUNDS[0].name}开始！七局四胜制，每${PO_EVERY}天一场。`, 'p');
+  S.playoff={round:1,phase:'prep',prepStep:0,seriesWins:0,seriesLosses:0,seriesGame:0,nextGameDay:null,oppAttrs:null};
+  addLog(`🎉 以${S.wins}胜进入季后赛！接下来4天备战训练 + 购物日。`,'i');
   document.getElementById('wins-label').textContent='季后赛';
   nextDay();
 }
@@ -1737,6 +1915,9 @@ function nextDay(){
   S.day++;
   S.currentAttr=null;
   generateDecisions();
+  if(S.season==='playoff' && S.playoff.phase==='prep'){
+    S.playoff.prepStep++;
+  }
   addLog(`📅 进入第${S.day}天。`,'i');
   updateUI();
   checkDayStart();
@@ -1746,15 +1927,34 @@ function checkDayStart(){
   if(S.season==='regular' && isRegularGameDay()){
     showPanel('decisionPanel');
     showGameConfirmModal();
-  } else if(S.season==='playoff' && S.day % PO_EVERY === 0){
-    showPanel('decisionPanel');
-    showGameConfirmModal();
-  } else if(isShoppingDay()){
+  } else if(S.season==='regular' && isShoppingDay()){
     showPanel('decisionPanel');
     addLog(`🛒 第${S.day}天 — 购物日到来！商店已刷新。`,'b');
     openShop();
+  } else if(S.season==='playoff'){
+    checkPlayoffDayStart();
   } else {
     showPanel('decisionPanel');
+  }
+}
+
+function checkPlayoffDayStart(){
+  const po=S.playoff;
+  showPanel('decisionPanel');
+  if(po.phase==='prep'){
+    if(po.prepStep<=4){
+      addLog(`🏋️ 季后赛备战训练日（${po.prepStep}/4）`,'i');
+    } else {
+      // 第5天：购物日
+      addLog(`🛒 季后赛购物日！补给完毕即刻出征。`,'b');
+      openShop();
+    }
+  } else {
+    // games phase
+    if(po.nextGameDay!==null && S.day>=po.nextGameDay){
+      showGameConfirmModal();
+    }
+    // else: rest/training day between rounds
   }
 }
 
@@ -1791,6 +1991,35 @@ function computeOppAttr(expAmount){
     pool.push(t[Math.floor(Math.random()*t.length)]);
   }
   return {level,diceCount,pool};
+}
+
+// 根据骰子数量构建骰池（季后赛对手用）
+function buildPoolFromCount(count){
+  const pool=['STD'];
+  const tierB=['SCR','PRK','POST','HOOK'],tierA=['TRE','DRV','BRK'];
+  const tierS=['AIM','MID'],tierE=['DUNK','GAMB','CLUTCH'];
+  for(let i=2;i<=count;i++){
+    let t=i<=2?tierB:i<=4?tierA:i<=6?[...tierS,...tierA]:[...tierE,...tierS];
+    pool.push(t[Math.floor(Math.random()*t.length)]);
+  }
+  return pool;
+}
+
+// 计算季后赛对手4项属性骰池
+// 玩家4项骰子数从大到小排：[d1,d2,d3,d4]
+// 对手: 主属性=d1+1, 次属性=max(1,d2-1), 剩余两属性=d3,d4
+function computePoOppAttrs(opp){
+  const sorted=ATTR_KEYS.map(k=>({k,n:S.attrs[k].diceCount}))
+                         .sort((a,b)=>b.n-a.n);
+  const [d1,d2,d3,d4]=[sorted[0].n,sorted[1].n,sorted[2].n,sorted[3].n];
+  const mainAttr=opp.mainAttr;
+  const others=ATTR_KEYS.filter(k=>k!==mainAttr).sort(()=>Math.random()-.5);
+  const attrs={};
+  attrs[mainAttr]           =buildPoolFromCount(d1+1);
+  attrs[others[0]]          =buildPoolFromCount(Math.max(1,d2-1));
+  attrs[others[1]]          =buildPoolFromCount(d3);
+  attrs[others[2]]          =buildPoolFromCount(d4);
+  return attrs;
 }
 
 // 掷一组骰子并返回合计（不含动画，用于对手判定）
@@ -2190,6 +2419,24 @@ function openShop(){
 }
 function closeShop(){
   document.getElementById('shopModal').classList.remove('show');
+  if(S.season==='playoff' && S.playoff.phase==='prep'){
+    finishPlayoffPrep();
+  }
+}
+
+function finishPlayoffPrep(){
+  S.playoff.phase='games';
+  S.playoff.nextGameDay=S.day; // 当天即为第一场比赛日
+  S.stamina=S.maxStam;
+  updateUI();
+  const msg=`备战结束！体力已回满 ${S.maxStam}/${S.maxStam}。\n按对阵表，${PO_ROUNDS[0].name}即将开始！`;
+  document.getElementById('po-stamina-msg').textContent=msg;
+  document.getElementById('poStaminaModal').classList.add('show');
+}
+
+function closeStaminaAndStartGames(){
+  document.getElementById('poStaminaModal').classList.remove('show');
+  showGameConfirmModal();
 }
 
 function renderShop(){
@@ -2688,7 +2935,7 @@ function enterGame(){
 }
 
 function goHome(){
-  ['endModal','luModal','gameConfirmModal','regularSummaryModal','shopModal','itemDetailModal'].forEach(id=>{
+  ['endModal','luModal','gameConfirmModal','regularSummaryModal','bracketModal','shopModal','itemDetailModal'].forEach(id=>{
     document.getElementById(id).classList.remove('show');
   });
   document.getElementById('screen-create').style.display='none';
