@@ -356,21 +356,67 @@ body{
 .opp-team-name{font-size:1em;font-weight:800;line-height:1.2}
 .opp-star{font-size:0.78em;color:#e2e8f0;margin-top:2px}
 .opp-star span{color:#fbbf24}
-.opp-diff{font-size:0.7em;font-weight:700;padding:2px 7px;border-radius:99px;align-self:flex-end}
-/* 游戏面板内的对阵徽章 */
-.gm-opp-badge{
-  display:flex;align-items:center;gap:6px;
-  background:rgba(0,0,0,.25);border-radius:7px;
-  padding:5px 10px;margin:4px 0 8px;
-  border-left:3px solid #fbbf24;
+/* ── 常规赛拼点面板 ── */
+.gm-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.gm-versus-row{
+  display:flex;align-items:flex-end;gap:0;
+  margin-bottom:8px;
 }
-.gm-opp-abbr{
-  font-size:0.72em;font-weight:900;
-  padding:3px 6px;border-radius:5px;
+.gm-player-side,.gm-star-side{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
 }
-.gm-opp-text{font-size:0.8em;line-height:1.3}
-.gm-opp-name{font-weight:700}
-.gm-opp-star{color:#94a3b8;font-size:0.9em}
+.gm-vs-center{
+  width:36px;flex-shrink:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  padding-bottom:4px;
+}
+.gm-vs-text{
+  font-size:1em;font-weight:900;color:#fbbf24;
+  text-shadow:0 0 8px #fbbf2488;letter-spacing:.5px;
+}
+.gm-portrait-wrap{
+  position:relative;border-radius:8px;overflow:hidden;
+  border:1.5px solid rgba(255,255,255,.12);
+  background:rgba(0,10,30,.6);
+}
+.gm-portrait-wrap canvas{display:block}
+.gm-side-name{
+  font-size:0.68em;font-weight:800;letter-spacing:.3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  max-width:100%;text-align:center;
+}
+.gm-side-attr{
+  font-size:0.62em;color:#94a3b8;text-align:center;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;
+}
+.gm-score-row{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin:4px 0 2px;
+}
+.gm-score-box{
+  flex:1;text-align:center;padding:5px 4px;border-radius:7px;
+  background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);
+}
+.gm-score-num{font-size:1.5em;font-weight:900;line-height:1}
+.gm-score-lbl{font-size:0.6em;color:#94a3b8;margin-top:2px}
+.gm-score-sep{font-size:1em;color:#475569;font-weight:700}
+.gm-opp-roll-badge{
+  font-size:0.72em;color:#94a3b8;text-align:center;margin-top:2px;
+}
+/* 双方骰子拼点行 */
+.gm-dice-split{
+  display:flex;align-items:flex-start;gap:0;
+  margin:6px 0 4px;
+}
+.gm-dice-half{
+  flex:1;display:flex;flex-wrap:wrap;justify-content:center;
+  gap:3px;padding:2px 4px;
+  min-height:28px;
+}
+.gm-dice-sep{
+  width:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-size:0.65em;color:#475569;padding-top:4px;
+}
 
 /* levelup choice grid */
 .lu-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
@@ -719,7 +765,7 @@ body{
         </div>
         <div class="csec">
           <div class="csec-lbl">球衣号码 (0-99)</div>
-          <input id="inp-num" class="cc-input" type="number" min="0" max="99" value="23">
+          <input id="inp-num" class="cc-input" type="number" min="0" max="99" placeholder="0-99">
         </div>
         <div class="csec">
           <div class="csec-lbl">肤色</div>
@@ -837,23 +883,58 @@ body{
 
   <!-- 常规赛面板 -->
   <div class="active-panel" id="gamePanel">
-    <div class="ap-tag" style="color:#f87171">🏀 常规赛</div>
-    <div class="ap-title">第 <span id="gm-num">1</span> 场 / 20</div>
-    <div class="gm-opp-badge" id="gm-opp-badge" style="display:none">
-      <div class="gm-opp-abbr" id="gm-opp-abbr">LAL</div>
-      <div class="gm-opp-text">
-        <div class="gm-opp-name" id="gm-opp-name">湖人</div>
-        <div class="gm-opp-star" id="gm-opp-star">⭐ 勒布朗·詹姆斯</div>
+    <div class="gm-header">
+      <div class="ap-tag" style="color:#f87171;margin:0">🏀 常规赛</div>
+      <div class="ap-title" style="margin:0;font-size:0.95em">第 <span id="gm-num">1</span> 场 / 20</div>
+    </div>
+
+    <!-- 左右肖像拼点 -->
+    <div class="gm-versus-row">
+      <!-- 我方 -->
+      <div class="gm-player-side">
+        <div class="gm-portrait-wrap">
+          <canvas id="gm-player-canvas" width="80" height="120"></canvas>
+        </div>
+        <div class="gm-side-name" id="gm-player-name" style="color:#4ade80">我方</div>
+        <div class="gm-side-attr" id="gm-attr">翻身跳投</div>
+      </div>
+      <!-- VS -->
+      <div class="gm-vs-center">
+        <div class="gm-vs-text">VS</div>
+      </div>
+      <!-- 对手 -->
+      <div class="gm-star-side">
+        <div class="gm-portrait-wrap" id="gm-star-portrait-wrap">
+          <canvas id="gm-star-canvas" width="80" height="120"></canvas>
+        </div>
+        <div class="gm-side-name" id="gm-star-name" style="color:#f87171">对手</div>
+        <div class="gm-side-attr" id="gm-target">主属性</div>
       </div>
     </div>
-    <div class="ap-attr" id="gm-attr">翻身跳投</div>
-    <div class="ap-target" id="gm-target">目标: ≥ 5</div>
-    <div class="dice-row" id="gm-dice"></div>
+
+    <!-- 双方骰子拼点 -->
+    <div class="gm-dice-split">
+      <div class="gm-dice-half" id="gm-dice"></div>
+      <div class="gm-dice-sep">⚔️</div>
+      <div class="gm-dice-half" id="gm-opp-dice"></div>
+    </div>
+
+    <!-- 结果比分 -->
     <div id="gm-result" style="display:none">
-      <div class="roll-total" id="gm-total"></div>
-      <div class="roll-vs" id="gm-vs"></div>
+      <div class="gm-score-row">
+        <div class="gm-score-box">
+          <div class="gm-score-num" id="gm-total" style="color:#4ade80">0</div>
+          <div class="gm-score-lbl">我方</div>
+        </div>
+        <div class="gm-score-sep">VS</div>
+        <div class="gm-score-box">
+          <div class="gm-score-num" id="gm-vs" style="color:#f87171">0</div>
+          <div class="gm-score-lbl" id="gm-opp-score-lbl">对手</div>
+        </div>
+      </div>
       <div class="roll-verdict" id="gm-verdict"></div>
     </div>
+
     <div class="roll-effect" id="gm-effect"></div>
     <button class="btn-main" id="btn-roll-game" onclick="rollGameDice()">🎲 掷骰比赛</button>
     <button class="btn-main" id="btn-game-next" style="display:none;background:linear-gradient(135deg,#1e40af,#1d4ed8)" onclick="afterGame()">继续 →</button>
@@ -995,27 +1076,48 @@ const SHOPPING_DAYS = (()=>{
 
 // 20支NBA球队（每赛季随机排列作为常规赛对阵顺序）
 // mainAttr: jumpShot翻身跳投 / drive突破劈扣 / block追身大帽 / fastBreak接球快攻
+// starCd: skinIdx 0-4 / heightIdx 0-4 / weightIdx 0-4 / number / hairColor(optional)
 const NBA_TEAMS=[
-  {name:'湖人',     abbr:'LAL',color:'#552583',accent:'#FDB927',star:'勒布朗·詹姆斯',   pos:'小前锋',  mainAttr:'drive'},
-  {name:'勇士',     abbr:'GSW',color:'#1D428A',accent:'#FFC72C',star:'斯蒂芬·库里',    pos:'控球后卫', mainAttr:'jumpShot'},
-  {name:'凯尔特人', abbr:'BOS',color:'#007A33',accent:'#BA9653',star:'杰伦·布朗',      pos:'得分后卫', mainAttr:'drive'},
-  {name:'热火',     abbr:'MIA',color:'#98002E',accent:'#F9A01B',star:'吉米·巴特勒',    pos:'小前锋',  mainAttr:'drive'},
-  {name:'雄鹿',     abbr:'MIL',color:'#00471B',accent:'#EEE1C6',star:'字母哥',         pos:'大前锋',  mainAttr:'drive'},
-  {name:'尼克斯',   abbr:'NYK',color:'#006BB6',accent:'#F58426',star:'卡尔-安东尼·唐斯',pos:'中锋',   mainAttr:'jumpShot'},
-  {name:'76人',     abbr:'PHI',color:'#006BB6',accent:'#ED174C',star:'乔尔·恩比德',    pos:'中锋',    mainAttr:'jumpShot'},
-  {name:'掘金',     abbr:'DEN',color:'#0E2240',accent:'#FEC524',star:'尼科拉·约基奇',  pos:'中锋',    mainAttr:'drive'},
-  {name:'太阳',     abbr:'PHX',color:'#1D1160',accent:'#E56020',star:'凯文·杜兰特',    pos:'小前锋',  mainAttr:'jumpShot'},
-  {name:'独行侠',   abbr:'DAL',color:'#00538C',accent:'#002B5E',star:'卢卡·东契奇',    pos:'控球后卫', mainAttr:'jumpShot'},
-  {name:'雷霆',     abbr:'OKC',color:'#007AC1',accent:'#EF3B24',star:'SGA',            pos:'控球后卫', mainAttr:'drive'},
-  {name:'快船',     abbr:'LAC',color:'#C8102E',accent:'#1D428A',star:'卡瓦伊·莱纳德',  pos:'小前锋',  mainAttr:'jumpShot'},
-  {name:'猛龙',     abbr:'TOR',color:'#CE1141',accent:'#A1A1AA',star:'斯科蒂·巴恩斯',  pos:'小前锋',  mainAttr:'fastBreak'},
-  {name:'公牛',     abbr:'CHI',color:'#CE1141',accent:'#000000',star:'德罗赞',          pos:'得分后卫', mainAttr:'jumpShot'},
-  {name:'篮网',     abbr:'BKN',color:'#1A1A1A',accent:'#FFFFFF',star:'卡梅隆·约翰逊',  pos:'小前锋',  mainAttr:'jumpShot'},
-  {name:'国王',     abbr:'SAC',color:'#5A2D81',accent:'#63727A',star:'德阿龙·福克斯',  pos:'控球后卫', mainAttr:'fastBreak'},
-  {name:'灰熊',     abbr:'MEM',color:'#5D76A9',accent:'#12173F',star:'贾·莫兰特',      pos:'控球后卫', mainAttr:'fastBreak'},
-  {name:'步行者',   abbr:'IND',color:'#002D62',accent:'#FDBB30',star:'哈利伯顿',        pos:'控球后卫', mainAttr:'fastBreak'},
-  {name:'马刺',     abbr:'SAS',color:'#8A9BA8',accent:'#000000',star:'文班亚马',         pos:'中锋',    mainAttr:'block'},
-  {name:'火箭',     abbr:'HOU',color:'#CE1141',accent:'#C4CED4',star:'贾伦·格林',      pos:'得分后卫', mainAttr:'jumpShot'},
+  {name:'湖人',     abbr:'LAL',color:'#552583',accent:'#FDB927',star:'勒布朗·詹姆斯',   pos:'小前锋',  mainAttr:'drive',
+   starCd:{skinIdx:3,heightIdx:3,weightIdx:4,number:23}},
+  {name:'勇士',     abbr:'GSW',color:'#1D428A',accent:'#FFC72C',star:'斯蒂芬·库里',    pos:'控球后卫', mainAttr:'jumpShot',
+   starCd:{skinIdx:2,heightIdx:2,weightIdx:2,number:30}},
+  {name:'凯尔特人', abbr:'BOS',color:'#007A33',accent:'#BA9653',star:'杰伦·布朗',      pos:'得分后卫', mainAttr:'drive',
+   starCd:{skinIdx:3,heightIdx:2,weightIdx:3,number:7}},
+  {name:'热火',     abbr:'MIA',color:'#98002E',accent:'#F9A01B',star:'吉米·巴特勒',    pos:'小前锋',  mainAttr:'drive',
+   starCd:{skinIdx:3,heightIdx:3,weightIdx:3,number:22}},
+  {name:'雄鹿',     abbr:'MIL',color:'#00471B',accent:'#EEE1C6',star:'字母哥',         pos:'大前锋',  mainAttr:'drive',
+   starCd:{skinIdx:4,heightIdx:4,weightIdx:4,number:34}},
+  {name:'尼克斯',   abbr:'NYK',color:'#006BB6',accent:'#F58426',star:'卡尔-安东尼·唐斯',pos:'中锋',   mainAttr:'jumpShot',
+   starCd:{skinIdx:2,heightIdx:4,weightIdx:4,number:32}},
+  {name:'76人',     abbr:'PHI',color:'#006BB6',accent:'#ED174C',star:'乔尔·恩比德',    pos:'中锋',    mainAttr:'jumpShot',
+   starCd:{skinIdx:3,heightIdx:4,weightIdx:4,number:11}},
+  {name:'掘金',     abbr:'DEN',color:'#0E2240',accent:'#FEC524',star:'尼科拉·约基奇',  pos:'中锋',    mainAttr:'drive',
+   starCd:{skinIdx:0,heightIdx:4,weightIdx:4,number:15,hairColor:'#c8a055'}},
+  {name:'太阳',     abbr:'PHX',color:'#1D1160',accent:'#E56020',star:'凯文·杜兰特',    pos:'小前锋',  mainAttr:'jumpShot',
+   starCd:{skinIdx:3,heightIdx:4,weightIdx:4,number:35}},
+  {name:'独行侠',   abbr:'DAL',color:'#00538C',accent:'#C4CED4',star:'卢卡·东契奇',    pos:'控球后卫', mainAttr:'jumpShot',
+   starCd:{skinIdx:0,heightIdx:3,weightIdx:3,number:77,hairColor:'#8b6914'}},
+  {name:'雷霆',     abbr:'OKC',color:'#007AC1',accent:'#EF3B24',star:'SGA',            pos:'控球后卫', mainAttr:'drive',
+   starCd:{skinIdx:2,heightIdx:2,weightIdx:2,number:2}},
+  {name:'快船',     abbr:'LAC',color:'#C8102E',accent:'#1D428A',star:'卡瓦伊·莱纳德',  pos:'小前锋',  mainAttr:'jumpShot',
+   starCd:{skinIdx:3,heightIdx:3,weightIdx:3,number:2}},
+  {name:'猛龙',     abbr:'TOR',color:'#CE1141',accent:'#A1A1AA',star:'斯科蒂·巴恩斯',  pos:'小前锋',  mainAttr:'fastBreak',
+   starCd:{skinIdx:3,heightIdx:3,weightIdx:3,number:14}},
+  {name:'公牛',     abbr:'CHI',color:'#CE1141',accent:'#f9a8a8',star:'德罗赞',          pos:'得分后卫', mainAttr:'jumpShot',
+   starCd:{skinIdx:3,heightIdx:2,weightIdx:3,number:11}},
+  {name:'篮网',     abbr:'BKN',color:'#1A1A1A',accent:'#FFFFFF',star:'卡梅隆·约翰逊',  pos:'小前锋',  mainAttr:'jumpShot',
+   starCd:{skinIdx:1,heightIdx:3,weightIdx:3,number:2}},
+  {name:'国王',     abbr:'SAC',color:'#5A2D81',accent:'#63727A',star:'德阿龙·福克斯',  pos:'控球后卫', mainAttr:'fastBreak',
+   starCd:{skinIdx:3,heightIdx:2,weightIdx:2,number:5}},
+  {name:'灰熊',     abbr:'MEM',color:'#5D76A9',accent:'#12173F',star:'贾·莫兰特',      pos:'控球后卫', mainAttr:'fastBreak',
+   starCd:{skinIdx:3,heightIdx:2,weightIdx:1,number:12}},
+  {name:'步行者',   abbr:'IND',color:'#002D62',accent:'#FDBB30',star:'哈利伯顿',        pos:'控球后卫', mainAttr:'fastBreak',
+   starCd:{skinIdx:2,heightIdx:2,weightIdx:2,number:0}},
+  {name:'马刺',     abbr:'SAS',color:'#8A9BA8',accent:'#c8d8e4',star:'文班亚马',         pos:'中锋',    mainAttr:'block',
+   starCd:{skinIdx:3,heightIdx:4,weightIdx:3,number:1}},
+  {name:'火箭',     abbr:'HOU',color:'#CE1141',accent:'#C4CED4',star:'贾伦·格林',      pos:'得分后卫', mainAttr:'jumpShot',
+   starCd:{skinIdx:2,heightIdx:2,weightIdx:2,number:4}},
 ];
 
 const ATTR_KEYS = ['jumpShot','drive','block','fastBreak'];
@@ -1401,32 +1503,63 @@ function proceedToRegularGame(){
   S.gamesPlayed++;
   S.currentAttr=ATTR_KEYS[Math.floor(Math.random()*4)];
   const attr=S.currentAttr;
-  const tgt=3+S.gamesPlayed;
   const pool=S.attrs[attr].pool;
+
+  // 计算对方球星能力：对方主属性获得玩家总经验的 1/4
+  const opp = S.currentOpponent;
+  if(opp){
+    const oppExpAmount = Math.floor(getTotalExp() / 4);
+    S.oppAttr = computeOppAttr(oppExpAmount);
+    S.oppAttr.mainAttr = opp.mainAttr;
+  } else {
+    S.oppAttr = null;
+  }
+
   showPanel('gamePanel');
   document.getElementById('gm-num').textContent=S.gamesPlayed;
   document.getElementById('gm-attr').textContent=ATTR_NAMES[attr];
-  document.getElementById('gm-target').textContent=`目标: ≥ ${tgt}（共 ${pool.length} 颗骰子）`;
+
+  // 对手属性信息
+  const oppA = S.oppAttr;
+  const tgtEl = document.getElementById('gm-target');
+  tgtEl.textContent = oppA
+    ? `${ATTR_NAMES[oppA.mainAttr]} Lv.${oppA.level}（${oppA.diceCount}颗）`
+    : `目标: ≥ ${3+S.gamesPlayed}`;
+
   document.getElementById('gm-result').style.display='none';
   document.getElementById('gm-effect').textContent='';
   document.getElementById('btn-roll-game').style.display='block';
   document.getElementById('btn-game-next').style.display='none';
-  buildSpinDice('gm-dice',pool.length);
-  // 显示对阵徽章
-  const opp = S.currentOpponent;
-  const badge = document.getElementById('gm-opp-badge');
-  if(opp){
-    document.getElementById('gm-opp-abbr').textContent = opp.abbr;
-    document.getElementById('gm-opp-abbr').style.background = opp.color;
-    document.getElementById('gm-opp-abbr').style.color = opp.accent;
-    document.getElementById('gm-opp-name').textContent = `对阵：${opp.name}`;
-    document.getElementById('gm-opp-name').style.color = opp.accent;
-    document.getElementById('gm-opp-star').textContent = `⭐ ${opp.star} · ${opp.pos}`;
-    badge.style.display='flex';
-    addLog(`🏀 第${S.gamesPlayed}场常规赛 vs ${opp.name}【${opp.star}】开始！使用【${ATTR_NAMES[attr]}】，目标≥${tgt}。`,'g');
+  buildSpinDice('gm-dice', pool.length);
+  buildSpinDice('gm-opp-dice', oppA ? oppA.diceCount : 1);
+
+  // ── 渲染我方肖像 ──
+  const playerCanvas = document.getElementById('gm-player-canvas');
+  if(S.charData){
+    drawCharToCanvas(playerCanvas, S.charData, 4);
   } else {
-    badge.style.display='none';
-    addLog(`🏀 第${S.gamesPlayed}场常规赛（第${S.day}天）开始！本场使用【${ATTR_NAMES[attr]}】，目标≥${tgt}。`,'g');
+    // 无角色时画默认人物
+    drawCharToCanvas(playerCanvas, {skinIdx:1,heightIdx:2,weightIdx:2,jerseyIdx:0,number:0}, 4);
+  }
+  document.getElementById('gm-player-name').textContent = S.playerName||'我方';
+
+  // ── 渲染对手球星肖像 ──
+  const starCanvas = document.getElementById('gm-star-canvas');
+  if(opp && opp.starCd){
+    const scd = {
+      ...opp.starCd,
+      jerseyColor: opp.color,
+      jerseyShorts: opp.accent,
+    };
+    drawCharToCanvas(starCanvas, scd, 4);
+    document.getElementById('gm-star-name').textContent = opp.star;
+    document.getElementById('gm-star-name').style.color = opp.accent;
+    document.getElementById('gm-star-portrait-wrap').style.borderColor = opp.accent+'66';
+    addLog(`🏀 第${S.gamesPlayed}场 vs ${opp.name}【${opp.star}】，我方【${ATTR_NAMES[attr]}】对抗对手【${ATTR_NAMES[opp.mainAttr]}】Lv.${oppA.level}。`,'g');
+  } else {
+    drawCharToCanvas(starCanvas, {skinIdx:2,heightIdx:2,weightIdx:2,jerseyIdx:2,number:0}, 4);
+    document.getElementById('gm-star-name').textContent = '对手';
+    addLog(`🏀 第${S.gamesPlayed}场常规赛开始！使用【${ATTR_NAMES[attr]}】。`,'g');
   }
 }
 
@@ -1456,14 +1589,38 @@ function proceedToPlayoffGame(){
 function rollGameDice(){
   const attr=S.currentAttr;
   const pool=S.attrs[attr].pool;
-  const tgt=3+S.gamesPlayed;
-  doRoll('gm-dice',pool,tgt,(rolls,total,pass,itemFx)=>{
-    document.getElementById('gm-total').textContent='合计: '+total;
-    document.getElementById('gm-vs').textContent=`需要 ≥ ${tgt}`;
+  const oppA=S.oppAttr;
+  const opp=S.currentOpponent;
+
+  // 预先计算对手每颗骰子结果（与玩家同步落定）
+  const oppRolls = oppA ? oppA.pool.map(dt=>{
+    const di=DICE_INFO[dt];
+    const v=di.faces[Math.floor(Math.random()*di.faces.length)];
+    return di.fn?di.fn(v):v;
+  }) : [];
+  const oppRoll = oppRolls.reduce((s,v)=>s+v, 0);
+
+  // 玩家掷骰（带动画），对手骰子在同一回调里落定，避免竞态
+  doRoll('gm-dice',pool,oppRoll+1,(rolls,total,pass,itemFx)=>{
+    // 对手骰子同步落定（值 + 颜色：对手赢=pass绿，对手输=fail红）
+    const oppDice=document.getElementById('gm-opp-dice').querySelectorAll('.die');
+    oppDice.forEach((d,i)=>{
+      d.className='die land '+(pass?'fail':'pass');
+      d.textContent=oppRolls[i]??'?';
+    });
+
+    // 比分盒
+    document.getElementById('gm-total').textContent=total;
+    document.getElementById('gm-vs').textContent=oppRoll;
+    document.getElementById('gm-total').style.color=pass?'#4ade80':'#f87171';
+    document.getElementById('gm-vs').style.color=pass?'#f87171':'#4ade80';
+    const oppLbl=opp?opp.name:'对手';
+    document.getElementById('gm-opp-score-lbl').textContent=oppLbl;
     const v=document.getElementById('gm-verdict');
     v.textContent=pass?'🏆 胜利！':'😤 失败';
     v.className='roll-verdict '+(pass?'rv-ok':'rv-no');
     document.getElementById('gm-result').style.display='block';
+
     const stamCost=25;
     S.stamina=Math.max(0,S.stamina-stamCost);
     if(pass){S.wins++;gainExp(attr,10+itemFx.expBonus);}
@@ -1474,7 +1631,7 @@ function rollGameDice(){
       ?`胜利！+1胜场 / 体力-${stamCost}\n${ATTR_NAMES[attr]}+${expBase+itemFx.expBonus}经验${itemNote}`
       :`败北... 体力-${stamCost}\n${ATTR_NAMES[attr]}+${expBase+itemFx.expBonus}经验${itemNote}`;
     document.getElementById('gm-effect').textContent=eff;
-    addLog(`${pass?'🏆 胜利':'😤 失败'}！第${S.gamesPlayed}场 ${S.wins}胜${S.gamesPlayed-S.wins}负，掷出${total}${pass?'≥':'<'}${tgt}。`,'g');
+    addLog(`${pass?'🏆 胜利':'😤 失败'}！第${S.gamesPlayed}场 vs ${oppLbl}，我方${total} vs 对手${oppRoll}，${S.wins}胜${S.gamesPlayed-S.wins}负。`,'g');
     document.getElementById('btn-roll-game').style.display='none';
     updateUI();
     processLevelups(()=>{
@@ -1605,6 +1762,45 @@ function checkDayStart(){
 // 经验 & 升级
 // ════════════════════════════════════════════
 function getExpNeeded(lv){return lv<=1?20:lv<=2?40:lv<=4?80:120+lv*20}
+
+// 玩家四项属性累计总经验（包含已消耗升级的经验）
+function getCumulativeExp(level){
+  let c=0; for(let lv=1;lv<level;lv++) c+=getExpNeeded(lv); return c;
+}
+function getTotalExp(){
+  return ATTR_KEYS.reduce((s,k)=>{ const a=S.attrs[k]; return s+getCumulativeExp(a.level)+a.exp; },0);
+}
+
+// 根据经验值计算对方球星的等级与骰池（不触发升级弹窗）
+function computeOppAttr(expAmount){
+  let level=1, rem=expAmount;
+  while(rem>=getExpNeeded(level)){ rem-=getExpNeeded(level); level++; }
+  const diceCount=level;
+  // 骰池：按等级层层累积解锁，随机选取
+  const pool=['STD'];
+  const tierB=['SCR','PRK','POST','HOOK'];
+  const tierA=['TRE','DRV','BRK'];
+  const tierS=['AIM','MID'];
+  const tierE=['DUNK','GAMB','CLUTCH'];
+  for(let i=2;i<=diceCount;i++){
+    let t;
+    if(i<=2) t=tierB;
+    else if(i<=4) t=tierA;
+    else if(i<=6) t=[...tierS,...tierA];
+    else t=[...tierE,...tierS];
+    pool.push(t[Math.floor(Math.random()*t.length)]);
+  }
+  return {level,diceCount,pool};
+}
+
+// 掷一组骰子并返回合计（不含动画，用于对手判定）
+function rollPool(pool){
+  return pool.reduce((s,dt)=>{
+    const di=DICE_INFO[dt];
+    const v=di.faces[Math.floor(Math.random()*di.faces.length)];
+    return s+(di.fn?di.fn(v):v);
+  },0);
+}
 
 function gainExp(attr,amount){
   const a=S.attrs[attr];
@@ -2103,7 +2299,7 @@ const JERSEY_COLORS=[
   {label:'荣耀金',color:'#B7791F',shorts:'#744210'},
 ];
 
-let charCreate={name:'',number:23,skinIdx:1,heightIdx:2,weightIdx:2,jerseyIdx:0};
+let charCreate={name:'',number:null,skinIdx:1,heightIdx:2,weightIdx:2,jerseyIdx:0};
 let savedChars=[];    // 已保存的角色列表（最多5个）
 let currentChar=null; // 当前选中角色
 
@@ -2203,17 +2399,17 @@ function buildCreateUI(){
   };
   // 号码输入
   const numEl=document.getElementById('inp-num');
-  numEl.value=charCreate.number;
+  numEl.value=charCreate.number!=null?charCreate.number:'';
   numEl.oninput=()=>{
     let v=parseInt(numEl.value);
     if(isNaN(v)||v<0)v=0;
     if(v>99)v=99;
-    charCreate.number=v;
-    document.getElementById('ctag-num').textContent='#'+v;
+    charCreate.number=numEl.value===''?null:v;
+    document.getElementById('ctag-num').textContent=charCreate.number!=null?'#'+charCreate.number:'#--';
     drawCharCanvas();
   };
   document.getElementById('ctag-name').textContent=charCreate.name||'无名球员';
-  document.getElementById('ctag-num').textContent='#'+charCreate.number;
+  document.getElementById('ctag-num').textContent=charCreate.number!=null?'#'+charCreate.number:'#--';
   setTimeout(drawCharCanvas,60);
 }
 
@@ -2376,7 +2572,10 @@ function drawCharToCanvas(canvas,cd,PS){
   const CX=Math.floor(GW/2); // 中心列（10）
 
   const sk=SKIN_TONES[cd.skinIdx]||SKIN_TONES[1];
-  const jr=JERSEY_COLORS[cd.jerseyIdx]||JERSEY_COLORS[0];
+  const jr=cd.jerseyColor
+    ?{color:cd.jerseyColor,shorts:cd.jerseyShorts||'#1a1a2e'}
+    :(JERSEY_COLORS[cd.jerseyIdx]||JERSEY_COLORS[0]);
+  const hairColor=cd.hairColor||'#1a0d07';
   const BW=4+(cd.weightIdx||0);  // 躯干宽4-8
   const LH=4+(cd.heightIdx||0);  // 腿长4-8
 
@@ -2392,7 +2591,7 @@ function drawCharToCanvas(canvas,cd,PS){
 
   // ─── 头部（6宽×5高）───
   const HX=CX-3, HY=SY;
-  F(HX,    HY,    6,2,'#1a0d07');      // 头发
+  F(HX,    HY,    6,2,hairColor);       // 头发
   F(HX,    HY+2,  6,3,sk.color);      // 脸
   F(HX,    HY+2,  1,2,sk.shadow);     // 左耳阴影
   F(HX+5,  HY+2,  1,2,sk.shadow);     // 右耳阴影
@@ -2419,7 +2618,7 @@ function drawCharToCanvas(canvas,cd,PS){
     ctx.font=`bold ${Math.round(PS*1.9)}px monospace`;
     ctx.textAlign='center';
     ctx.textBaseline='middle';
-    ctx.fillText(String(cd.number!=null?cd.number:23),CX*PS,(BY+3.5)*PS);
+    ctx.fillText(cd.number!=null?String(cd.number):'',CX*PS,(BY+3.5)*PS);
     ctx.restore();
   }
 
