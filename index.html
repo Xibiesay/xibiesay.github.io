@@ -1,3074 +1,605 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>篮球生涯骰子</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{
-  font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Hiragino Sans GB',sans-serif;
-  font-size:16px;
-  background:linear-gradient(135deg,#080c1a 0%,#111827 100%);
-  color:#fff;
-  min-height:100vh;
-  padding:10px 10px 80px;
-  max-width:500px;
-  margin:0 auto;
-  position:relative;
-}
-
-  
-/* ── 状态栏（左上1/2） ── */
-.status-bar{
-  position:absolute;
-  top:10px;
-  left:10px;
-  width:48%; /* 屏幕左半边 */
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:5px;
-  background:rgba(0,15,35,.9);
-  border-radius:6px;
-  padding:6px 4px;
-  border:1px solid rgba(249,115,22,.4);
-  font-size:0.8em; /* 整体字体调小 */
-  z-index:10;
-}
-.status-item{text-align:center}
-.status-label{font-size:0.6em;color:#64748b;margin-bottom:2px} /* 标签字体更小 */
-.status-value{font-size:0.8em;font-weight:700} /* 数值字体调小 */
-.sv-stam{color:#4ade80}.sv-money{color:#fbbf24}.sv-wins{color:#38bdf8}
-
-/* ── 游戏信息栏（右上1/2） ── */
-.game-info{
-  position:absolute;
-  top:10px;
-  right:10px;
-  width:48%;
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:5px;
-  background:rgba(0,15,35,.9);
-  border-radius:6px;
-  padding:6px 4px;
-  border:1px solid rgba(249,115,22,.4);
-  font-size:0.8em;
-  z-index:10;
-}
-.gi-item{text-align:center}
-.gi-label{font-size:0.6em;color:#64748b;margin-bottom:2px}
-.gi-value{font-size:0.8em;font-weight:700}
-.gv-day{color:#38bdf8}.gv-season{color:#fbbf24}.gv-game{color:#4ade80}
-.btn-home-back{
-  background:transparent;border:1px solid rgba(255,255,255,.18);
-  color:#64748b;font-size:0.75em;border-radius:4px;
-  padding:4px 12px;cursor:pointer;letter-spacing:.3px;
-  display:block;width:100%;margin-bottom:8px;
-}
-.btn-home-back:active{opacity:.6}
-
-/* ── 主内容区域 ── */
-.main-content{
-  margin-top:58px;
-}
-
-/* ── 游戏日历（紧凑横行） ── */
-.calendar-panel{
-  background:rgba(255,255,255,.04);
-  border-radius:8px;
-  padding:5px 8px;
-  margin-bottom:8px;
-  border:1px solid rgba(255,255,255,.08);
-}
-.cal-row{display:flex;align-items:center;gap:8px}
-.cal-label-fixed{flex-shrink:0;font-size:0.78em;color:#fbbf24;font-weight:700;white-space:nowrap}
-.cal-scroll{flex:1;display:flex;gap:5px;overflow-x:auto;padding-bottom:2px}
-.cal-scroll::-webkit-scrollbar{height:3px}
-.cal-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:2px}
-.cal-day{
-  flex-shrink:0;width:42px;
-  background:rgba(0,20,50,.7);
-  border-radius:5px;padding:4px 2px;
-  text-align:center;border:1.5px solid transparent;
-}
-.cal-day.cal-today{border-color:#f97316;background:rgba(249,115,22,.15)}
-.cal-day.cal-game{border-color:#4ade80}
-.cal-day.cal-today.cal-game{border-color:#fbbf24;background:rgba(251,191,36,.12)}
-.cal-day.cal-shop{border-color:#38bdf8}
-.cal-day.cal-today.cal-shop{border-color:#38bdf8;background:rgba(56,189,248,.12)}
-.cal-day-num{font-size:0.55em;color:#64748b;margin-bottom:1px}
-.cal-day-icon{font-size:0.88em;margin-bottom:0;min-height:15px;line-height:15px}
-.cal-day-label{font-size:0.46em;color:#94a3b8}
-
-/* ── 决策面板 ── */
-.decision-panel{
-  background:rgba(0,12,30,.97);
-  border-radius:10px;
-  padding:12px;
-  margin-bottom:12px;
-  border:1px solid rgba(255,255,255,.08);
-  position:relative;
-  z-index:0;
-}
-.decision-panel::before{
-  content:'';
-  position:absolute;
-  inset:-2px;
-  border-radius:12px;
-  background:conic-gradient(from 0deg,
-    transparent 0%,transparent 96%,
-    rgba(249,115,22,.5) 97%,#fbbf24 97.8%,
-    rgba(249,115,22,.5) 98.6%,transparent 100%
-  );
-  z-index:-1;
-  animation:orbit-glow 2.8s linear infinite;
-  pointer-events:none;
-}
-.decision-panel::after{
-  content:'';
-  position:absolute;
-  inset:0;
-  border-radius:10px;
-  background:rgba(0,12,30,.97);
-  z-index:-1;
-  pointer-events:none;
-}
-@keyframes orbit-glow{
-  from{transform:rotate(0deg)}
-  to{transform:rotate(360deg)}
-}
-.panel-title{
-  text-align:center;font-size:1em;color:#fbbf24;
-  font-weight:700;margin-bottom:4px;
-}
-.panel-sub{text-align:center;color:#64748b;font-size:0.75em;margin-bottom:10px}
-.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.option{
-  background:rgba(0,20,50,.7);border-radius:8px;
-  padding:10px 8px;cursor:pointer;
-  border:1.5px solid transparent;transition:all .18s;
-}
-.option:active{transform:scale(.95);border-color:#f97316}
-.option.disabled{opacity:.35;pointer-events:none}
-.opt-tag{
-  display:inline-block;padding:2px 6px;border-radius:3px;
-  font-size:0.6em;font-weight:700;margin-bottom:5px;color:#fff;
-}
-.tag-train{background:#16a34a}
-.tag-biz{background:#0ea5e9}
-.tag-rest{background:#9333ea}
-.opt-name{font-size:0.85em;font-weight:700;color:#e2e8f0;margin-bottom:3px}
-.opt-cost{font-size:0.68em;color:#f87171;margin-bottom:2px}
-.opt-gain{font-size:0.68em;color:#4ade80}
-
-/* ── 骰子/比赛面板 ── */
-.active-panel{
-  background:rgba(255,255,255,.04);
-  border-radius:10px;
-  padding:16px;
-  margin-bottom:12px;
-  border:1px solid rgba(255,255,255,.08);
-  display:none;text-align:center;
-}
-.ap-tag{font-size:0.7em;font-weight:700;letter-spacing:2px;margin-bottom:4px}
-.ap-title{font-size:1.1em;font-weight:700;margin-bottom:3px}
-.ap-sub{font-size:0.78em;color:#64748b;margin-bottom:12px}
-.ap-attr{font-size:1em;color:#fbbf24;font-weight:700;margin-bottom:8px}
-.ap-target{font-size:0.8em;color:#64748b;margin-bottom:12px}
-.dice-row{display:flex;gap:6px;justify-content:center;margin-bottom:10px;flex-wrap:wrap;min-height:48px}
-.die{
-  width:46px;height:46px;background:#fff;border-radius:8px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:1.3em;font-weight:900;color:#111;
-  box-shadow:0 3px 10px rgba(0,0,0,.4);
-}
-.die.spin{animation:dspin .1s linear infinite}
-.die.land{animation:dland .3s cubic-bezier(.17,.67,.35,1.3) both}
-.die.pass{background:#bbf7d0;color:#14532d}
-.die.fail{background:#fecaca;color:#7f1d1d}
-@keyframes dspin{to{transform:rotate(360deg)}}
-@keyframes dland{0%{transform:scale(.3) rotate(360deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}
-.roll-total{font-size:1.8em;font-weight:900;color:#fbbf24}
-.roll-vs{font-size:0.75em;color:#475569;margin:3px 0}
-.roll-verdict{font-size:1.1em;font-weight:700;margin-bottom:4px}
-.rv-ok{color:#4ade80}.rv-no{color:#f87171}
-.roll-effect{font-size:0.78em;color:#94a3b8;margin-bottom:12px;white-space:pre-line;min-height:28px}
-.ap-series{
-  display:flex;gap:12px;align-items:center;justify-content:center;margin-bottom:12px;
-}
-.ser-box{text-align:center}
-.ser-num{font-size:1.8em;font-weight:900}
-.ser-num.mine{color:#4ade80}.ser-num.theirs{color:#f87171}
-.ser-sep{font-size:1.2em;color:#334155}
-.ser-lbl{font-size:0.6em;color:#475569}
-
-/* ── 按钮 ── */
-.btn-main{
-  width:100%;padding:11px;
-  background:linear-gradient(135deg,#f97316,#dc2626);
-  color:#fff;border:none;border-radius:8px;
-  font-size:0.9em;font-weight:700;cursor:pointer;
-  letter-spacing:1px;transition:transform .1s;
-  margin-top:4px;
-}
-.btn-main:active{transform:scale(.97)}
-.btn-main:disabled{opacity:.4;pointer-events:none}
-.btn-sec{
-  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);
-  border-radius:6px;color:#94a3b8;font-size:0.78em;
-  padding:7px;cursor:pointer;margin-top:4px;
-  display:inline-block;
-}
-
-/* ── 并排面板（属性+物品） ── */
-.side-panels{display:flex;gap:8px;margin-bottom:12px}
-.attrs-panel{
-  flex:1;
-  background:rgba(255,255,255,.04);
-  border-radius:10px;
-  padding:10px;
-  border:1px solid rgba(255,255,255,.08);
-}
-.items-panel{
-  flex:1;
-  background:rgba(255,255,255,.04);
-  border-radius:10px;
-  padding:10px;
-  border:1px solid rgba(255,255,255,.08);
-}
-.items-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:3px}
-.item-slot{
-  background:rgba(0,20,50,.6);
-  border-radius:4px;
-  border:1px dashed rgba(255,255,255,.12);
-  aspect-ratio:1;
-  display:flex;align-items:center;justify-content:center;
-  font-size:1em;cursor:default;
-}
-.item-slot.filled{
-  border:1px solid rgba(249,115,22,.55);
-  background:rgba(40,15,0,.85);
-  cursor:pointer;
-}
-.item-slot.filled:active{transform:scale(.88)}
-/* ── 星级颜色 ── */
-.star-核心{color:#fbbf24}.star-5星{color:#c084fc}.star-4星{color:#38bdf8}
-.star-3星{color:#4ade80}.star-2星{color:#94a3b8}.star-1星{color:#cbd5e1}
-/* ── 商店弹窗 ── */
-.shop-grid{display:flex;flex-direction:column;gap:8px;margin:10px 0}
-.shop-item{
-  background:rgba(0,20,50,.8);
-  border-radius:8px;padding:9px 11px;
-  display:flex;align-items:center;gap:10px;
-  border:1.5px solid rgba(255,255,255,.1);
-  cursor:pointer;transition:border-color .15s;
-}
-.shop-item:active{transform:scale(.97)}
-.shop-item.bought{opacity:.4;pointer-events:none}
-.shop-item-icon{font-size:1.3em;flex-shrink:0}
-.shop-item-info{flex:1;text-align:left}
-.shop-item-name{font-size:0.8em;font-weight:700;color:#e2e8f0}
-.shop-item-desc{font-size:0.6em;color:#94a3b8;margin-top:2px}
-.shop-item-price{font-size:0.8em;font-weight:700;color:#fbbf24;flex-shrink:0}
-.shop-inv-info{font-size:0.68em;color:#64748b;text-align:center;margin-bottom:4px}
-/* ── 属性面板（内部，不变） ── */
-.attrs-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.attr-card{
-  background:rgba(0,20,50,.7);border-radius:6px;padding:8px;
-  position:relative;
-}
-.attr-name{font-size:0.74em;color:#cbd5e1;margin-bottom:2px}
-.attr-lv{font-size:0.95em;color:#fbbf24;font-weight:700;margin-bottom:3px}
-.exp-row{display:flex;align-items:center;gap:4px;margin-bottom:3px}
-.exp-bar{flex:1;height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
-.exp-fill{height:100%;background:linear-gradient(90deg,#22c55e,#3b82f6);border-radius:2px;transition:width .3s}
-.exp-txt{font-size:0.55em;color:#475569;flex-shrink:0}
-.dice-pool{display:flex;gap:2px;flex-wrap:wrap}
-.dc{font-size:1em;padding:2px 3px;border-radius:4px;cursor:default;transition:transform .1s;display:inline-block}
-.dc:hover{transform:scale(1.25)}
-#dice-tooltip{
-  display:none;position:fixed;z-index:9999;
-  background:rgba(0,10,28,.97);
-  border:1px solid rgba(249,115,22,.55);
-  border-radius:8px;padding:8px 14px;
-  pointer-events:none;text-align:center;
-  min-width:110px;
-  box-shadow:0 4px 18px rgba(0,0,0,.55);
-}
-
-/* ── 日志 ── */
-.log-panel{
-  background:rgba(0,0,0,.45);
-  border-radius:10px;
-  padding:10px;border:1px solid rgba(255,255,255,.07);
-}
-.log-title{font-size:0.84em;color:#fbbf24;font-weight:700;margin-bottom:6px;text-align:center}
-#eventLog{height:160px;overflow-y:auto;font-size:0.72em;line-height:1.4}
-.le{margin-bottom:5px;padding-bottom:5px;border-bottom:1px solid #1e293b}
-.lt{color:#4ade80}.lb{color:#38bdf8}.lr{color:#c084fc}
-.lg{color:#f87171}.lp{color:#a78bfa}.li{color:#fbbf24;font-weight:700}
-
-/* ── 弹窗 ── */
-.modal{
-  display:none;position:fixed;inset:0;
-  background:rgba(0,0,0,.88);z-index:1000;
-  align-items:center;justify-content:center;padding:15px;
-}
-.modal.show{display:flex}
-.modal-box{
-  background:linear-gradient(135deg,#111827,#080c1a);
-  padding:24px;border-radius:16px;text-align:center;
-  max-width:360px;width:100%;border:2px solid #f97316;
-}
-.modal-title{font-size:1.3em;font-weight:700;color:#fbbf24;margin-bottom:12px}
-.modal-msg{font-size:0.85em;line-height:1.6;margin-bottom:20px;color:#cbd5e1}
-.modal-btn{
-  background:linear-gradient(135deg,#f97316,#dc2626);
-  color:#fff;border:none;padding:10px 28px;
-  font-size:0.95em;border-radius:25px;cursor:pointer;font-weight:700;
-}
-/* 参赛确认弹窗按钮 */
-.confirm-btns{
-  display:flex;gap:8px;margin-top:20px;
-}
-.confirm-btn{
-  flex:1;padding:10px;border-radius:8px;
-  border:none;color:#fff;font-weight:700;cursor:pointer;
-  font-size:0.9em;
-}
-.confirm-play{background:linear-gradient(135deg,#16a34a,#15803d)}
-.confirm-skip{background:linear-gradient(135deg,#64748b,#475569)}
-/* ── 对阵球队卡片 ── */
-.opp-card{
-  display:flex;align-items:center;gap:10px;
-  border-radius:10px;padding:10px 12px;
-  margin:10px 0 4px;
-  border:1.5px solid rgba(255,255,255,.15);
-}
-.opp-abbr{
-  width:44px;height:44px;border-radius:8px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:0.72em;font-weight:900;letter-spacing:.5px;
-  flex-shrink:0;
-}
-.opp-info{flex:1;text-align:left}
-.opp-team-name{font-size:1em;font-weight:800;line-height:1.2}
-.opp-star{font-size:0.78em;color:#e2e8f0;margin-top:2px}
-.opp-star span{color:#fbbf24}
-/* ── 常规赛拼点面板 ── */
-.gm-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-.gm-versus-row{
-  display:flex;align-items:flex-end;gap:0;
-  margin-bottom:8px;
-}
-.gm-player-side,.gm-star-side{
-  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
-}
-.gm-vs-center{
-  width:36px;flex-shrink:0;
-  display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
-  padding-bottom:4px;
-}
-.gm-vs-text{
-  font-size:1em;font-weight:900;color:#fbbf24;
-  text-shadow:0 0 8px #fbbf2488;letter-spacing:.5px;
-}
-.gm-portrait-wrap{
-  position:relative;border-radius:8px;overflow:hidden;
-  border:1.5px solid rgba(255,255,255,.12);
-  background:rgba(0,10,30,.6);
-}
-.gm-portrait-wrap canvas{display:block}
-.gm-side-name{
-  font-size:0.68em;font-weight:800;letter-spacing:.3px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  max-width:100%;text-align:center;
-}
-.gm-side-attr{
-  font-size:0.62em;color:#94a3b8;text-align:center;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;
-}
-.gm-score-row{
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  margin:4px 0 2px;
-}
-.gm-score-box{
-  flex:1;text-align:center;padding:5px 4px;border-radius:7px;
-  background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);
-}
-.gm-score-num{font-size:1.5em;font-weight:900;line-height:1}
-.gm-score-lbl{font-size:0.6em;color:#94a3b8;margin-top:2px}
-.gm-score-sep{font-size:1em;color:#475569;font-weight:700}
-.gm-opp-roll-badge{
-  font-size:0.72em;color:#94a3b8;text-align:center;margin-top:2px;
-}
-/* 双方骰子拼点行 */
-.gm-dice-split{
-  display:flex;align-items:flex-start;gap:0;
-  margin:6px 0 4px;
-}
-.gm-dice-half{
-  flex:1;display:flex;flex-wrap:wrap;justify-content:center;
-  gap:3px;padding:2px 4px;
-  min-height:28px;
-}
-.gm-dice-sep{
-  width:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
-  font-size:0.65em;color:#475569;padding-top:4px;
-}
-
-/* ── 季后赛系列赛比分行 ── */
-.po-series-row{
-  display:flex;align-items:center;justify-content:center;gap:12px;
-  margin:4px 0 8px;
-}
-.po-series-score{
-  font-size:1.6em;font-weight:900;
-  display:flex;align-items:center;gap:8px;
-}
-.po-score-mine{color:#4ade80}
-.po-score-sep{color:#475569;font-size:.7em}
-.po-score-theirs{color:#f87171}
-.po-series-label{font-size:0.7em;color:#94a3b8}
-/* ── 季后赛对阵图 ── */
-.bracket-wrap{display:flex;gap:6px;margin:10px 0}
-.bracket-conf{flex:1;min-width:0}
-.bracket-conf-hd{
-  text-align:center;font-size:0.72em;font-weight:800;
-  padding:3px 0 5px;letter-spacing:.5px;
-}
-.bracket-matchup{
-  border-radius:8px;padding:5px 7px;margin-bottom:5px;
-  border:1px solid rgba(255,255,255,.1);
-  background:rgba(255,255,255,.03);
-}
-.bracket-matchup.is-player{
-  border-color:#fbbf2488;background:rgba(251,191,36,.08);
-}
-.bracket-team{
-  display:flex;align-items:center;gap:5px;padding:2px 0;
-}
-.bracket-seed{font-size:0.6em;color:#64748b;width:10px;flex-shrink:0}
-.bracket-abbr{
-  font-size:0.58em;font-weight:900;letter-spacing:.3px;
-  padding:1px 4px;border-radius:3px;flex-shrink:0;
-}
-.bracket-tname{font-size:0.72em;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bracket-divider{
-  text-align:center;font-size:0.55em;color:#475569;
-  margin:1px 0;line-height:1;
-}
-.bracket-finals-row{
-  text-align:center;margin:8px 0 4px;
-  font-size:0.7em;color:#fbbf24;font-weight:700;letter-spacing:.5px;
-}
-/* levelup choice grid */
-.lu-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
-.lu-die{border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all .15s}
-.lu-die:active{transform:scale(.93)}
-.lu-type{font-size:1.1em;font-weight:900;display:block;margin-bottom:2px}
-.lu-desc{font-size:0.65em;display:block;opacity:.7}
-
-/* ── 首页 ── */
-#screen-home{
-  position:fixed;inset:0;z-index:9999;
-  display:flex;flex-direction:column;
-  background:#000;
-}
-.goat-bar{
-  height:38px;flex-shrink:0;
-  background:rgba(0,0,0,.95);
-  border-bottom:2px solid #f97316;
-  display:flex;align-items:center;justify-content:center;
-  font-size:0.95em;font-weight:900;color:#fbbf24;
-  letter-spacing:6px;text-transform:uppercase;
-}
-.court-wrap{
-  flex:1;display:flex;align-items:center;justify-content:center;
-  background:radial-gradient(ellipse at 50% 50%,#1c1000 0%,#000 75%);
-  overflow:hidden;position:relative;
-}
-.court-wrap::before{
-  content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse at 50% 50%,rgba(249,115,22,.08) 0%,transparent 70%);
-  pointer-events:none;
-}
-.court-svg{
-  width:auto;height:100%;max-height:100%;
-  max-width:500px;
-  filter:drop-shadow(0 0 35px rgba(249,115,22,.25));
-}
-.home-btn-area{
-  padding:14px 18px 26px;flex-shrink:0;
-  display:flex;flex-direction:column;align-items:center;gap:10px;
-  background:linear-gradient(0deg,rgba(0,0,0,.95),rgba(0,0,0,.7));
-}
-.home-char-btns{display:flex;gap:10px;width:100%;max-width:320px}
-.btn-char-action{
-  flex:1;padding:11px 6px;
-  border:1.5px solid rgba(249,115,22,.5);
-  background:rgba(249,115,22,.08);
-  color:#fbbf24;border-radius:10px;
-  font-size:0.8em;font-weight:700;cursor:pointer;
-  letter-spacing:.5px;transition:all .15s;
-}
-.btn-char-action:active{transform:scale(.95);background:rgba(249,115,22,.2)}
-.btn-char-action.has-char{border-color:#4ade80;color:#4ade80;background:rgba(74,222,128,.1);font-size:0.68em}
-.btn-start-game{
-  background:linear-gradient(135deg,#f97316,#dc2626);
-  color:#fff;border:none;
-  padding:14px 60px;border-radius:45px;
-  font-size:1.1em;font-weight:900;
-  cursor:pointer;letter-spacing:3px;
-  box-shadow:0 0 25px rgba(249,115,22,.5);
-  animation:gbtn 2s ease-in-out infinite;
-}
-@keyframes gbtn{
-  0%,100%{box-shadow:0 0 25px rgba(249,115,22,.5)}
-  50%{box-shadow:0 0 45px rgba(249,115,22,.85),0 0 70px rgba(249,115,22,.3)}
-}
-.btn-start-game:active{transform:scale(.96);animation:none}
-
-/* ══ 角色创建屏 ══ */
-#screen-create{
-  position:fixed;inset:0;z-index:9998;
-  display:none;flex-direction:column;
-  background:linear-gradient(135deg,#080c1a 0%,#111827 100%);
-}
-.cc-inner{
-  max-width:500px;margin:0 auto;width:100%;
-  display:flex;flex-direction:column;height:100%;overflow:hidden;
-}
-.cc-hdr{
-  padding:12px 14px 8px;flex-shrink:0;
-  background:rgba(0,0,0,.55);
-  border-bottom:2px solid rgba(249,115,22,.45);text-align:center;
-}
-.cc-hdr-title{font-size:1.1em;font-weight:900;color:#fbbf24;letter-spacing:4px}
-.cc-hdr-sub{font-size:0.62em;color:#64748b;margin-top:2px;letter-spacing:1px}
-.cc-body{flex:1;overflow-y:auto;padding:10px 12px;display:flex;gap:10px}
-.cc-body::-webkit-scrollbar{width:3px}
-.cc-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:2px}
-.cc-left{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:7px}
-#charCanvas{
-  border-radius:10px;
-  background:radial-gradient(ellipse at 50% 65%,#1a2540 0%,#080c1a 100%);
-  border:1.5px solid rgba(249,115,22,.35);
-  image-rendering:pixelated;image-rendering:crisp-edges;display:block;
-}
-.cc-tag{
-  text-align:center;background:rgba(0,15,35,.9);
-  border-radius:7px;padding:5px 10px;width:100%;
-  border:1px solid rgba(255,255,255,.07);
-}
-.cc-tag-num{font-size:1.15em;font-weight:900;color:#fbbf24;line-height:1.2}
-.cc-tag-name{font-size:0.68em;color:#e2e8f0;margin-top:2px;word-break:break-all;min-height:1em}
-.cc-right{flex:1;display:flex;flex-direction:column;gap:7px;min-width:0}
-.csec{background:rgba(0,12,30,.88);border-radius:8px;padding:7px 9px;border:1px solid rgba(255,255,255,.07)}
-.csec-lbl{font-size:0.58em;color:#64748b;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px}
-.cc-input{
-  width:100%;background:rgba(255,255,255,.07);
-  border:1px solid rgba(255,255,255,.14);border-radius:5px;
-  color:#e2e8f0;font-size:0.82em;padding:5px 8px;
-  outline:none;font-family:inherit;
-}
-.cc-input:focus{border-color:rgba(249,115,22,.6)}
-.cc-input::placeholder{color:#374151}
-.cc-opt-row{display:flex;gap:5px;align-items:center}
-.skin-dot{
-  width:24px;height:24px;border-radius:50%;
-  border:2px solid transparent;cursor:pointer;flex-shrink:0;
-  transition:transform .12s,border-color .12s;
-}
-.skin-dot.sel{border-color:#fbbf24;transform:scale(1.22)}
-.skin-dot:active{transform:scale(.85)}
-.tag-btn{
-  flex:1;background:rgba(0,20,50,.8);
-  border:1.5px solid rgba(255,255,255,.1);border-radius:5px;
-  color:#64748b;font-size:0.6em;font-weight:700;
-  padding:4px 2px;cursor:pointer;text-align:center;
-  transition:all .1s;line-height:1.3;min-width:0;font-family:inherit;
-}
-.tag-btn.sel{border-color:#f97316;color:#fbbf24;background:rgba(249,115,22,.15)}
-.tag-btn:active{transform:scale(.92)}
-.jersey-sw{
-  width:26px;height:26px;border-radius:6px;
-  border:2px solid transparent;cursor:pointer;flex-shrink:0;
-  transition:transform .12s,border-color .12s;
-}
-.jersey-sw.sel{border-color:#fff;transform:scale(1.22)}
-.jersey-sw:active{transform:scale(.85)}
-.cc-foot{
-  padding:11px 14px 22px;flex-shrink:0;
-  background:linear-gradient(0deg,rgba(0,0,0,.95),transparent);
-  display:flex;gap:8px;
-}
-.btn-cc-back{
-  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);
-  color:#64748b;border-radius:25px;padding:12px 18px;
-  font-size:0.8em;font-weight:700;cursor:pointer;white-space:nowrap;
-}
-.btn-cc-back:active{opacity:.6}
-.btn-cc-confirm{
-  flex:1;padding:13px;
-  background:linear-gradient(135deg,#f97316,#dc2626);
-  color:#fff;border:none;border-radius:25px;
-  font-size:0.95em;font-weight:900;cursor:pointer;letter-spacing:2px;
-  box-shadow:0 0 20px rgba(249,115,22,.35);
-  animation:gbtn 2s ease-in-out infinite;
-}
-.btn-cc-confirm:active{transform:scale(.96);animation:none}
-
-/* ══ 选择角色屏 ══ */
-#screen-select{
-  position:fixed;inset:0;z-index:9997;
-  display:none;flex-direction:column;
-  background:linear-gradient(135deg,#080c1a 0%,#111827 100%);
-}
-.ss-inner{max-width:500px;margin:0 auto;width:100%;display:flex;flex-direction:column;height:100%;overflow:hidden}
-.ss-hdr{
-  padding:12px 14px 8px;flex-shrink:0;
-  background:rgba(0,0,0,.55);border-bottom:2px solid rgba(249,115,22,.45);text-align:center;
-}
-.ss-hdr-title{font-size:1.1em;font-weight:900;color:#fbbf24;letter-spacing:4px}
-.ss-hdr-sub{font-size:0.62em;color:#64748b;margin-top:2px}
-.ss-body{flex:1;overflow-y:auto;padding:12px}
-.ss-body::-webkit-scrollbar{width:3px}
-.ss-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:2px}
-.ss-empty{text-align:center;color:#64748b;padding:50px 20px;font-size:0.85em;line-height:2}
-.char-card{
-  background:rgba(0,15,35,.9);border-radius:12px;
-  border:1.5px solid rgba(255,255,255,.1);
-  padding:11px 12px;margin-bottom:10px;
-  display:flex;align-items:center;gap:12px;
-  cursor:pointer;transition:border-color .15s;
-}
-.char-card:active{transform:scale(.97)}
-.char-card.active-char{border-color:#f97316;background:rgba(249,115,22,.08)}
-.char-card-mini{
-  flex-shrink:0;border-radius:6px;background:rgba(0,20,50,.8);
-  image-rendering:pixelated;image-rendering:crisp-edges;
-}
-.char-card-info{flex:1;min-width:0}
-.char-card-name{font-size:0.9em;font-weight:700;color:#e2e8f0;margin-bottom:1px}
-.char-card-num{font-size:1.05em;font-weight:900;color:#fbbf24}
-.char-card-stats{font-size:0.6em;color:#64748b;margin-top:3px;line-height:1.6}
-.char-card-del{
-  background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);
-  color:#f87171;border-radius:5px;padding:5px 9px;
-  font-size:0.65em;font-weight:700;cursor:pointer;flex-shrink:0;
-}
-.char-card-del:active{opacity:.6}
-.ss-foot{
-  padding:10px 14px 22px;flex-shrink:0;
-  background:linear-gradient(0deg,rgba(0,0,0,.95),transparent);
-  display:flex;gap:8px;
-}
-.btn-ss-back{
-  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);
-  color:#64748b;border-radius:25px;padding:12px 14px;
-  font-size:0.8em;font-weight:700;cursor:pointer;white-space:nowrap;
-}
-.btn-ss-back:active{opacity:.6}
-.btn-ss-new{
-  flex:1;padding:12px;
-  background:rgba(249,115,22,.12);border:1.5px solid rgba(249,115,22,.45);
-  color:#fbbf24;border-radius:25px;
-  font-size:0.82em;font-weight:700;cursor:pointer;
-}
-.btn-ss-new:active{opacity:.7}
-.btn-ss-confirm{
-  flex:1;padding:12px;
-  background:linear-gradient(135deg,#f97316,#dc2626);
-  color:#fff;border:none;border-radius:25px;
-  font-size:0.88em;font-weight:900;cursor:pointer;letter-spacing:1px;
-}
-.btn-ss-confirm:active{transform:scale(.96)}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NBA球员创建器 - 像素风格</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+        
+        body {
+            background-color: #1a1a2e;
+            color: #f0f0f0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .game-container {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .header h1 {
+            font-size: 2.8rem;
+            color: #ff6b35;
+            text-shadow: 3px 3px 0 #333;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            color: #4fc3f7;
+        }
+        
+        .content {
+            display: flex;
+            width: 100%;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .creation-panel {
+            background-color: #2d3047;
+            border-radius: 10px;
+            padding: 25px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+            border: 4px solid #444;
+        }
+        
+        .preview-panel {
+            background-color: #2d3047;
+            border-radius: 10px;
+            padding: 25px;
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+            border: 4px solid #444;
+        }
+        
+        .panel-title {
+            font-size: 1.8rem;
+            color: #4fc3f7;
+            margin-bottom: 20px;
+            text-align: center;
+            border-bottom: 2px solid #4fc3f7;
+            padding-bottom: 8px;
+        }
+        
+        .step-container {
+            margin-bottom: 25px;
+        }
+        
+        .step-title {
+            font-size: 1.4rem;
+            color: #ffcc00;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .step-number {
+            background-color: #ff6b35;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+            color: #ddd;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 5px;
+            border: 2px solid #555;
+            background-color: #3a3d5c;
+            color: white;
+            font-size: 1.1rem;
+        }
+        
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #4fc3f7;
+        }
+        
+        .options-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .option-item {
+            background-color: #3a3d5c;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        
+        .option-item:hover {
+            transform: translateY(-3px);
+            background-color: #4a4d6c;
+        }
+        
+        .option-item.selected {
+            border-color: #4fc3f7;
+            background-color: #4a4d6c;
+            box-shadow: 0 4px 8px rgba(79, 195, 247, 0.3);
+        }
+        
+        .option-item .option-label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #ffcc00;
+        }
+        
+        .option-item .option-value {
+            color: #ddd;
+        }
+        
+        .skin-color-option {
+            height: 40px;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+        
+        .jersey-option {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 5px;
+            margin-top: 5px;
+            font-weight: bold;
+            font-size: 1.3rem;
+            color: white;
+        }
+        
+        .pixel-player-container {
+            width: 200px;
+            height: 300px;
+            margin: 20px auto;
+            position: relative;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        
+        .pixel-player {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .player-info {
+            background-color: #3a3d5c;
+            padding: 15px;
+            border-radius: 8px;
+            width: 100%;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .player-name {
+            font-size: 1.8rem;
+            color: #ffcc00;
+            margin-bottom: 5px;
+        }
+        
+        .player-details {
+            font-size: 1.2rem;
+            color: #ddd;
+            margin-bottom: 5px;
+        }
+        
+        .player-number {
+            font-size: 2.5rem;
+            color: #ff6b35;
+            font-weight: bold;
+        }
+        
+        .buttons-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 14px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background-color: #ff6b35;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #ff824d;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.4);
+        }
+        
+        .btn-secondary {
+            background-color: #4fc3f7;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #67cbf8;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(79, 195, 247, 0.4);
+        }
+        
+        .btn:disabled {
+            background-color: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .basketball-court {
+            width: 100%;
+            height: 300px;
+            background-color: #1e7e34;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            margin-top: 20px;
+            border: 4px solid #8B4513;
+        }
+        
+        .court-line {
+            position: absolute;
+            background-color: white;
+        }
+        
+        .center-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            border: 4px solid white;
+            border-radius: 50%;
+        }
+        
+        .free-throw-line {
+            position: absolute;
+            top: 20%;
+            left: 20%;
+            width: 60%;
+            height: 4px;
+            background-color: white;
+        }
+        
+        .three-point-line {
+            position: absolute;
+            top: 10%;
+            left: 10%;
+            width: 80%;
+            height: 80%;
+            border: 4px solid white;
+            border-radius: 50%;
+        }
+        
+        .hoop {
+            position: absolute;
+            top: 20%;
+            left: 10%;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #ff6b35;
+            border-radius: 50%;
+        }
+        
+        .created-player-on-court {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 90px;
+            image-rendering: pixelated;
+        }
+        
+        .completion-message {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.5rem;
+            color: #4fc3f7;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        @media (max-width: 900px) {
+            .content {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .creation-panel, .preview-panel {
+                max-width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
-
-<!-- ═══ 首页 ═══ -->
-<div id="screen-home">
-  <div class="goat-bar">我就是 GOAT</div>
-  <div class="court-wrap">
-    <svg class="court-svg" viewBox="0 0 500 940" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stop-color="#d48b42"/>
-          <stop offset="30%"  stop-color="#c27530"/>
-          <stop offset="70%"  stop-color="#c27530"/>
-          <stop offset="100%" stop-color="#d48b42"/>
-        </linearGradient>
-      </defs>
-      <!-- 旋转90°竖置：matrix(0,1,-1,0,500,0) 把横向940×500映射到竖向500×940 -->
-      <g transform="matrix(0,1,-1,0,500,0)">
-      <!-- 木地板 -->
-      <rect width="940" height="500" fill="url(#wg)"/>
-      <!-- 木纹横线 -->
-      <line x1="0" y1="20" x2="940" y2="20" stroke="rgba(0,0,0,.07)" stroke-width="1"/>
-      <line x1="0" y1="40" x2="940" y2="40" stroke="rgba(0,0,0,.05)" stroke-width="1"/>
-      <line x1="0" y1="60" x2="940" y2="60" stroke="rgba(0,0,0,.07)" stroke-width="1"/>
-      <line x1="0" y1="80" x2="940" y2="80" stroke="rgba(0,0,0,.05)" stroke-width="1"/>
-      <line x1="0" y1="100" x2="940" y2="100" stroke="rgba(0,0,0,.07)" stroke-width="1"/>
-      <line x1="0" y1="120" x2="940" y2="120" stroke="rgba(0,0,0,.05)" stroke-width="1"/>
-      <line x1="0" y1="140" x2="940" y2="140" stroke="rgba(0,0,0,.07)" stroke-width="1"/>
-      <line x1="0" y1="160" x2="940" y2="160" stroke="rgba(0,0,0,.05)" stroke-width="1"/>
-      <line x1="0" y1="180" x2="940" y2="180" stroke="rgba(0,0,0,.07)" stroke-width="1"/>
-      <line x1="0" y1="200" x2="940" y2="200" stroke="rgba(0,0,0,.05)" stroke-width="1"/>
-      <line x1="0" y1="220" x2="940" y2="220" stroke="rgba(0,0,0,.07)" stroke-width="1"/>
-      <line x1="0" y1="240" x2="940" y2="240" stroke="rgba(0,0,0,.05)" stroke-width="1"/>
-      <line x1="0" y1="260" x2="940" y2="260" stroke="rgba(0,0,0,.05)" stroke-width="1"/>
-      <line x1="0" y1="280" x2="940" y2="280" stroke="rgba(0,0,0,.07)" stroke-width="1"/>
-      <line x1="0" y1="300" x2="940" y2="300" stroke="rgba(0,0,0,.05)" stroke-width="1"/>
-      <line x1="0" y1="320" x2="940" y2="320" stroke="rgba(0,0,0,.07)" stroke-width="1"/>
-      <line x1="0" y1="340" x2="940" y2="340" stroke="rgba(0,0,0,.05)" stroke-width="1"/>
-      <line x1="0" y1="360" x2="940" y2="360" stroke="rgba(0,0,0,.07)" stroke-width="1"/>
-      <line x1="0" y1="380" x2="940" y2="380" stroke="rgba(0,0,0,.05)" stroke-width="1"/>
-      <line x1="0" y1="400" x2="940" y2="400" stroke="rgba(0,0,0,.07)" stroke-width="1"/>
-      <line x1="0" y1="420" x2="940" y2="420" stroke="rgba(0,0,0,.05)" stroke-width="1"/>
-      <line x1="0" y1="440" x2="940" y2="440" stroke="rgba(0,0,0,.07)" stroke-width="1"/>
-      <line x1="0" y1="460" x2="940" y2="460" stroke="rgba(0,0,0,.05)" stroke-width="1"/>
-      <line x1="0" y1="480" x2="940" y2="480" stroke="rgba(0,0,0,.07)" stroke-width="1"/>
-      <!-- 左侧油漆区 -->
-      <rect x="0" y="170" width="190" height="160" fill="rgba(160,25,25,.32)"/>
-      <!-- 右侧油漆区 -->
-      <rect x="750" y="170" width="190" height="160" fill="rgba(160,25,25,.32)"/>
-      <!-- 场地边线 -->
-      <rect x="2" y="2" width="936" height="496" fill="none" stroke="white" stroke-width="4"/>
-      <!-- 中线 -->
-      <line x1="470" y1="2" x2="470" y2="498" stroke="white" stroke-width="3"/>
-      <!-- 中圈 -->
-      <circle cx="470" cy="250" r="60" fill="none" stroke="white" stroke-width="3"/>
-      <circle cx="470" cy="250" r="4" fill="white"/>
-      <!-- 左侧罚球区边线 -->
-      <rect x="2" y="170" width="190" height="160" fill="none" stroke="white" stroke-width="3"/>
-      <!-- 左侧罚球圈（上半实线，下半虚线） -->
-      <path d="M 130 250 A 60 60 0 0 1 250 250" fill="none" stroke="white" stroke-width="3"/>
-      <path d="M 250 250 A 60 60 0 0 1 130 250" fill="none" stroke="white" stroke-width="3" stroke-dasharray="12,10"/>
-      <!-- 左篮圈 -->
-      <circle cx="52" cy="250" r="11" fill="none" stroke="#f97316" stroke-width="3.5"/>
-      <!-- 左篮板 -->
-      <rect x="10" y="224" width="5" height="52" fill="white"/>
-      <!-- 左限制区弧 -->
-      <path d="M 52 210 A 40 40 0 0 1 52 290" fill="none" stroke="white" stroke-width="2.5"/>
-      <!-- 左三分线（角三分） -->
-      <line x1="2" y1="30"  x2="142" y2="30"  stroke="white" stroke-width="3"/>
-      <line x1="2" y1="470" x2="142" y2="470" stroke="white" stroke-width="3"/>
-      <!-- 左三分弧 -->
-      <path d="M 142 30 A 237.5 237.5 0 0 1 142 470" fill="none" stroke="white" stroke-width="3"/>
-      <!-- 右侧罚球区边线 -->
-      <rect x="748" y="170" width="190" height="160" fill="none" stroke="white" stroke-width="3"/>
-      <!-- 右侧罚球圈 -->
-      <path d="M 810 250 A 60 60 0 0 0 690 250" fill="none" stroke="white" stroke-width="3"/>
-      <path d="M 690 250 A 60 60 0 0 0 810 250" fill="none" stroke="white" stroke-width="3" stroke-dasharray="12,10"/>
-      <!-- 右篮圈 -->
-      <circle cx="888" cy="250" r="11" fill="none" stroke="#f97316" stroke-width="3.5"/>
-      <!-- 右篮板 -->
-      <rect x="925" y="224" width="5" height="52" fill="white"/>
-      <!-- 右限制区弧 -->
-      <path d="M 888 210 A 40 40 0 0 0 888 290" fill="none" stroke="white" stroke-width="2.5"/>
-      <!-- 右三分线（角三分） -->
-      <line x1="938" y1="30"  x2="798" y2="30"  stroke="white" stroke-width="3"/>
-      <line x1="938" y1="470" x2="798" y2="470" stroke="white" stroke-width="3"/>
-      <!-- 右三分弧 -->
-      <path d="M 798 30 A 237.5 237.5 0 0 0 798 470" fill="none" stroke="white" stroke-width="3"/>
-      </g>
-    </svg>
-  </div>
-  <div class="home-btn-area">
-    <div class="home-char-btns">
-      <button class="btn-char-action" id="btn-create-char" onclick="openCreateScreen()">✨ 创建新角色</button>
-      <button class="btn-char-action" id="btn-select-char" onclick="openSelectScreen()">🏀 选择角色</button>
-    </div>
-    <button class="btn-start-game" onclick="startGame()">开始游戏</button>
-  </div>
-</div>
-
-<!-- ═══ 角色创建 ═══ -->
-<div id="screen-create">
-  <div class="cc-inner">
-    <div class="cc-hdr">
-      <div class="cc-hdr-title">✨ 创建新角色</div>
-      <div class="cc-hdr-sub">定制你的专属球星</div>
-    </div>
-    <div class="cc-body">
-      <!-- 左：像素预览 -->
-      <div class="cc-left">
-        <canvas id="charCanvas" width="140" height="210"></canvas>
-        <div class="cc-tag">
-          <div class="cc-tag-num" id="ctag-num">#23</div>
-          <div class="cc-tag-name" id="ctag-name">无名球员</div>
+    <div class="game-container">
+        <div class="header">
+            <h1>NBA 球员创建器</h1>
+            <p>创建你的自定义像素风篮球运动员</p>
         </div>
-      </div>
-      <!-- 右：选项 -->
-      <div class="cc-right">
-        <div class="csec">
-          <div class="csec-lbl">球员姓名</div>
-          <input id="inp-name" class="cc-input" type="text" placeholder="输入名字…" maxlength="8">
+        
+        <div class="content">
+            <div class="creation-panel">
+                <div class="panel-title">创建你的球员</div>
+                
+                <!-- 步骤1: 基本信息 -->
+                <div class="step-container">
+                    <div class="step-title">
+                        <div class="step-number">1</div>
+                        <div>基本信息</div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="playerName">球员名称</label>
+                        <input type="text" id="playerName" placeholder="输入球员姓名" maxlength="20">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="jerseyNumber">球衣号码 (0-99)</label>
+                        <input type="number" id="jerseyNumber" min="0" max="99" value="23">
+                    </div>
+                </div>
+                
+                <!-- 步骤2: 肤色 -->
+                <div class="step-container">
+                    <div class="step-title">
+                        <div class="step-number">2</div>
+                        <div>选择肤色</div>
+                    </div>
+                    
+                    <div class="options-container" id="skinColorOptions">
+                        <!-- 选项由JavaScript动态生成 -->
+                    </div>
+                </div>
+                
+                <!-- 步骤3: 身高 -->
+                <div class="step-container">
+                    <div class="step-title">
+                        <div class="step-number">3</div>
+                        <div>选择身高</div>
+                    </div>
+                    
+                    <div class="options-container" id="heightOptions">
+                        <!-- 选项由JavaScript动态生成 -->
+                    </div>
+                </div>
+                
+                <!-- 步骤4: 体重 -->
+                <div class="step-container">
+                    <div class="step-title">
+                        <div class="step-number">4</div>
+                        <div>选择体重</div>
+                    </div>
+                    
+                    <div class="options-container" id="weightOptions">
+                        <!-- 选项由JavaScript动态生成 -->
+                    </div>
+                </div>
+                
+                <!-- 步骤5: 球衣 -->
+                <div class="step-container">
+                    <div class="step-title">
+                        <div class="step-number">5</div>
+                        <div>选择球衣</div>
+                    </div>
+                    
+                    <div class="options-container" id="jerseyOptions">
+                        <!-- 选项由JavaScript动态生成 -->
+                    </div>
+                </div>
+                
+                <div class="buttons-container">
+                    <button id="resetBtn" class="btn btn-secondary">重置</button>
+                    <button id="createBtn" class="btn btn-primary">创建球员并开始游戏</button>
+                </div>
+            </div>
+            
+            <div class="preview-panel">
+                <div class="panel-title">球员预览</div>
+                
+                <div class="pixel-player-container">
+                    <canvas id="pixelPlayerCanvas" width="200" height="300" class="pixel-player"></canvas>
+                </div>
+                
+                <div class="player-info">
+                    <div id="previewName" class="player-name">球员名称</div>
+                    <div id="previewDetails" class="player-details">身高: -- 体重: --</div>
+                    <div id="previewNumber" class="player-number">#00</div>
+                </div>
+                
+                <!-- 篮球场预览 -->
+                <div id="courtContainer" class="hidden">
+                    <div class="panel-title" style="margin-top: 30px;">篮球场</div>
+                    <div class="basketball-court">
+                        <div class="court-line center-circle"></div>
+                        <div class="court-line free-throw-line"></div>
+                        <div class="court-line three-point-line"></div>
+                        <div class="hoop"></div>
+                        <canvas id="playerOnCourt" width="60" height="90" class="created-player-on-court"></canvas>
+                    </div>
+                    <div id="completionMessage" class="completion-message hidden">
+                        球员创建完成！准备开始游戏...
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="csec">
-          <div class="csec-lbl">球衣号码 (0-99)</div>
-          <input id="inp-num" class="cc-input" type="number" min="0" max="99" placeholder="0-99">
-        </div>
-        <div class="csec">
-          <div class="csec-lbl">肤色</div>
-          <div class="cc-opt-row" id="skin-opts"></div>
-        </div>
-        <div class="csec">
-          <div class="csec-lbl">身高</div>
-          <div class="cc-opt-row" id="height-opts"></div>
-        </div>
-        <div class="csec">
-          <div class="csec-lbl">体重</div>
-          <div class="cc-opt-row" id="weight-opts"></div>
-        </div>
-        <div class="csec">
-          <div class="csec-lbl">球衣颜色</div>
-          <div class="cc-opt-row" id="jersey-opts"></div>
-        </div>
-      </div>
-    </div>
-    <div class="cc-foot">
-      <button class="btn-cc-back" onclick="cancelCreate()">← 返回</button>
-      <button class="btn-cc-confirm" onclick="confirmCreate()">保存角色 ✅</button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ 选择角色 ═══ -->
-<div id="screen-select">
-  <div class="ss-inner">
-    <div class="ss-hdr">
-      <div class="ss-hdr-title">🏀 选择角色</div>
-      <div class="ss-hdr-sub">选中后点击"出发"开始游戏</div>
-    </div>
-    <div class="ss-body" id="ss-body"></div>
-    <div class="ss-foot">
-      <button class="btn-ss-back" onclick="cancelSelect()">← 返回</button>
-      <button class="btn-ss-new" onclick="openCreateScreen()">✨ 新建</button>
-      <button class="btn-ss-confirm" onclick="selectAndStart()">出发 🏀</button>
-    </div>
-  </div>
-</div>
-
-<!-- 状态栏（左上1/2） -->
-<div class="status-bar">
-  <div class="status-item"><div class="status-label">体力</div><div id="sv-stam" class="status-value sv-stam">100/100</div></div>
-  <div class="status-item"><div class="status-label">金钱</div><div id="sv-money" class="status-value sv-money">5000</div></div>
-  <div class="status-item"><div class="status-label" id="wins-label">胜场</div><div id="sv-wins" class="status-value sv-wins">0/12</div></div>
-</div>
-
-<!-- 游戏信息（右上1/2） -->
-<div class="game-info">
-  <div class="gi-item"><div class="gi-label">今天</div><div id="g-day-val" class="gi-value gv-day">第1天</div></div>
-  <div class="gi-item"><div class="gi-label" id="g-season-label">第1赛季</div><div id="g-season-type" class="gi-value gv-season">常规赛</div></div>
-  <div class="gi-item"><div class="gi-label">比赛日</div><div id="g-next-game" class="gi-value gv-game">第4天</div></div>
-</div>
-<!-- 主内容区 -->
-<div class="main-content">
-  <!-- 游戏日历（紧凑，日历标签固定左侧） -->
-  <div class="calendar-panel">
-    <div class="cal-row">
-      <div class="cal-label-fixed">📅 日历</div>
-      <div class="cal-scroll" id="calendarGrid"></div>
-    </div>
-  </div>
-
-  <!-- 决策面板（光点轨道动效） -->
-  <div class="decision-panel" id="decisionPanel">
-    <div class="panel-title" id="dec-title">今日安排</div>
-    <div class="panel-sub" id="dec-sub">选择一项行动</div>
-
-    <div class="options-grid" id="options-grid">
-      <div class="option" id="opt-trainA" onclick="selectAction('trainA')">
-        <span class="opt-tag tag-train">训练</span>
-        <div class="opt-name" id="tA-name">翻身跳投</div>
-        <div class="opt-cost" id="tA-cost">消耗 300金 + 20体</div>
-        <div class="opt-gain" id="tA-gain">掷骰≥4 得40经验</div>
-      </div>
-      <div class="option" id="opt-trainB" onclick="selectAction('trainB')">
-        <span class="opt-tag tag-train">训练</span>
-        <div class="opt-name" id="tB-name">突破劈扣</div>
-        <div class="opt-cost" id="tB-cost">消耗 300金 + 20体</div>
-        <div class="opt-gain" id="tB-gain">掷骰≥4 得40经验</div>
-      </div>
-      <div class="option" id="opt-biz" onclick="selectAction('biz')">
-        <span class="opt-tag tag-biz">商业</span>
-        <div class="opt-name">商业活动</div>
-        <div class="opt-cost" id="biz-cost">消耗 20体</div>
-        <div class="opt-gain" id="biz-gain">获得 3500金</div>
-      </div>
-      <div class="option" id="opt-rest" onclick="selectAction('rest')">
-        <span class="opt-tag tag-rest">休息</span>
-        <div class="opt-name">休息恢复</div>
-        <div class="opt-cost" id="rest-cost">消耗 200金</div>
-        <div class="opt-gain">恢复 80体力</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 训练骰子面板 -->
-  <div class="active-panel" id="trainPanel">
-    <div class="ap-tag" style="color:#4ade80">🏋️ 训练判定</div>
-    <div class="ap-title" id="tr-title">翻身跳投训练</div>
-    <div class="ap-sub" id="tr-sub">花费已扣除，掷骰判断训练效果</div>
-    <div class="ap-target" id="tr-target">目标: ≥ 4</div>
-    <div class="dice-row" id="tr-dice"></div>
-    <div id="tr-result" style="display:none">
-      <div class="roll-total" id="tr-total"></div>
-      <div class="roll-vs" id="tr-vs"></div>
-      <div class="roll-verdict" id="tr-verdict"></div>
-    </div>
-    <div class="roll-effect" id="tr-effect"></div>
-    <button class="btn-main" id="btn-roll-train" onclick="rollTrainDice()">🎲 掷骰训练</button>
-    <button class="btn-main" id="btn-train-next" style="display:none;background:linear-gradient(135deg,#1e40af,#1d4ed8)" onclick="nextDay()">继续 →</button>
-  </div>
-
-  <!-- 常规赛面板 -->
-  <div class="active-panel" id="gamePanel">
-    <div class="gm-header">
-      <div class="ap-tag" style="color:#f87171;margin:0">🏀 常规赛</div>
-      <div class="ap-title" style="margin:0;font-size:0.95em">第 <span id="gm-num">1</span> 场 / 20</div>
     </div>
 
-    <!-- 左右肖像拼点 -->
-    <div class="gm-versus-row">
-      <!-- 我方 -->
-      <div class="gm-player-side">
-        <div class="gm-portrait-wrap">
-          <canvas id="gm-player-canvas" width="80" height="120"></canvas>
-        </div>
-        <div class="gm-side-name" id="gm-player-name" style="color:#4ade80">我方</div>
-        <div class="gm-side-attr" id="gm-attr">翻身跳投</div>
-      </div>
-      <!-- VS -->
-      <div class="gm-vs-center">
-        <div class="gm-vs-text">VS</div>
-      </div>
-      <!-- 对手 -->
-      <div class="gm-star-side">
-        <div class="gm-portrait-wrap" id="gm-star-portrait-wrap">
-          <canvas id="gm-star-canvas" width="80" height="120"></canvas>
-        </div>
-        <div class="gm-side-name" id="gm-star-name" style="color:#f87171">对手</div>
-        <div class="gm-side-attr" id="gm-target">主属性</div>
-      </div>
-    </div>
-
-    <!-- 双方骰子拼点 -->
-    <div class="gm-dice-split">
-      <div class="gm-dice-half" id="gm-dice"></div>
-      <div class="gm-dice-sep">⚔️</div>
-      <div class="gm-dice-half" id="gm-opp-dice"></div>
-    </div>
-
-    <!-- 结果比分 -->
-    <div id="gm-result" style="display:none">
-      <div class="gm-score-row">
-        <div class="gm-score-box">
-          <div class="gm-score-num" id="gm-total" style="color:#4ade80">0</div>
-          <div class="gm-score-lbl">我方</div>
-        </div>
-        <div class="gm-score-sep">VS</div>
-        <div class="gm-score-box">
-          <div class="gm-score-num" id="gm-vs" style="color:#f87171">0</div>
-          <div class="gm-score-lbl" id="gm-opp-score-lbl">对手</div>
-        </div>
-      </div>
-      <div class="roll-verdict" id="gm-verdict"></div>
-    </div>
-
-    <div class="roll-effect" id="gm-effect"></div>
-    <button class="btn-main" id="btn-roll-game" onclick="rollGameDice()">🎲 掷骰比赛</button>
-    <button class="btn-main" id="btn-game-next" style="display:none;background:linear-gradient(135deg,#1e40af,#1d4ed8)" onclick="afterGame()">继续 →</button>
-  </div>
-
-  <!-- 季后赛面板 -->
-  <div class="active-panel" id="playoffPanel">
-    <div class="gm-header">
-      <div class="ap-tag" style="color:#a78bfa;margin:0">🏆 季后赛</div>
-      <div class="ap-title" id="po-round-name" style="margin:0;font-size:0.95em">分区半决赛</div>
-    </div>
-
-    <!-- 系列赛比分 -->
-    <div class="po-series-row">
-      <div class="po-series-score">
-        <span class="po-score-mine" id="po-sw">0</span>
-        <span class="po-score-sep">—</span>
-        <span class="po-score-theirs" id="po-sl">0</span>
-      </div>
-      <div class="po-series-label">七局四胜 · 第<span id="po-game-num">1</span>场</div>
-    </div>
-
-    <!-- 左右肖像拼点 -->
-    <div class="gm-versus-row">
-      <div class="gm-player-side">
-        <div class="gm-portrait-wrap">
-          <canvas id="po-player-canvas" width="80" height="120"></canvas>
-        </div>
-        <div class="gm-side-name" id="po-player-name" style="color:#4ade80">我方</div>
-        <div class="gm-side-attr" id="po-attr">翻身跳投</div>
-      </div>
-      <div class="gm-vs-center"><div class="gm-vs-text">VS</div></div>
-      <div class="gm-star-side">
-        <div class="gm-portrait-wrap" id="po-star-portrait-wrap">
-          <canvas id="po-star-canvas" width="80" height="120"></canvas>
-        </div>
-        <div class="gm-side-name" id="po-star-name" style="color:#f87171">对手</div>
-        <div class="gm-side-attr" id="po-target">主属性</div>
-      </div>
-    </div>
-
-    <!-- 双方骰子 -->
-    <div class="gm-dice-split">
-      <div class="gm-dice-half" id="po-dice"></div>
-      <div class="gm-dice-sep">⚔️</div>
-      <div class="gm-dice-half" id="po-opp-dice"></div>
-    </div>
-
-    <!-- 单场结果 -->
-    <div id="po-result" style="display:none">
-      <div class="gm-score-row">
-        <div class="gm-score-box">
-          <div class="gm-score-num" id="po-total" style="color:#4ade80">0</div>
-          <div class="gm-score-lbl">我方</div>
-        </div>
-        <div class="gm-score-sep">VS</div>
-        <div class="gm-score-box">
-          <div class="gm-score-num" id="po-vs" style="color:#f87171">0</div>
-          <div class="gm-score-lbl" id="po-opp-score-lbl">对手</div>
-        </div>
-      </div>
-      <div class="roll-verdict" id="po-verdict"></div>
-    </div>
-
-    <div class="roll-effect" id="po-effect"></div>
-    <button class="btn-main" id="btn-roll-po" onclick="rollPlayoffDice()">🎲 掷骰比赛</button>
-    <button class="btn-main" id="btn-po-next-game" style="display:none;background:linear-gradient(135deg,#6d28d9,#7c3aed)" onclick="nextPlayoffGame()">下一场 →</button>
-    <button class="btn-main" id="btn-po-series-end" style="display:none;background:linear-gradient(135deg,#1e40af,#1d4ed8)" onclick="afterPlayoffSeries()">继续 →</button>
-  </div>
-
-  <!-- 属性 + 占位（右侧预留） -->
-  <div class="side-panels">
-    <div class="attrs-panel">
-      <div class="panel-title" style="font-size:0.84em;margin-bottom:8px">⚡ 球员能力</div>
-      <div class="attrs-grid" id="attrs-grid"></div>
-    </div>
-    <div class="items-panel">
-      <div class="panel-title" style="font-size:0.84em;margin-bottom:8px">🎒 宝物栏</div>
-      <div class="items-grid" id="items-grid"></div>
-    </div>
-  </div>
-
-  <!-- 返回主界面 -->
-  <button onclick="goHome()" class="btn-home-back">← 返回主界面</button>
-
-  <!-- 日志 -->
-  <div class="log-panel">
-    <div class="log-title">📋 训练日志</div>
-    <div id="eventLog">
-      <div class="le li">欢迎来到篮球生涯骰子！每天选择一项行动。</div>
-      <div class="le">赢得12场常规赛进入季后赛，夺得总冠军！</div>
-    </div>
-  </div>
-</div>
-
-<!-- 升级弹窗 -->
-<div class="modal" id="luModal">
-  <div class="modal-box">
-    <div class="modal-title" id="lu-title">🎉 属性升级！</div>
-    <div class="modal-msg" id="lu-msg">选择一颗新骰子加入骰池</div>
-    <div class="lu-grid" id="lu-grid"></div>
-  </div>
-</div>
-
-<!-- 参赛确认弹窗 -->
-<div class="modal" id="gameConfirmModal">
-  <div class="modal-box">
-    <div class="modal-title" id="confirm-title">比赛日确认</div>
-    <div class="modal-msg" id="confirm-msg">
-      今天是比赛日，是否参赛？<br>
-      <span id="confirm-game-info">第1场常规赛</span><br>
-      参赛消耗：<span id="confirm-cost">20体力</span>　当前体力：<span id="confirm-current">100/100</span>
-      <div id="confirm-opp-card"></div>
-      <small style="color:#94a3b8">注意：参赛后体力耗尽将导致游戏失败</small>
-    </div>
-    <div class="confirm-btns">
-      <button class="confirm-btn confirm-play" onclick="confirmPlayGame(true)">✅ 参赛</button>
-      <button class="confirm-btn confirm-skip" onclick="confirmPlayGame(false)">❌ 缺阵</button>
-    </div>
-  </div>
-</div>
-
-<!-- 常规赛结束汇报弹窗 -->
-<div class="modal" id="regularSummaryModal">
-  <div class="modal-box">
-    <div class="modal-title">🏀 常规赛结束！</div>
-    <div class="modal-msg" id="rs-summary-msg"></div>
-    <button class="modal-btn" onclick="enterPlayoffs()">进入季后赛 🏆</button>
-  </div>
-</div>
-
-<!-- 季后赛体力恢复弹窗 -->
-<div class="modal" id="poStaminaModal">
-  <div class="modal-box" style="text-align:center">
-    <div style="font-size:2.4em;margin-bottom:8px">💪</div>
-    <div class="modal-title">体力完全恢复！</div>
-    <div class="modal-msg" id="po-stamina-msg">备战结束，体力已恢复满，准备迎战！</div>
-    <button class="modal-btn" onclick="closeStaminaAndStartGames()">进入赛场 🏀</button>
-  </div>
-</div>
-
-<!-- 季后赛对阵图弹窗 -->
-<div class="modal" id="bracketModal">
-  <div class="modal-box">
-    <div class="modal-title">🏆 季后赛对阵图</div>
-    <div id="bracket-display"></div>
-    <button class="modal-btn" onclick="closeBracketAndStart()">开始征程 🏀</button>
-  </div>
-</div>
-
-<!-- 宝物详情弹窗 -->
-<div class="modal" id="itemDetailModal">
-  <div class="modal-box" style="max-width:280px;padding:22px 20px">
-    <div id="idet-icon" style="font-size:2.6em;margin-bottom:6px"></div>
-    <div class="modal-title" id="idet-name" style="font-size:1.1em"></div>
-    <div style="margin-bottom:14px">
-      <span id="idet-star" style="font-size:0.72em;font-weight:700;padding:2px 10px;border-radius:10px;background:rgba(255,255,255,.1)"></span>
-    </div>
-    <div class="modal-msg" id="idet-desc" style="font-size:0.82em;margin-bottom:18px"></div>
-    <button class="modal-btn" onclick="closeItemDetail()">关闭</button>
-  </div>
-</div>
-
-<!-- 装备商店弹窗 -->
-<div class="modal" id="shopModal">
-  <div class="modal-box" style="max-width:380px;max-height:85vh;overflow-y:auto;padding:18px">
-    <div class="modal-title" id="shop-modal-title">🛒 今日购物日</div>
-    <div class="shop-inv-info" id="shop-inv-info">宝物栏 0/36 · 💰 5000</div>
-    <div style="font-size:0.65em;color:#94a3b8;text-align:center;margin-bottom:4px" id="shop-hint">本次可购买 1 件宝物</div>
-    <div class="shop-grid" id="shop-grid"></div>
-    <button class="modal-btn" style="margin-top:4px" onclick="closeShop()">离开商店</button>
-  </div>
-</div>
-
-<!-- 游戏结束弹窗 -->
-<div class="modal" id="endModal">
-  <div class="modal-box">
-    <div class="modal-title" id="end-title">赛季结束</div>
-    <div class="modal-msg" id="end-msg"></div>
-    <button class="modal-btn" onclick="restartGame()">返回主界面 →</button>
-  </div>
-</div>
-
-<script>
-// ════════════════════════════════════════════
-// 常量
-// ════════════════════════════════════════════
-const REG_GAMES    = 20;
-const WINS_NEEDED  = 12;
-const PO_EVERY     = 10;  // 每10天一场季后赛
-
-// 修订1：定义具体的常规赛天数
-const REGULAR_GAME_DAYS = [1, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57, 61, 65, 69, 73, 77];
-// 购物日：每3场比赛后的次日（自动跟随比赛日计算）
-const SHOPPING_DAYS = (()=>{
-  const days=[];
-  for(let i=2; i<REGULAR_GAME_DAYS.length; i+=3)
-    days.push(REGULAR_GAME_DAYS[i]+1);
-  return days;
-})();
-
-// 20支NBA球队（每赛季随机排列作为常规赛对阵顺序）
-// mainAttr: jumpShot翻身跳投 / drive突破劈扣 / block追身大帽 / fastBreak接球快攻
-// starCd: skinIdx 0-4 / heightIdx 0-4 / weightIdx 0-4 / number / hairColor(optional)
-const NBA_TEAMS=[
-  {name:'湖人',     abbr:'LAL',conf:'west',color:'#552583',accent:'#FDB927',star:'勒布朗·詹姆斯',   pos:'小前锋',  mainAttr:'drive',
-   starCd:{skinIdx:3,heightIdx:3,weightIdx:4,number:23}},
-  {name:'勇士',     abbr:'GSW',conf:'west',color:'#1D428A',accent:'#FFC72C',star:'斯蒂芬·库里',    pos:'控球后卫', mainAttr:'jumpShot',
-   starCd:{skinIdx:2,heightIdx:2,weightIdx:2,number:30}},
-  {name:'凯尔特人', abbr:'BOS',conf:'east',color:'#007A33',accent:'#BA9653',star:'杰伦·布朗',      pos:'得分后卫', mainAttr:'drive',
-   starCd:{skinIdx:3,heightIdx:2,weightIdx:3,number:7}},
-  {name:'热火',     abbr:'MIA',conf:'east',color:'#98002E',accent:'#F9A01B',star:'吉米·巴特勒',    pos:'小前锋',  mainAttr:'drive',
-   starCd:{skinIdx:3,heightIdx:3,weightIdx:3,number:22}},
-  {name:'雄鹿',     abbr:'MIL',conf:'east',color:'#00471B',accent:'#EEE1C6',star:'字母哥',         pos:'大前锋',  mainAttr:'drive',
-   starCd:{skinIdx:4,heightIdx:4,weightIdx:4,number:34}},
-  {name:'尼克斯',   abbr:'NYK',conf:'east',color:'#006BB6',accent:'#F58426',star:'卡尔-安东尼·唐斯',pos:'中锋',   mainAttr:'jumpShot',
-   starCd:{skinIdx:2,heightIdx:4,weightIdx:4,number:32}},
-  {name:'76人',     abbr:'PHI',conf:'east',color:'#006BB6',accent:'#ED174C',star:'乔尔·恩比德',    pos:'中锋',    mainAttr:'jumpShot',
-   starCd:{skinIdx:3,heightIdx:4,weightIdx:4,number:11}},
-  {name:'掘金',     abbr:'DEN',conf:'west',color:'#0E2240',accent:'#FEC524',star:'尼科拉·约基奇',  pos:'中锋',    mainAttr:'drive',
-   starCd:{skinIdx:0,heightIdx:4,weightIdx:4,number:15,hairColor:'#c8a055'}},
-  {name:'太阳',     abbr:'PHX',conf:'west',color:'#1D1160',accent:'#E56020',star:'凯文·杜兰特',    pos:'小前锋',  mainAttr:'jumpShot',
-   starCd:{skinIdx:3,heightIdx:4,weightIdx:4,number:35}},
-  {name:'独行侠',   abbr:'DAL',conf:'west',color:'#00538C',accent:'#C4CED4',star:'卢卡·东契奇',    pos:'控球后卫', mainAttr:'jumpShot',
-   starCd:{skinIdx:0,heightIdx:3,weightIdx:3,number:77,hairColor:'#8b6914'}},
-  {name:'雷霆',     abbr:'OKC',conf:'west',color:'#007AC1',accent:'#EF3B24',star:'SGA',            pos:'控球后卫', mainAttr:'drive',
-   starCd:{skinIdx:2,heightIdx:2,weightIdx:2,number:2}},
-  {name:'快船',     abbr:'LAC',conf:'west',color:'#C8102E',accent:'#1D428A',star:'卡瓦伊·莱纳德',  pos:'小前锋',  mainAttr:'jumpShot',
-   starCd:{skinIdx:3,heightIdx:3,weightIdx:3,number:2}},
-  {name:'猛龙',     abbr:'TOR',conf:'east',color:'#CE1141',accent:'#A1A1AA',star:'斯科蒂·巴恩斯',  pos:'小前锋',  mainAttr:'fastBreak',
-   starCd:{skinIdx:3,heightIdx:3,weightIdx:3,number:14}},
-  {name:'公牛',     abbr:'CHI',conf:'east',color:'#CE1141',accent:'#f9a8a8',star:'德罗赞',          pos:'得分后卫', mainAttr:'jumpShot',
-   starCd:{skinIdx:3,heightIdx:2,weightIdx:3,number:11}},
-  {name:'篮网',     abbr:'BKN',conf:'east',color:'#1A1A1A',accent:'#FFFFFF',star:'卡梅隆·约翰逊',  pos:'小前锋',  mainAttr:'jumpShot',
-   starCd:{skinIdx:1,heightIdx:3,weightIdx:3,number:2}},
-  {name:'国王',     abbr:'SAC',conf:'west',color:'#5A2D81',accent:'#63727A',star:'德阿龙·福克斯',  pos:'控球后卫', mainAttr:'fastBreak',
-   starCd:{skinIdx:3,heightIdx:2,weightIdx:2,number:5}},
-  {name:'灰熊',     abbr:'MEM',conf:'west',color:'#5D76A9',accent:'#12173F',star:'贾·莫兰特',      pos:'控球后卫', mainAttr:'fastBreak',
-   starCd:{skinIdx:3,heightIdx:2,weightIdx:1,number:12}},
-  {name:'步行者',   abbr:'IND',conf:'east',color:'#002D62',accent:'#FDBB30',star:'哈利伯顿',        pos:'控球后卫', mainAttr:'fastBreak',
-   starCd:{skinIdx:2,heightIdx:2,weightIdx:2,number:0}},
-  {name:'马刺',     abbr:'SAS',conf:'west',color:'#8A9BA8',accent:'#c8d8e4',star:'文班亚马',         pos:'中锋',    mainAttr:'block',
-   starCd:{skinIdx:3,heightIdx:4,weightIdx:3,number:1}},
-  {name:'火箭',     abbr:'HOU',conf:'west',color:'#CE1141',accent:'#C4CED4',star:'贾伦·格林',      pos:'得分后卫', mainAttr:'jumpShot',
-   starCd:{skinIdx:2,heightIdx:2,weightIdx:2,number:4}},
-];
-
-const ATTR_KEYS = ['jumpShot','drive','block','fastBreak'];
-const ATTR_NAMES = {jumpShot:'翻身跳投',drive:'突破劈扣',block:'追身大帽',fastBreak:'接球快攻'};
-const PO_ROUNDS = [{name:'分区半决赛',target:8},{name:'分区决赛',target:11},{name:'总决赛',target:14}];
-
-// 骰子系统 — 13种篮球技巧骰子
-// 面朝上数字即点数分布，玩家只可见分布，不可见评级/均值/方差
-const DICE_INFO = {
-  // ── 起始 ──
-  STD:  {faces:[1,2,3,4,5,6],  color:'#86efac',icon:'🏅',label:'基础出手',  desc:'1-2-3-4-5-6'},
-  // ── B 级 ──
-  SCR:  {faces:[1,3,3,3,5,6],  color:'#fbbf24',icon:'🤝',label:'策应配合',  desc:'1-3-3-3-5-6'},
-  PRK:  {faces:[1,2,3,5,5,5],  color:'#2dd4bf',icon:'📋',label:'挡拆战术',  desc:'1-2-3-5-5-5'},
-  POST: {faces:[1,3,4,4,4,5],  color:'#f9a8d4',icon:'💪',label:'低位单打',  desc:'1-3-4-4-4-5'},
-  HOOK: {faces:[2,2,2,4,5,6],  color:'#fcd34d',icon:'🔄',label:'勾手上篮',  desc:'2-2-2-4-5-6'},
-  // ── A 级 ──
-  TRE:  {faces:[1,1,5,5,5,5],  color:'#60a5fa',icon:'🎯',label:'三分绝杀',  desc:'1-1-5-5-5-5'},
-  DRV:  {faces:[1,1,4,4,6,6],  color:'#fb923c',icon:'⚡',label:'突破上篮',  desc:'1-1-4-4-6-6'},
-  BRK:  {faces:[1,3,3,4,5,6],  color:'#22d3ee',icon:'🏃',label:'快攻反击',  desc:'1-3-3-4-5-6'},
-  // ── S 级 ──
-  AIM:  {faces:[3,3,3,3,5,5],  color:'#a78bfa',icon:'🏹',label:'精准中投',  desc:'3-3-3-3-5-5'},
-  MID:  {faces:[3,3,4,4,4,6],  color:'#4ade80',icon:'🎱',label:'后仰跳投',  desc:'3-3-4-4-4-6'},
-  // ── SSS ──
-  DUNK: {faces:[5,5,5,5,6,6],  color:'#ff6b6b',icon:'🔥',label:'暴力灌篮',  desc:'5-5-5-5-6-6'},
-  // ── 高风险 ──
-  GAMB: {faces:[1,1,1,6,6,6],  color:'#94a3b8',icon:'🎲',label:'全力一搏',  desc:'1-1-1-6-6-6'},
-  CLUTCH:{faces:[1,1,1,1,1,9], color:'#fde68a',icon:'⭐',label:'绝杀时刻',  desc:'1-1-1-1-1-9'},
-};
-
-// 升级时随机从指定池中取n颗骰子供选
-function pickChoices(pool,n=2){
-  return [...pool].sort(()=>Math.random()-.5).slice(0,n);
-}
-
-// ════════════════════════════════════════════
-// 装备道具定义
-// 属性映射：力气→drive 魅力→jumpShot 运气→fastBreak 智慧→block 气力→stamina
-// ════════════════════════════════════════════
-const STAR_W={'核心':2,'5星':5,'4星':12,'3星':25,'2星':28,'1星':28};
-const STAR_CLR={'核心':'#fbbf24','5星':'#c084fc','4星':'#38bdf8','3星':'#4ade80','2星':'#94a3b8','1星':'#cbd5e1'};
-
-const SHOP_ITEMS=[
-  // ── 核心 ──
-  {id:'goggles',   name:'魔法护目镜',icon:'🥽',star:'核心',price:5000,
-   desc:'出现2或5时，合计+5',         eff:{type:'onDie',vals:[2,5],bonus:5,stat:'total'}},
-  {id:'champring', name:'冠军戒指',  icon:'💍',star:'核心',price:5000,
-   desc:'出现3或4时，合计+5',         eff:{type:'onDie',vals:[3,4],bonus:5,stat:'total'}},
-  {id:'legshoe',   name:'传奇球鞋',  icon:'👟',star:'核心',price:5000,
-   desc:'出现1或6时，合计+5',         eff:{type:'onDie',vals:[1,6],bonus:5,stat:'total'}},
-  {id:'wristband', name:'暴君护腕',  icon:'💢',star:'核心',price:5000,
-   desc:'有相同点数时，金钱+1000',    eff:{type:'onPair',bonus:1000,stat:'money'}},
-  {id:'headband',  name:'神秘头带',  icon:'🎽',star:'核心',price:5000,
-   desc:'出现3344合计+5，5555合计+10',eff:{type:'onPattern',stat:'total'}},
-  {id:'angelkit',  name:'天使护具',  icon:'😇',star:'核心',price:5000,
-   desc:'掷出相同偶数时，体力+30',    eff:{type:'onEvenPair',bonus:30,stat:'stamina'}},
-  // ── 5星 ──
-  {id:'vitamin',   name:'超级维他命',icon:'💊',star:'5星',price:3000,
-   desc:'体力上限+50（立即生效）',    eff:{type:'passive',stat:'maxStam',val:50}},
-  {id:'icebag',    name:'恢复冰袋',  icon:'🧊',star:'5星',price:3000,
-   desc:'每次判定后体力回复+10',      eff:{type:'afterRoll',stat:'stamina',val:10}},
-  {id:'tactician', name:'战术大师',  icon:'🧠',star:'5星',price:3000,
-   desc:'追身大帽判定时，额外经验+20', eff:{type:'attrExp',attr:'block',val:20}},
-  {id:'magician',  name:'球场魔术师',icon:'🎩',star:'5星',price:3000,
-   desc:'翻身跳投判定时，额外经验+20', eff:{type:'attrExp',attr:'jumpShot',val:20}},
-  {id:'prowatch',  name:'精准腕表',  icon:'⌚',star:'5星',price:3000,
-   desc:'同时出现2和5时，合计+5',     eff:{type:'onCombo',vals:[2,5],bonus:5,stat:'total'}},
-  {id:'allstar',   name:'全明星票',  icon:'🌟',star:'5星',price:3000,
-   desc:'升级时可选骰子数目+1',       eff:{type:'moreLUChoice',val:1}},
-  {id:'powerbelt', name:'力量绷带',  icon:'💪',star:'5星',price:3000,
-   desc:'突破劈扣升级可选骰子+1',     eff:{type:'moreLUChoiceAttr',attr:'drive',val:1}},
-  // ── 4星 ──
-  {id:'armor',     name:'防弹护甲',  icon:'🛡️',star:'4星',price:1800,
-   desc:'突破劈扣判定出6时，经验+20',  eff:{type:'onDieAttr',attr:'drive',val:6,bonus:20,stat:'exp'}},
-  {id:'scout5',    name:'全明星球探',icon:'🔍',star:'4星',price:1800,
-   desc:'训练成功时，额外获得500金',   eff:{type:'onTrainWin',stat:'money',val:500}},
-  {id:'speedbelt', name:'速度皮带',  icon:'⚡',star:'4星',price:1800,
-   desc:'接球快攻升级可选骰子+1',     eff:{type:'moreLUChoiceAttr',attr:'fastBreak',val:1}},
-  // ── 3星 ──
-  {id:'jersey',    name:'经典球衣',  icon:'🏅',star:'3星',price:1000,
-   desc:'翻身跳投判定出3时，经验+10',  eff:{type:'onDieAttr',attr:'jumpShot',val:3,bonus:10,stat:'exp'}},
-  {id:'mvpball',   name:'MVP签名球', icon:'⭐',star:'3星',price:1000,
-   desc:'翻身跳投判定出4时，经验+10',  eff:{type:'onDieAttr',attr:'jumpShot',val:4,bonus:10,stat:'exp'}},
-  {id:'weightvest',name:'负重背心',  icon:'🏋️',star:'3星',price:1000,
-   desc:'突破劈扣判定出3时，经验+10',  eff:{type:'onDieAttr',attr:'drive',val:3,bonus:10,stat:'exp'}},
-  {id:'tactboard', name:'战术板',    icon:'📋',star:'3星',price:1000,
-   desc:'追身大帽判定出3时，经验+10',  eff:{type:'onDieAttr',attr:'block',val:3,bonus:10,stat:'exp'}},
-  {id:'luckshoe',  name:'幸运战靴',  icon:'🍀',star:'3星',price:1000,
-   desc:'接球快攻判定出2时，经验+10',  eff:{type:'onDieAttr',attr:'fastBreak',val:2,bonus:10,stat:'exp'}},
-  {id:'kneepad',   name:'护膝贴片',  icon:'🩹',star:'3星',price:1000,
-   desc:'所有骰子≤3时，合计+3×骰子数',eff:{type:'onAllLow',stat:'total'}},
-  // ── 2星 ──
-  {id:'scoutbook', name:'球探笔记本',icon:'📓',star:'2星',price:600,
-   desc:'每次训练完成额外+100金',     eff:{type:'afterTrain',stat:'money',val:100}},
-  {id:'signedcap', name:'球员签名帽',icon:'🧢',star:'2星',price:600,
-   desc:'接球快攻判定出2时，经验+10',  eff:{type:'onDieAttr',attr:'fastBreak',val:2,bonus:10,stat:'exp'}},
-  // ── 1星 ──
-  {id:'sportsdrink',name:'运动饮料', icon:'🥤',star:'1星',price:300,
-   desc:'出现1时，合计+1',            eff:{type:'onDie',vals:[1],bonus:1,stat:'total'}},
-  {id:'gloves',    name:'训练手套',  icon:'🧤',star:'1星',price:300,
-   desc:'出现6时，合计+1',            eff:{type:'onDie',vals:[6],bonus:1,stat:'total'}},
-  {id:'energybar', name:'能量棒',    icon:'🍫',star:'1星',price:300,
-   desc:'出现1时，体力+10',           eff:{type:'onDie',vals:[1],bonus:10,stat:'stamina'}},
-  {id:'fanphoto',  name:'球迷合影',  icon:'📸',star:'1星',price:300,
-   desc:'出现1时，金钱+550',           eff:{type:'onDie',vals:[1],bonus:550,stat:'money'}},
-];
-
-// ════════════════════════════════════════════
-// 游戏状态
-// ════════════════════════════════════════════
-let S = {};
-
-function initState(){
-  S = {
-    day:1, stamina:100, maxStam:100, money:5000,
-    wins:0, gamesPlayed:0, ended:false,
-    season:'regular',
-    playoff:{round:0,phase:'prep',prepStep:0,seriesWins:0,seriesLosses:0,seriesGame:0,nextGameDay:null,oppAttrs:null},
-    attrs:{},
-    decisions:{},
-    currentAttr:null,
-    levelupQ:[],
-    levelupCallback:null,
-    gameConfirmCallback:null,
-    inventory:[],   // 已购宝物（最多36件）
-    shopItems:[],   // 当前商店商品
-    shopBought:0,   // 本次购物日已购件数
-    schedule:[...NBA_TEAMS].sort(()=>Math.random()-.5), // 本赛季对阵顺序（随机排列）
-    currentOpponent:null, // 当前场次对阵球队
-  };
-  ATTR_KEYS.forEach(k=>{
-    S.attrs[k]={level:1,diceCount:1,exp:0,expNeeded:20,pool:['STD']};
-  });
-  generateDecisions();
-}
-
-// ════════════════════════════════════════════
-// 每日决策生成
-// ════════════════════════════════════════════
-function generateDecisions(){
-  const shuffled=[...ATTR_KEYS].sort(()=>Math.random()-.5);
-  S.decisions = {
-    trainA:{attr:shuffled[0], costMoney:200+Math.floor(Math.random()*150), costStam:Math.round((9+Math.floor(Math.random()*6))*1.2)},
-    trainB:{attr:shuffled[1], costMoney:200+Math.floor(Math.random()*150), costStam:Math.round((9+Math.floor(Math.random()*6))*1.2)},
-    biz:   {costStam:15+Math.floor(Math.random()*10), earn:3000+Math.floor(Math.random()*1000)},
-    rest:  {costMoney:150+Math.floor(Math.random()*100)},
-  };
-  updateDecisionUI();
-}
-
-function updateDecisionUI(){
-  const d=S.decisions;
-  const tgt=3+S.gamesPlayed;
-  document.getElementById('tA-name').textContent = ATTR_NAMES[d.trainA.attr];
-  document.getElementById('tA-cost').textContent = `消耗 ${d.trainA.costMoney}金 + ${d.trainA.costStam}体`;
-  document.getElementById('tA-gain').textContent = `掷骰≥${tgt} 得40经验`;
-  document.getElementById('tB-name').textContent = ATTR_NAMES[d.trainB.attr];
-  document.getElementById('tB-cost').textContent = `消耗 ${d.trainB.costMoney}金 + ${d.trainB.costStam}体`;
-  document.getElementById('tB-gain').textContent = `掷骰≥${tgt} 得40经验`;
-  document.getElementById('biz-cost').textContent = `消耗 ${d.biz.costStam}体`;
-  document.getElementById('biz-gain').textContent = `获得 ${d.biz.earn}金`;
-  document.getElementById('rest-cost').textContent = `消耗 ${d.rest.costMoney}金`;
-}
-
-// ════════════════════════════════════════════
-// 购物日逻辑（每3场常规赛后的次日）
-// ════════════════════════════════════════════
-function isShoppingDayForDay(d){
-  if(S.season!=='regular') return false;
-  return SHOPPING_DAYS.includes(d);
-}
-function isShoppingDay(){ return isShoppingDayForDay(S.day); }
-
-// 获取下一个常规赛比赛日
-function getNextRegularGameDay(){
-  for(let i = 0; i < REGULAR_GAME_DAYS.length; i++){
-    if(REGULAR_GAME_DAYS[i] > S.day){
-      return REGULAR_GAME_DAYS[i];
-    }
-  }
-  return null;
-}
-
-// 检查当前是否是常规赛比赛日
-function isRegularGameDay(){
-  return REGULAR_GAME_DAYS.includes(S.day) && S.gamesPlayed < REG_GAMES;
-}
-
-// ════════════════════════════════════════════
-// 行动选择
-// ════════════════════════════════════════════
-function selectAction(id){
-  const d=S.decisions;
-  if(id==='trainA'||id==='trainB'){
-    const t=d[id];
-    if(S.money<t.costMoney){addLog(`金钱不足，需要${t.costMoney}金。`,'i');return}
-    if(S.stamina<t.costStam){addLog(`体力不足，需要${t.costStam}体力。`,'i');return}
-    S.money-=t.costMoney; S.stamina-=t.costStam;
-    S.currentAttr=t.attr;
-    showTrainPanel(t.attr);
-  } else if(id==='biz'){
-    const b=d.biz;
-    if(S.stamina<b.costStam){addLog(`体力不足，需要${b.costStam}体力。`,'i');return}
-    S.stamina-=b.costStam; S.money+=b.earn;
-    addLog(`📸 商业活动完成，消耗${b.costStam}体，获得${b.earn}金。`,'b');
-    finishAction();
-  } else if(id==='rest'){
-    const r=d.rest;
-    if(S.money<r.costMoney){addLog(`金钱不足，需要${r.costMoney}金。`,'i');return}
-    S.money-=r.costMoney;
-    const old=S.stamina;
-    S.stamina=Math.min(S.stamina+80,S.maxStam);
-    const gained=S.stamina-old;
-    addLog(`😴 休息恢复，消耗${r.costMoney}金，体力+${gained}（${S.stamina}/${S.maxStam}）。`,'r');
-    finishAction();
-  }
-  updateUI();
-}
-
-// ════════════════════════════════════════════
-// 训练骰子
-// ════════════════════════════════════════════
-function showTrainPanel(attr){
-  const tgt=3+S.gamesPlayed;
-  const pool=S.attrs[attr].pool;
-  showPanel('trainPanel');
-  document.getElementById('tr-title').textContent=ATTR_NAMES[attr]+'训练';
-  document.getElementById('tr-target').textContent=`目标: ≥ ${tgt}（共 ${pool.length} 颗骰子）`;
-  document.getElementById('tr-result').style.display='none';
-  document.getElementById('tr-effect').textContent='';
-  document.getElementById('btn-roll-train').style.display='block';
-  document.getElementById('btn-train-next').style.display='none';
-  buildSpinDice('tr-dice',pool.length);
-}
-
-function rollTrainDice(){
-  const attr=S.currentAttr;
-  const pool=S.attrs[attr].pool;
-  const tgt=3+S.gamesPlayed;
-  doRoll('tr-dice',pool,tgt,(rolls,total,pass,itemFx)=>{
-    document.getElementById('tr-total').textContent='合计: '+total;
-    document.getElementById('tr-vs').textContent=`需要 ≥ ${tgt}`;
-    const v=document.getElementById('tr-verdict');
-    v.textContent=pass?'✅ 训练成功！':'❌ 训练失败';
-    v.className='roll-verdict '+(pass?'rv-ok':'rv-no');
-    document.getElementById('tr-result').style.display='block';
-    const baseExp=pass?40:15;
-    const expGain=baseExp+itemFx.expBonus;
-    const extraStam=pass?0:10;
-    if(extraStam>0) S.stamina=Math.max(0,S.stamina-extraStam);
-    gainExp(attr,expGain);
-    // afterTrain / onTrainWin 道具效果
-    const trainM=getAfterTrainMoney()+(pass?getAfterTrainWinMoney():0);
-    if(trainM>0){S.money+=trainM;}
-    const itemNote=itemFx.msgs.length?` [${itemFx.msgs.join(' ')}]`:'';
-    const trainNote=trainM>0?` / 道具+${trainM}金`:'';
-    const msg=pass
-      ?`获得${expGain}经验！${trainNote}`
-      :`训练失败，额外消耗${extraStam}体，获得${expGain}经验。`;
-    document.getElementById('tr-effect').textContent=msg+itemNote;
-    addLog(`🏋️ ${ATTR_NAMES[attr]}训练${pass?'成功':'失败'}，掷出${total}，${msg}`,'t');
-    document.getElementById('btn-roll-train').style.display='none';
-    updateUI();
-    processLevelups(()=>{
-      document.getElementById('btn-train-next').style.display='block';
-    });
-  },attr);
-}
-
-// ════════════════════════════════════════════
-// 结束行动 → 进入下一天
-// ════════════════════════════════════════════
-function finishAction(){
-  updateUI();
-  checkGameOver();
-  nextDay();
-}
-
-// ════════════════════════════════════════════
-// 参赛确认弹窗
-// ════════════════════════════════════════════
-function buildOppCard(opp){
-  if(!opp) return '';
-  return `<div class="opp-card" style="background:${opp.color}22;border-color:${opp.accent}55">
-    <div class="opp-abbr" style="background:${opp.color};color:${opp.accent}">${opp.abbr}</div>
-    <div class="opp-info">
-      <div class="opp-team-name" style="color:${opp.accent}">${opp.name}</div>
-      <div class="opp-star">⭐ <span>${opp.star}</span> · ${opp.pos}</div>
-      <div class="opp-star" style="margin-top:2px;color:#94a3b8">主属性：<span style="color:#e2e8f0">${ATTR_NAMES[opp.mainAttr]}</span></div>
-    </div>
-  </div>`;
-}
-
-function showGameConfirmModal(){
-  const modal = document.getElementById('gameConfirmModal');
-  const titleEl = document.getElementById('confirm-title');
-  const infoEl = document.getElementById('confirm-game-info');
-  const costEl = document.getElementById('confirm-cost');
-  const currentEl = document.getElementById('confirm-current');
-  const oppCardEl = document.getElementById('confirm-opp-card');
-
-  if(S.season === 'regular'){
-    titleEl.textContent = '常规赛确认';
-    infoEl.textContent = `第${S.gamesPlayed+1}场常规赛（第${S.day}天）`;
-    costEl.textContent = '20体力';
-    const opp = S.schedule[S.gamesPlayed] || null;
-    oppCardEl.innerHTML = opp ? buildOppCard(opp) : '';
-  } else {
-    const roundName = PO_ROUNDS[S.playoff.round-1]?.name || '季后赛';
-    titleEl.textContent = `${roundName}`;
-    infoEl.textContent = `七局四胜制 · 第${S.day}天`;
-    costEl.textContent = '无体力消耗';
-    const opp = S.playoffBracket?.roundOpps[S.playoff.round-1] || null;
-    oppCardEl.innerHTML = opp ? buildOppCard(opp) : '';
-  }
-
-  currentEl.textContent = `${S.stamina}/${S.maxStam}`;
-  modal.classList.add('show');
-}
-
-function confirmPlayGame(play){
-  const modal = document.getElementById('gameConfirmModal');
-  modal.classList.remove('show');
-  
-  if(play){
-    // 确认参赛
-    if(S.season === 'regular'){
-      proceedToRegularGame();
-    } else {
-      proceedToPlayoffGame();
-    }
-  } else {
-    // 选择缺阵
-    skipGame();
-  }
-}
-
-// ============================================
-// 缺阵处理
-// ============================================
-function skipGame(){
-  if(S.season === 'regular'){
-    // 常规赛缺阵：记录负场，恢复体力，扣钱
-    const opp = S.schedule[S.gamesPlayed] || null;
-    S.currentOpponent = opp;
-    S.gamesPlayed++;
-    const fine = 500; // 缺阵罚款
-    S.money = Math.max(0, S.money - fine);
-    const oldStam = S.stamina;
-    S.stamina = Math.min(S.maxStam, S.stamina + 80);
-    const gained = S.stamina - oldStam;
-    const oppTxt = opp ? ` vs ${opp.name}` : '';
-    addLog(`🏀 第${S.gamesPlayed}场${oppTxt} 当家球星缺阵，球队惨败！罚款${fine}金，体力+${gained}。`,'g');
-    updateUI();
-    
-    if(S.gamesPlayed >= REG_GAMES){
-      if(S.wins >= WINS_NEEDED) showRegularSummaryModal();
-      else endGame(false, `常规赛结束，获得${S.wins}胜，未达到${WINS_NEEDED}胜，无缘季后赛。`);
-    } else {
-      nextDay();
-    }
-  } else {
-    // 季后赛缺阵：直接判负
-    const po=S.playoff;
-    po.seriesLosses++;
-    po.seriesGame++;
-    addLog(`🏀 季后赛缺阵，系列赛判负！当前 ${po.seriesWins}-${po.seriesLosses}`,'p');
-    if(po.seriesLosses>=4){
-      const roundName=PO_ROUNDS[po.round-1]?.name||'季后赛';
-      endGame(false,`${roundName} ${po.seriesWins}-${po.seriesLosses} 失利，赛季结束。`);
-    } else {
-      nextDay();
-    }
-  }
-}
-
-// ============================================
-// 确认参赛后的处理
-// ============================================
-function proceedToRegularGame(){
-  // 记录当前对阵（gamesPlayed还未+1，所以index正好对应本场）
-  S.currentOpponent = S.schedule[S.gamesPlayed] || null;
-  S.gamesPlayed++;
-  S.currentAttr=ATTR_KEYS[Math.floor(Math.random()*4)];
-  const attr=S.currentAttr;
-  const pool=S.attrs[attr].pool;
-
-  // 计算对方球星能力：对方主属性获得玩家总经验的 1/4
-  const opp = S.currentOpponent;
-  if(opp){
-    const oppExpAmount = Math.floor(getTotalExp() / 4);
-    S.oppAttr = computeOppAttr(oppExpAmount);
-    S.oppAttr.mainAttr = opp.mainAttr;
-  } else {
-    S.oppAttr = null;
-  }
-
-  showPanel('gamePanel');
-  document.getElementById('gm-num').textContent=S.gamesPlayed;
-  document.getElementById('gm-attr').textContent=ATTR_NAMES[attr];
-
-  // 对手属性信息
-  const oppA = S.oppAttr;
-  const tgtEl = document.getElementById('gm-target');
-  tgtEl.textContent = oppA
-    ? `${ATTR_NAMES[oppA.mainAttr]} Lv.${oppA.level}（${oppA.diceCount}颗）`
-    : `目标: ≥ ${3+S.gamesPlayed}`;
-
-  document.getElementById('gm-result').style.display='none';
-  document.getElementById('gm-effect').textContent='';
-  document.getElementById('btn-roll-game').style.display='block';
-  document.getElementById('btn-game-next').style.display='none';
-  buildSpinDice('gm-dice', pool.length);
-  buildSpinDice('gm-opp-dice', oppA ? oppA.diceCount : 1);
-
-  // ── 渲染我方肖像 ──
-  const playerCanvas = document.getElementById('gm-player-canvas');
-  if(S.charData){
-    drawCharToCanvas(playerCanvas, S.charData, 4);
-  } else {
-    // 无角色时画默认人物
-    drawCharToCanvas(playerCanvas, {skinIdx:1,heightIdx:2,weightIdx:2,jerseyIdx:0,number:0}, 4);
-  }
-  document.getElementById('gm-player-name').textContent = S.playerName||'我方';
-
-  // ── 渲染对手球星肖像 ──
-  const starCanvas = document.getElementById('gm-star-canvas');
-  if(opp && opp.starCd){
-    const scd = {
-      ...opp.starCd,
-      jerseyColor: opp.color,
-      jerseyShorts: opp.accent,
-    };
-    drawCharToCanvas(starCanvas, scd, 4);
-    document.getElementById('gm-star-name').textContent = opp.star;
-    document.getElementById('gm-star-name').style.color = opp.accent;
-    document.getElementById('gm-star-portrait-wrap').style.borderColor = opp.accent+'66';
-    addLog(`🏀 第${S.gamesPlayed}场 vs ${opp.name}【${opp.star}】，我方【${ATTR_NAMES[attr]}】对抗对手【${ATTR_NAMES[opp.mainAttr]}】Lv.${oppA.level}。`,'g');
-  } else {
-    drawCharToCanvas(starCanvas, {skinIdx:2,heightIdx:2,weightIdx:2,jerseyIdx:2,number:0}, 4);
-    document.getElementById('gm-star-name').textContent = '对手';
-    addLog(`🏀 第${S.gamesPlayed}场常规赛开始！使用【${ATTR_NAMES[attr]}】。`,'g');
-  }
-}
-
-function proceedToPlayoffGame(){
-  const po=S.playoff;
-  const opp=S.playoffBracket?.roundOpps[po.round-1]||null;
-  // 首场：计算对手全部4项骰池
-  if(po.seriesGame===0){
-    po.oppAttrs=opp?computePoOppAttrs(opp):null;
-  }
-  po.seriesGame++;
-  // 随机选同一属性双方对决
-  S.currentAttr=ATTR_KEYS[Math.floor(Math.random()*4)];
-  const attr=S.currentAttr;
-  const playerPool=S.attrs[attr].pool;
-  const oppPool=(po.oppAttrs&&po.oppAttrs[attr])||['STD'];
-  const rd=PO_ROUNDS[po.round-1];
-
-  showPanel('playoffPanel');
-  document.getElementById('po-round-name').textContent=rd.name;
-  document.getElementById('po-sw').textContent=po.seriesWins;
-  document.getElementById('po-sl').textContent=po.seriesLosses;
-  document.getElementById('po-game-num').textContent=po.seriesGame;
-  document.getElementById('po-attr').textContent=ATTR_NAMES[attr];
-  document.getElementById('po-target').textContent=ATTR_NAMES[attr];
-  document.getElementById('po-result').style.display='none';
-  document.getElementById('po-effect').textContent='';
-  document.getElementById('btn-roll-po').style.display='block';
-  document.getElementById('btn-po-next-game').style.display='none';
-  document.getElementById('btn-po-series-end').style.display='none';
-  buildSpinDice('po-dice',playerPool.length);
-  buildSpinDice('po-opp-dice',oppPool.length);
-
-  // 我方肖像
-  const playerCvs=document.getElementById('po-player-canvas');
-  drawCharToCanvas(playerCvs,S.charData||{skinIdx:1,heightIdx:2,weightIdx:2,jerseyIdx:0,number:0},4);
-  document.getElementById('po-player-name').textContent=S.playerName||'我方';
-
-  // 对手球星肖像
-  const starCvs=document.getElementById('po-star-canvas');
-  if(opp&&opp.starCd){
-    drawCharToCanvas(starCvs,{...opp.starCd,jerseyColor:opp.color,jerseyShorts:opp.accent},4);
-    document.getElementById('po-star-name').textContent=opp.star;
-    document.getElementById('po-star-name').style.color=opp.accent;
-    document.getElementById('po-star-portrait-wrap').style.borderColor=opp.accent+'66';
-  } else {
-    drawCharToCanvas(starCvs,{skinIdx:2,heightIdx:2,weightIdx:2,jerseyIdx:2,number:0},4);
-    document.getElementById('po-star-name').textContent='对手';
-  }
-  document.getElementById('po-opp-score-lbl').textContent=opp?opp.star:'对手';
-
-  const oppName=opp?opp.star:'对手';
-  addLog(`🏆 ${rd.name} G${po.seriesGame} — 【${ATTR_NAMES[attr]}】对决 ${oppName}，系列赛 ${po.seriesWins}-${po.seriesLosses}。`,'p');
-}
-
-// ════════════════════════════════════════════
-// 常规赛
-// ════════════════════════════════════════════
-function rollGameDice(){
-  const attr=S.currentAttr;
-  const pool=S.attrs[attr].pool;
-  const oppA=S.oppAttr;
-  const opp=S.currentOpponent;
-
-  // 预先计算对手每颗骰子结果（与玩家同步落定）
-  const oppRolls = oppA ? oppA.pool.map(dt=>{
-    const di=DICE_INFO[dt];
-    const v=di.faces[Math.floor(Math.random()*di.faces.length)];
-    return di.fn?di.fn(v):v;
-  }) : [];
-  const oppRoll = oppRolls.reduce((s,v)=>s+v, 0);
-
-  // 玩家掷骰（带动画），对手骰子在同一回调里落定，避免竞态
-  doRoll('gm-dice',pool,oppRoll+1,(rolls,total,pass,itemFx)=>{
-    // 对手骰子同步落定（值 + 颜色：对手赢=pass绿，对手输=fail红）
-    const oppDice=document.getElementById('gm-opp-dice').querySelectorAll('.die');
-    oppDice.forEach((d,i)=>{
-      d.className='die land '+(pass?'fail':'pass');
-      d.textContent=oppRolls[i]??'?';
-    });
-
-    // 比分盒
-    document.getElementById('gm-total').textContent=total;
-    document.getElementById('gm-vs').textContent=oppRoll;
-    document.getElementById('gm-total').style.color=pass?'#4ade80':'#f87171';
-    document.getElementById('gm-vs').style.color=pass?'#f87171':'#4ade80';
-    const oppLbl=opp?opp.name:'对手';
-    document.getElementById('gm-opp-score-lbl').textContent=oppLbl;
-    const v=document.getElementById('gm-verdict');
-    v.textContent=pass?'🏆 胜利！':'😤 失败';
-    v.className='roll-verdict '+(pass?'rv-ok':'rv-no');
-    document.getElementById('gm-result').style.display='block';
-
-    const stamCost=20;
-    S.stamina=Math.max(0,S.stamina-stamCost);
-    if(pass){S.wins++;gainExp(attr,10+itemFx.expBonus);}
-    else gainExp(attr,5+itemFx.expBonus);
-    const expBase=pass?10:5;
-    const itemNote=itemFx.msgs.length?`\n道具：${itemFx.msgs.join(' ')}`:'';
-    const eff=pass
-      ?`胜利！+1胜场 / 体力-${stamCost}\n${ATTR_NAMES[attr]}+${expBase+itemFx.expBonus}经验${itemNote}`
-      :`败北... 体力-${stamCost}\n${ATTR_NAMES[attr]}+${expBase+itemFx.expBonus}经验${itemNote}`;
-    document.getElementById('gm-effect').textContent=eff;
-    addLog(`${pass?'🏆 胜利':'😤 失败'}！第${S.gamesPlayed}场 vs ${oppLbl}，我方${total} vs 对手${oppRoll}，${S.wins}胜${S.gamesPlayed-S.wins}负。`,'g');
-    document.getElementById('btn-roll-game').style.display='none';
-    updateUI();
-    processLevelups(()=>{
-      document.getElementById('btn-game-next').style.display='block';
-    });
-  },attr);
-}
-
-function afterGame(){
-  checkGameOver();
-  if(S.gamesPlayed >= REG_GAMES){
-    if(S.wins >= WINS_NEEDED) showRegularSummaryModal();
-    else endGame(false,`常规赛结束，获得${S.wins}胜，未达到${WINS_NEEDED}胜，无缘季后赛。`);
-  } else {
-    nextDay();
-  }
-}
-
-function showRegularSummaryModal(){
-  const losses=S.gamesPlayed-S.wins;
-  const rate=S.gamesPlayed>0?Math.round(S.wins/S.gamesPlayed*100):0;
-  document.getElementById('rs-summary-msg').innerHTML=
-    `完成全部 ${S.gamesPlayed} 场常规赛！<br><br>`+
-    `🏆 胜场：<strong style="color:#4ade80">${S.wins} 场</strong><br>`+
-    `❌ 负场：<strong style="color:#f87171">${losses} 场</strong><br>`+
-    `📊 胜率：<strong style="color:#fbbf24">${rate}%</strong><br><br>`+
-    `<span style="color:#94a3b8;font-size:.85em">达到 ${WINS_NEEDED} 胜，晋级季后赛！</span>`;
-  document.getElementById('regularSummaryModal').classList.add('show');
-}
-
-function enterPlayoffs(){
-  document.getElementById('regularSummaryModal').classList.remove('show');
-  generatePlayoffBracket();
-  showBracketModal();
-}
-
-function generatePlayoffBracket(){
-  // 玩家是西部 #1 种子
-  const westPool = S.schedule.filter(t=>t.conf==='west');
-  const eastPool  = S.schedule.filter(t=>t.conf==='east');
-  // 随机取西部3支、东部4支
-  const shuffle = a=>[...a].sort(()=>Math.random()-.5);
-  const w3 = shuffle(westPool).slice(0,3); // seeds 2,3,4
-  const e4 = shuffle(eastPool).slice(0,4);  // seeds 1,2,3,4
-  // 玩家条目
-  const playerEntry = {
-    name: S.playerName||'我方', abbr:'ME',
-    color:'#14532d', accent:'#4ade80',
-    isPlayer:true, conf:'west'
-  };
-  // 西部对阵：#1(玩家) vs #4，#2 vs #3
-  // 东部对阵：#1 vs #4，#2 vs #3
-  const west = [playerEntry, w3[0], w3[1], w3[2]]; // seeds 1-4
-  const east  = [e4[0], e4[1], e4[2], e4[3]];       // seeds 1-4
-  // 玩家对手安排：分区半决赛 vs W4，分区决赛 vs W2/W3胜者(取W2)，总决赛 vs E1
-  S.playoffBracket = { west, east, roundOpps:[w3[2], w3[0], e4[0]] };
-}
-
-function showBracketModal(){
-  const b = S.playoffBracket;
-  const teamCard = (t, seed, isPlayer)=>{
-    const bg  = t.color||'#1e293b';
-    const fg  = t.accent||'#fff';
-    const cls = isPlayer?'bracket-matchup is-player':'bracket-matchup';
-    return {bg,fg,cls,seed,name:t.name,abbr:t.abbr,isPlayer};
-  };
-  const renderMatchup = (tA, seedA, tB, seedB)=>{
-    const ipA = tA.isPlayer, ipB = tB.isPlayer;
-    const cls = (ipA||ipB)?'bracket-matchup is-player':'bracket-matchup';
-    return `<div class="${cls}">
-      <div class="bracket-team">
-        <span class="bracket-seed">${seedA}</span>
-        <span class="bracket-abbr" style="background:${tA.color};color:${tA.accent}">${tA.abbr}</span>
-        <span class="bracket-tname" style="color:${ipA?tA.accent:'#e2e8f0'}">${tA.name}</span>
-      </div>
-      <div class="bracket-divider">vs</div>
-      <div class="bracket-team">
-        <span class="bracket-seed">${seedB}</span>
-        <span class="bracket-abbr" style="background:${tB.color};color:${tB.accent}">${tB.abbr}</span>
-        <span class="bracket-tname" style="color:${ipB?tB.accent:'#e2e8f0'}">${tB.name}</span>
-      </div>
-    </div>`;
-  };
-  const w=b.west, e=b.east;
-  const html=`
-    <div class="bracket-wrap">
-      <div class="bracket-conf">
-        <div class="bracket-conf-hd" style="color:#f97316">🌵 西部</div>
-        ${renderMatchup(w[0],1,w[3],4)}
-        ${renderMatchup(w[1],2,w[2],3)}
-      </div>
-      <div class="bracket-conf">
-        <div class="bracket-conf-hd" style="color:#38bdf8">🌊 东部</div>
-        ${renderMatchup(e[0],1,e[3],4)}
-        ${renderMatchup(e[1],2,e[2],3)}
-      </div>
-    </div>
-    <div class="bracket-finals-row">🏆 总决赛：西部冠军 vs 东部冠军</div>`;
-  document.getElementById('bracket-display').innerHTML=html;
-  document.getElementById('bracketModal').classList.add('show');
-}
-
-function closeBracketAndStart(){
-  document.getElementById('bracketModal').classList.remove('show');
-  startPlayoffs();
-}
-
-// ════════════════════════════════════════════
-// 季后赛
-// ════════════════════════════════════════════
-function startPlayoffs(){
-  S.season='playoff';
-  S.playoff={round:1,phase:'prep',prepStep:0,seriesWins:0,seriesLosses:0,seriesGame:0,nextGameDay:null,oppAttrs:null};
-  addLog(`🎉 以${S.wins}胜进入季后赛！接下来4天备战训练 + 购物日。`,'i');
-  document.getElementById('wins-label').textContent='季后赛';
-  nextDay();
-}
-
-function rollPlayoffDice(){
-  const po=S.playoff;
-  const attr=S.currentAttr;
-  const playerPool=S.attrs[attr].pool;
-  const oppPool=(po.oppAttrs&&po.oppAttrs[attr])||['STD'];
-  const opp=S.playoffBracket?.roundOpps[po.round-1]||null;
-  const rd=PO_ROUNDS[po.round-1];
-
-  // 预计算对手骰子
-  const oppRolls=oppPool.map(dt=>{
-    const di=DICE_INFO[dt];
-    const v=di.faces[Math.floor(Math.random()*di.faces.length)];
-    return di.fn?di.fn(v):v;
-  });
-  const oppTotal=oppRolls.reduce((s,v)=>s+v,0);
-
-  doRoll('po-dice',playerPool,oppTotal+1,(rolls,total,pass,itemFx)=>{
-    // 落定对手骰子
-    document.getElementById('po-opp-dice').querySelectorAll('.die').forEach((d,i)=>{
-      d.className='die land '+(pass?'fail':'pass');
-      d.textContent=oppRolls[i]??'?';
-    });
-
-    document.getElementById('po-total').textContent=total;
-    document.getElementById('po-vs').textContent=oppTotal;
-    document.getElementById('po-total').style.color=pass?'#4ade80':'#f87171';
-    document.getElementById('po-vs').style.color=pass?'#f87171':'#4ade80';
-
-    const vEl=document.getElementById('po-verdict');
-    vEl.textContent=pass?'🏆 胜！':'😤 败！';
-    vEl.className='roll-verdict '+(pass?'rv-ok':'rv-no');
-    document.getElementById('po-result').style.display='block';
-
-    if(pass){po.seriesWins++;gainExp(attr,15+itemFx.expBonus);}
-    else{po.seriesLosses++;gainExp(attr,8+itemFx.expBonus);}
-
-    document.getElementById('po-sw').textContent=po.seriesWins;
-    document.getElementById('po-sl').textContent=po.seriesLosses;
-
-    const seriesStr=`${po.seriesWins}-${po.seriesLosses}`;
-    const itemNote=itemFx.msgs.length?`\n道具：${itemFx.msgs.join(' ')}`:'';
-    document.getElementById('po-effect').textContent=
-      pass?`胜！系列赛 ${seriesStr}${itemNote}`:`败... 系列赛 ${seriesStr}${itemNote}`;
-
-    const oppName=opp?opp.star:'对手';
-    addLog(`${pass?'🏆 胜':'😤 败'} G${po.seriesGame} — 我方${total} vs ${oppName}${oppTotal}，系列赛 ${seriesStr}。`,'p');
-
-    document.getElementById('btn-roll-po').style.display='none';
-    updateUI();
-    processLevelups(()=>{
-      if(po.seriesWins>=4||po.seriesLosses>=4){
-        document.getElementById('btn-po-series-end').style.display='block';
-      } else {
-        document.getElementById('btn-po-next-game').style.display='block';
-      }
-    });
-  },attr);
-}
-
-function nextPlayoffGame(){
-  const po=S.playoff;
-  S.currentAttr=ATTR_KEYS[Math.floor(Math.random()*4)];
-  const attr=S.currentAttr;
-  const playerPool=S.attrs[attr].pool;
-  const oppPool=(po.oppAttrs&&po.oppAttrs[attr])||['STD'];
-  const opp=S.playoffBracket?.roundOpps[po.round-1]||null;
-
-  po.seriesGame++;
-  document.getElementById('po-game-num').textContent=po.seriesGame;
-  document.getElementById('po-attr').textContent=ATTR_NAMES[attr];
-  document.getElementById('po-target').textContent=ATTR_NAMES[attr];
-  document.getElementById('po-result').style.display='none';
-  document.getElementById('po-effect').textContent='';
-  document.getElementById('btn-roll-po').style.display='block';
-  document.getElementById('btn-po-next-game').style.display='none';
-  document.getElementById('btn-po-series-end').style.display='none';
-  buildSpinDice('po-dice',playerPool.length);
-  buildSpinDice('po-opp-dice',oppPool.length);
-
-  const oppName=opp?opp.star:'对手';
-  addLog(`🏀 G${po.seriesGame} — 【${ATTR_NAMES[attr]}】对决 ${oppName}，系列赛 ${po.seriesWins}-${po.seriesLosses}。`,'p');
-}
-
-function afterPlayoffSeries(){
-  const po=S.playoff;
-  const roundName=PO_ROUNDS[po.round-1]?.name||'季后赛';
-  if(po.seriesWins>=4){
-    if(po.round>=3){
-      endGame(true,'🎉 恭喜！赢得NBA总冠军！你就是最强GOAT！🏆');
-    } else {
-      addLog(`🎉 赢得${roundName}！系列赛 ${po.seriesWins}-${po.seriesLosses}，晋级！`,'i');
-      po.round++;
-      po.seriesWins=0; po.seriesLosses=0; po.seriesGame=0; po.oppAttrs=null;
-      po.nextGameDay=S.day+1;
-      addLog(`🏀 ${PO_ROUNDS[po.round-1].name} 即将开始！`,'p');
-      nextDay();
-    }
-  } else {
-    endGame(false,`${roundName} ${po.seriesWins}-${po.seriesLosses} 失利，赛季结束。`);
-  }
-}
-
-// ════════════════════════════════════════════
-// 进入下一天
-// ════════════════════════════════════════════
-function nextDay(){
-  S.day++;
-  S.currentAttr=null;
-  generateDecisions();
-  if(S.season==='playoff' && S.playoff.phase==='prep'){
-    S.playoff.prepStep++;
-  }
-  addLog(`📅 进入第${S.day}天。`,'i');
-  updateUI();
-  checkDayStart();
-}
-
-function checkDayStart(){
-  if(S.season==='regular' && isRegularGameDay()){
-    showPanel('decisionPanel');
-    showGameConfirmModal();
-  } else if(S.season==='regular' && isShoppingDay()){
-    showPanel('decisionPanel');
-    addLog(`🛒 第${S.day}天 — 购物日到来！商店已刷新。`,'b');
-    openShop();
-  } else if(S.season==='playoff'){
-    checkPlayoffDayStart();
-  } else {
-    showPanel('decisionPanel');
-  }
-}
-
-function checkPlayoffDayStart(){
-  const po=S.playoff;
-  showPanel('decisionPanel');
-  if(po.phase==='prep'){
-    if(po.prepStep<=4){
-      addLog(`🏋️ 季后赛备战训练日（${po.prepStep}/4）`,'i');
-    } else {
-      // 第5天：购物日
-      addLog(`🛒 季后赛购物日！补给完毕即刻出征。`,'b');
-      openShop();
-    }
-  } else {
-    // games phase
-    if(po.nextGameDay!==null && S.day>=po.nextGameDay){
-      showGameConfirmModal();
-    }
-    // else: rest/training day between rounds
-  }
-}
-
-// ════════════════════════════════════════════
-// 经验 & 升级
-// ════════════════════════════════════════════
-function getExpNeeded(lv){return lv<=1?20:lv<=2?40:lv<=4?80:120+lv*20}
-
-// 玩家四项属性累计总经验（包含已消耗升级的经验）
-function getCumulativeExp(level){
-  let c=0; for(let lv=1;lv<level;lv++) c+=getExpNeeded(lv); return c;
-}
-function getTotalExp(){
-  return ATTR_KEYS.reduce((s,k)=>{ const a=S.attrs[k]; return s+getCumulativeExp(a.level)+a.exp; },0);
-}
-
-// 根据经验值计算对方球星的等级与骰池（不触发升级弹窗）
-function computeOppAttr(expAmount){
-  let level=1, rem=expAmount;
-  while(rem>=getExpNeeded(level)){ rem-=getExpNeeded(level); level++; }
-  const diceCount=level;
-  // 骰池：按等级层层累积解锁，随机选取
-  const pool=['STD'];
-  const tierB=['SCR','PRK','POST','HOOK'];
-  const tierA=['TRE','DRV','BRK'];
-  const tierS=['AIM','MID'];
-  const tierE=['DUNK','GAMB','CLUTCH'];
-  for(let i=2;i<=diceCount;i++){
-    let t;
-    if(i<=2) t=tierB;
-    else if(i<=4) t=tierA;
-    else if(i<=6) t=[...tierS,...tierA];
-    else t=[...tierE,...tierS];
-    pool.push(t[Math.floor(Math.random()*t.length)]);
-  }
-  return {level,diceCount,pool};
-}
-
-// 根据骰子数量构建骰池（季后赛对手用）
-function buildPoolFromCount(count){
-  const pool=['STD'];
-  const tierB=['SCR','PRK','POST','HOOK'],tierA=['TRE','DRV','BRK'];
-  const tierS=['AIM','MID'],tierE=['DUNK','GAMB','CLUTCH'];
-  for(let i=2;i<=count;i++){
-    let t=i<=2?tierB:i<=4?tierA:i<=6?[...tierS,...tierA]:[...tierE,...tierS];
-    pool.push(t[Math.floor(Math.random()*t.length)]);
-  }
-  return pool;
-}
-
-// 计算季后赛对手4项属性骰池
-// 玩家4项骰子数从大到小排：[d1,d2,d3,d4]
-// 对手: 主属性=d1+1, 次属性=max(1,d2-1), 剩余两属性=d3,d4
-function computePoOppAttrs(opp){
-  const sorted=ATTR_KEYS.map(k=>({k,n:S.attrs[k].diceCount}))
-                         .sort((a,b)=>b.n-a.n);
-  const [d1,d2,d3,d4]=[sorted[0].n,sorted[1].n,sorted[2].n,sorted[3].n];
-  const mainAttr=opp.mainAttr;
-  const others=ATTR_KEYS.filter(k=>k!==mainAttr).sort(()=>Math.random()-.5);
-  const attrs={};
-  attrs[mainAttr]           =buildPoolFromCount(d1+1);
-  attrs[others[0]]          =buildPoolFromCount(Math.max(1,d2-1));
-  attrs[others[1]]          =buildPoolFromCount(d3);
-  attrs[others[2]]          =buildPoolFromCount(d4);
-  return attrs;
-}
-
-// 掷一组骰子并返回合计（不含动画，用于对手判定）
-function rollPool(pool){
-  return pool.reduce((s,dt)=>{
-    const di=DICE_INFO[dt];
-    const v=di.faces[Math.floor(Math.random()*di.faces.length)];
-    return s+(di.fn?di.fn(v):v);
-  },0);
-}
-
-function gainExp(attr,amount){
-  const a=S.attrs[attr];
-  a.exp+=amount;
-  while(a.exp>=a.expNeeded){
-    a.exp-=a.expNeeded;
-    a.level++;
-    a.diceCount++;
-    a.expNeeded=getExpNeeded(a.level);
-    // 按等级解锁骰子层级：B→A→S→精英
-    const tierB=['SCR','PRK','POST','HOOK'];
-    const tierA=['TRE','DRV','BRK'];
-    const tierS=['AIM','MID'];
-    const tierE=['DUNK','GAMB','CLUTCH'];
-    const base = a.level<=2 ? pickChoices(tierB) :
-                 a.level<=4 ? pickChoices(tierA) :
-                 a.level<=6 ? pickChoices(tierS.concat(tierA)) :
-                 pickChoices(tierE.concat(tierS));
-    // 装备额外选项（去重）
-    const extra=getLevelupExtraChoices(attr);
-    const allPool=['STD','SCR','PRK','POST','HOOK','TRE','DRV','BRK','AIM','MID','DUNK','GAMB','CLUTCH'];
-    const choices=[...base];
-    if(extra>0){
-      allPool.filter(c=>!choices.includes(c)).slice(0,extra).forEach(c=>choices.push(c));
-    }
-    S.levelupQ.push({attr,choices});
-  }
-}
-
-function processLevelups(callback){
-  if(S.levelupQ.length===0){callback();return}
-  const lu=S.levelupQ.shift();
-  showLevelupModal(lu.attr,lu.choices,()=>processLevelups(callback));
-}
-
-function showLevelupModal(attr,choices,cb){
-  const a=S.attrs[attr];
-  document.getElementById('lu-title').textContent=`🎉 ${ATTR_NAMES[attr]} 升级！`;
-  document.getElementById('lu-msg').textContent=`达到 Lv.${a.level}，选择一颗新骰子`;
-  const grid=document.getElementById('lu-grid');
-  grid.innerHTML='';
-  choices.forEach(dt=>{
-    const d=DICE_INFO[dt];
-    const el=document.createElement('div');
-    el.className='lu-die';
-    el.style.background=d.color+'33';
-    el.style.border=`2px solid ${d.color}`;
-    el.innerHTML=`<span style="font-size:1.5em;display:block;margin-bottom:2px">${d.icon}</span><span class="lu-type">${d.label}</span><span class="lu-desc" style="font-family:monospace;letter-spacing:1px">${d.desc}</span>`;
-    el.onclick=()=>{
-      a.pool.push(dt);
-      addLog(`✅ ${ATTR_NAMES[attr]} Lv${a.level}！加入 [${d.label}] 骰子！`,'i');
-      document.getElementById('luModal').classList.remove('show');
-      updateUI();
-      cb();
-    };
-    grid.appendChild(el);
-  });
-  document.getElementById('luModal').classList.add('show');
-}
-
-// ════════════════════════════════════════════
-// 骰子动画
-// ════════════════════════════════════════════
-function buildSpinDice(containerId,n){
-  const c=document.getElementById(containerId);
-  c.innerHTML='';
-  for(let i=0;i<n;i++){const d=document.createElement('div');d.className='die spin';d.textContent='?';c.appendChild(d)}
-}
-
-function doRoll(containerId,pool,threshold,callback,attr=null){
-  const rolls=pool.map(dt=>{
-    const di=DICE_INFO[dt];
-    const base=di.faces?di.faces[Math.floor(Math.random()*di.faces.length)]:Math.ceil(Math.random()*di.sides);
-    return di.fn?di.fn(base):base;
-  });
-  const itemFx=applyItemRollEffects(rolls,attr);
-  let total=rolls.reduce((s,v)=>s+v,0)+itemFx.totalBonus;
-  if(itemFx.moneyBonus>0){S.money+=itemFx.moneyBonus;}
-  if(itemFx.stamBonus>0){S.stamina=Math.min(S.maxStam,S.stamina+itemFx.stamBonus);}
-  const pass=total>=threshold;
-  setTimeout(()=>{
-    const dice=document.getElementById(containerId).querySelectorAll('.die');
-    dice.forEach((d,i)=>{d.className='die land '+(pass?'pass':'fail');d.textContent=rolls[i]});
-    callback(rolls,total,pass,itemFx);
-  },600);
-}
-
-// ════════════════════════════════════════════
-// 面板切换
-// ════════════════════════════════════════════
-function showPanel(id){
-  ['decisionPanel','trainPanel','gamePanel','playoffPanel'].forEach(p=>{
-    const el=document.getElementById(p);
-    el.style.display=(p===id)?'block':'none';
-  });
-  // decisionPanel is not .active-panel
-  if(id==='decisionPanel'){
-    document.getElementById('decisionPanel').style.display='block';
-    ['trainPanel','gamePanel','playoffPanel'].forEach(p=>document.getElementById(p).style.display='none');
-  } else {
-    document.getElementById('decisionPanel').style.display='none';
-    document.getElementById(id).style.display='block';
-  }
-}
-
-// ════════════════════════════════════════════
-// 游戏日历
-// ════════════════════════════════════════════
-function renderCalendar(){
-  const grid=document.getElementById('calendarGrid');
-  if(!grid) return;
-  grid.innerHTML='';
-  for(let i=0;i<10;i++){
-    const d=S.day+i;
-    const isToday=(i===0);
-    const isGameDay=S.season==='regular' && REGULAR_GAME_DAYS.includes(d) && S.gamesPlayed<REG_GAMES;
-    const po=S.playoff;
-    const isPoDay=S.season==='playoff' && po.phase==='games' && po.nextGameDay!=null && d===po.nextGameDay;
-    const isPoPrepShop=S.season==='playoff' && po.phase==='prep' && po.prepStep===4 && i===1; // tomorrow = shop day
-    const isShopDay=isShoppingDayForDay(d);
-    const el=document.createElement('div');
-    let cls='cal-day';
-    if(isToday) cls+=' cal-today';
-    if(isGameDay||isPoDay) cls+=' cal-game';
-    if(isShopDay||isPoPrepShop) cls+=' cal-shop';
-    el.className=cls;
-    let icon='📋',label='训练日';
-    if(isGameDay){icon='🏀';label='常规赛';}
-    else if(isPoDay){icon='🏆';label=(PO_ROUNDS[S.playoff.round-1]?.name||'季后赛').slice(0,3);}
-    else if(S.season==='playoff'&&po.phase==='prep'&&i===0){icon='🏋️';label=`备战${po.prepStep}/4`;}
-    else if(isPoPrepShop){icon='🛒';label='购物日';}
-    else if(isShopDay){icon='🛒';label='购物日';}
-    el.innerHTML=`<div class="cal-day-num">第${d}天</div><div class="cal-day-icon">${icon}</div><div class="cal-day-label">${label}</div>`;
-    grid.appendChild(el);
-  }
-}
-
-// ════════════════════════════════════════════
-// UI 更新
-// ════════════════════════════════════════════
-function updateUI(){
-  document.getElementById('sv-stam').textContent=`${S.stamina}/${S.maxStam}`;
-  document.getElementById('sv-money').textContent=S.money;
-  document.getElementById('g-day-val').textContent=`第${S.day}天`;
-
-  // 赛季编号标签
-  const snLabel=document.getElementById('g-season-label');
-  if(snLabel) snLabel.textContent=`第${S.seasonNum||1}赛季`;
-
-  if(S.season==='regular'){
-    document.getElementById('wins-label').textContent='胜率';
-    const rate=S.gamesPlayed>0?Math.round(S.wins/S.gamesPlayed*100)+'%':'-%';
-    document.getElementById('sv-wins').textContent=rate;
-    document.getElementById('g-season-type').textContent='常规赛';
-    const nextGD=getNextRegularGameDay();
-    document.getElementById('g-next-game').textContent=nextGD?`第${nextGD}天`:'赛季结束';
-  } else {
-    const po=S.playoff;
-    document.getElementById('wins-label').textContent='系列赛';
-    document.getElementById('sv-wins').textContent=`${po.seriesWins}-${po.seriesLosses}`;
-    document.getElementById('g-season-type').textContent='季后赛';
-    if(po.phase==='prep'){
-      document.getElementById('g-next-game').textContent=`备战${po.prepStep}/4`;
-    } else {
-      const ngd=po.nextGameDay;
-      document.getElementById('g-next-game').textContent=ngd!=null?`第${ngd}天`:'进行中';
-    }
-  }
-
-  renderCalendar();
-
-  // attrs
-  const grid=document.getElementById('attrs-grid');
-  grid.innerHTML='';
-  ATTR_KEYS.forEach(k=>{
-    const a=S.attrs[k];
-    const pct=Math.min(100,(a.exp/a.expNeeded*100));
-    const poolHtml=a.pool.map(dt=>`<span class="dc" style="background:${DICE_INFO[dt].color}" onmouseenter="showDiceTooltip(event,'${dt}')" onmousemove="moveDiceTooltip(event)" onmouseleave="hideDiceTooltip()">${DICE_INFO[dt].icon}</span>`).join('');
-    grid.innerHTML+=`<div class="attr-card">
-      <div class="attr-name">${ATTR_NAMES[k]}</div>
-      <div class="attr-lv">Lv.${a.level} <small style="font-size:.65em;color:#475569">${a.diceCount}颗骰子</small></div>
-      <div class="exp-row"><div class="exp-bar"><div class="exp-fill" style="width:${pct}%"></div></div><span class="exp-txt">${a.exp}/${a.expNeeded}</span></div>
-      <div class="dice-pool">${poolHtml}</div>
-    </div>`;
-  });
-  renderItems();
-}
-
-function renderItems(){
-  const grid=document.getElementById('items-grid');
-  if(!grid)return;
-  grid.innerHTML='';
-  for(let i=0;i<36;i++){
-    const div=document.createElement('div');
-    const item=S.inventory[i];
-    if(item){
-      div.className='item-slot filled';
-      div.title=item.name;
-      div.textContent=item.icon;
-      div.onclick=()=>showItemDetail(item);
-    } else {
-      div.className='item-slot';
-    }
-    grid.appendChild(div);
-  }
-}
-
-function showItemDetail(item){
-  document.getElementById('idet-icon').textContent=item.icon;
-  document.getElementById('idet-name').textContent=item.name;
-  const starEl=document.getElementById('idet-star');
-  starEl.textContent=item.star;
-  starEl.style.color=STAR_CLR[item.star]||'#94a3b8';
-  document.getElementById('idet-desc').textContent=item.desc;
-  document.getElementById('itemDetailModal').classList.add('show');
-}
-function closeItemDetail(){
-  document.getElementById('itemDetailModal').classList.remove('show');
-}
-
-// ════════════════════════════════════════════
-// 游戏结束检查
-// ════════════════════════════════════════════
-function checkGameOver(){
-  if(S.stamina<=0){endGame(false,'体力耗尽，因伤退役。');return}
-  if(S.money<=0){endGame(false,'金钱归零，无法继续生涯。');return}
-}
-
-function endGame(win,msg){
-  if(S.ended) return; // 防止重复触发
-  S.ended=true;
-
-  const seasonNum=S.seasonNum||1;
-
-  // ── 判断结果类型 ──
-  let resultType;
-  if(win){
-    resultType='champion';
-  } else if(S.stamina<=0){
-    resultType='injury';
-  } else if(S.money<=0){
-    resultType='bankrupt';
-  } else if(S.season==='playoff'){
-    resultType=S.playoff.round>=3?'finals_loss':S.playoff.round>=2?'conf_loss':'playoff_loss';
-  } else {
-    resultType='no_playoff';
-  }
-
-  // ── 写入角色存档 ──
-  if(currentChar){
-    const ci=savedChars.findIndex(c=>c.id===currentChar.id);
-    if(ci>=0){
-      savedChars[ci].seasons.push({
-        season: seasonNum,
-        result: resultType,
-        wins: S.wins,
-        gamesPlayed: S.gamesPlayed,
-        money: S.money,
-        date: new Date().toLocaleDateString('zh-CN')
-      });
-      savedChars[ci].currentSeason=seasonNum+1;
-      currentChar=savedChars[ci]; // 同步引用
-      persistChars();
-    }
-  }
-
-  // ── 构建弹窗内容 ──
-  const modal=document.getElementById('endModal');
-  const title=document.getElementById('end-title');
-  title.textContent=win?`🏆 第${seasonNum}赛季 · 总冠军！`:`🏀 第${seasonNum}赛季 结束`;
-  title.style.color=win?'#fbbf24':'#f87171';
-
-  // 赛季统计
-  const winRate=S.gamesPlayed>0?Math.round(S.wins/S.gamesPlayed*100):0;
-  let statLine=`常规赛 ${S.wins}胜${S.gamesPlayed-S.wins}负（胜率${winRate}%）`;
-  if(S.season==='playoff') statLine+=`\n季后赛进入第${S.playoff.round}轮`;
-
-  // 角色生涯统计
-  let careerLine='';
-  if(currentChar&&(currentChar.seasons||[]).length>0){
-    const all=currentChar.seasons;
-    const champs=all.filter(s=>s.result==='champion').length;
-    careerLine=`\n\n──────────\n${currentChar.name||'球员'} 生涯：共${all.length}赛季`+
-      (champs>0?` · 🏆×${champs}`:' · 尚未夺冠')+
-      `\n第${seasonNum+1}赛季 即将到来…`;
-  }
-
-  document.getElementById('end-msg').textContent=msg+'\n\n'+statLine+careerLine;
-  modal.classList.add('show');
-  addLog(`第${seasonNum}赛季结束（${SEASON_LABELS[resultType]||resultType}）：`+msg,'i');
-}
-
-// ════════════════════════════════════════════
-// 道具效果计算
-// ════════════════════════════════════════════
-function applyItemRollEffects(rolls, attr){
-  let totalBonus=0, moneyBonus=0, stamBonus=0, expBonus=0;
-  const msgs=[];
-  S.inventory.forEach(item=>{
-    const e=item.eff;
-    switch(e.type){
-      case 'onDie':
-        rolls.forEach(r=>{
-          if(e.vals.includes(r)){
-            if(e.stat==='total'){totalBonus+=e.bonus;msgs.push(`${item.icon}+${e.bonus}`);}
-            else if(e.stat==='money') moneyBonus+=e.bonus;
-            else if(e.stat==='stamina') stamBonus+=e.bonus;
-          }
-        });
-        break;
-      case 'onPair':{
-        const cnt={};rolls.forEach(r=>cnt[r]=(cnt[r]||0)+1);
-        if(Object.values(cnt).some(c=>c>=2)){
-          if(e.stat==='money'){moneyBonus+=e.bonus;msgs.push(`${item.icon}金钱+${e.bonus}`);}
+    <script>
+        // 球员数据
+        const player = {
+            name: "",
+            jerseyNumber: 23,
+            skinColor: 2,
+            height: 3,
+            weight: 2,
+            jersey: 0
+        };
+        
+        // 可选项配置
+        const options = {
+            skinColors: [
+                { id: 0, name: "浅色", color: "#FFDBAC" },
+                { id: 1, name: "中等浅色", color: "#E8BD8C" },
+                { id: 2, name: "中等", color: "#C19A6B" },
+                { id: 3, name: "中等深色", color: "#8B5A2B" },
+                { id: 4, name: "深色", color: "#5D4037" }
+            ],
+            heights: [
+                { id: 0, name: "后卫", value: "6'0\"", cm: 183 },
+                { id: 1, name: "得分后卫", value: "6'4\"", cm: 193 },
+                { id: 2, name: "小前锋", value: "6'7\"", cm: 201 },
+                { id: 3, name: "大前锋", value: "6'10\"", cm: 208 },
+                { id: 4, name: "中锋", value: "7'1\"", cm: 216 }
+            ],
+            weights: [
+                { id: 0, name: "轻盈", value: "180 lbs", kg: 82 },
+                { id: 1, name: "标准", value: "200 lbs", kg: 91 },
+                { id: 2, name: "健壮", value: "220 lbs", kg: 100 },
+                { id: 3, name: "强壮", value: "240 lbs", kg: 109 },
+                { id: 4, name: "重型", value: "260 lbs", kg: 118 }
+            ],
+            jerseys: [
+                { id: 0, name: "湖人", color: "#552583", secondary: "#FDB927", textColor: "white" },
+                { id: 1, name: "公牛", color: "#CE1141", secondary: "#000000", textColor: "white" },
+                { id: 2, name: "凯尔特人", color: "#007A33", secondary: "#BA9653", textColor: "white" },
+                { id: 3, name: "勇士", color: "#1D428A", secondary: "#FFC72C", textColor: "white" },
+                { id: 4, name: "热火", color: "#98002E", secondary: "#F9A01B", textColor: "white" }
+            ]
+        };
+        
+        // 初始化选项
+        function initOptions() {
+            // 肤色选项
+            const skinContainer = document.getElementById('skinColorOptions');
+            options.skinColors.forEach(skin => {
+                const div = document.createElement('div');
+                div.className = 'option-item';
+                div.dataset.id = skin.id;
+                div.innerHTML = `
+                    <div class="option-label">${skin.name}</div>
+                    <div class="skin-color-option" style="background-color: ${skin.color};"></div>
+                `;
+                div.addEventListener('click', () => selectOption('skinColor', skin.id));
+                skinContainer.appendChild(div);
+            });
+            
+            // 身高选项
+            const heightContainer = document.getElementById('heightOptions');
+            options.heights.forEach(height => {
+                const div = document.createElement('div');
+                div.className = 'option-item';
+                div.dataset.id = height.id;
+                div.innerHTML = `
+                    <div class="option-label">${height.name}</div>
+                    <div class="option-value">${height.value} (${height.cm}cm)</div>
+                `;
+                div.addEventListener('click', () => selectOption('height', height.id));
+                heightContainer.appendChild(div);
+            });
+            
+            // 体重选项
+            const weightContainer = document.getElementById('weightOptions');
+            options.weights.forEach(weight => {
+                const div = document.createElement('div');
+                div.className = 'option-item';
+                div.dataset.id = weight.id;
+                div.innerHTML = `
+                    <div class="option-label">${weight.name}</div>
+                    <div class="option-value">${weight.value} (${weight.kg}kg)</div>
+                `;
+                div.addEventListener('click', () => selectOption('weight', weight.id));
+                weightContainer.appendChild(div);
+            });
+            
+            // 球衣选项
+            const jerseyContainer = document.getElementById('jerseyOptions');
+            options.jerseys.forEach(jersey => {
+                const div = document.createElement('div');
+                div.className = 'option-item';
+                div.dataset.id = jersey.id;
+                div.innerHTML = `
+                    <div class="option-label">${jersey.name}</div>
+                    <div class="jersey-option" style="background-color: ${jersey.color}; color: ${jersey.textColor}">
+                        ${jersey.name}
+                    </div>
+                `;
+                div.addEventListener('click', () => selectOption('jersey', jersey.id));
+                jerseyContainer.appendChild(div);
+            });
+            
+            // 设置默认选中
+            selectOption('skinColor', player.skinColor, true);
+            selectOption('height', player.height, true);
+            selectOption('weight', player.weight, true);
+            selectOption('jersey', player.jersey, true);
         }
-        break;
-      }
-      case 'onEvenPair':{
-        const cnt={};rolls.forEach(r=>{if(r%2===0)cnt[r]=(cnt[r]||0)+1;});
-        if(Object.values(cnt).some(c=>c>=2)){
-          if(e.stat==='stamina'){stamBonus+=e.bonus;msgs.push(`${item.icon}体力+${e.bonus}`);}
-        }
-        break;
-      }
-      case 'onCombo':
-        if(e.vals.every(v=>rolls.includes(v))){
-          if(e.stat==='total'){totalBonus+=e.bonus;msgs.push(`${item.icon}组合+${e.bonus}`);}
-        }
-        break;
-      case 'onAllLow':
-        if(rolls.every(r=>r<=3)){
-          const b=3*rolls.length;totalBonus+=b;msgs.push(`${item.icon}低点+${b}`);
-        }
-        break;
-      case 'onPattern':{
-        const s=[...rolls].sort((a,b)=>a-b);
-        if(s.filter(r=>r===3).length>=2&&s.filter(r=>r===4).length>=2){totalBonus+=5;msgs.push(`${item.icon}3344+5`);}
-        if(s.filter(r=>r===5).length>=4){totalBonus+=10;msgs.push(`${item.icon}5555+10`);}
-        break;
-      }
-      case 'attrExp':
-        if(attr===e.attr){expBonus+=e.val;msgs.push(`${item.icon}经验+${e.val}`);}
-        break;
-      case 'onDieAttr':
-        if(attr===e.attr){
-          rolls.forEach(r=>{if(r===e.val){expBonus+=e.bonus;msgs.push(`${item.icon}经验+${e.bonus}`);}});
-        }
-        break;
-      case 'afterRoll':
-        if(e.stat==='stamina'){stamBonus+=e.val;msgs.push(`${item.icon}体力+${e.val}`);}
-        break;
-    }
-  });
-  return {totalBonus,moneyBonus,stamBonus,expBonus,msgs};
-}
-
-function getAfterTrainMoney(){
-  return S.inventory.reduce((s,i)=>(i.eff.type==='afterTrain'&&i.eff.stat==='money'?s+i.eff.val:s),0);
-}
-function getAfterTrainWinMoney(){
-  return S.inventory.reduce((s,i)=>(i.eff.type==='onTrainWin'&&i.eff.stat==='money'?s+i.eff.val:s),0);
-}
-function getLevelupExtraChoices(attr){
-  return S.inventory.reduce((s,i)=>{
-    const e=i.eff;
-    if(e.type==='moreLUChoice') return s+e.val;
-    if(e.type==='moreLUChoiceAttr'&&e.attr===attr) return s+e.val;
-    return s;
-  },0);
-}
-
-// ════════════════════════════════════════════
-// 装备商店
-// ════════════════════════════════════════════
-function generateShopItems(){
-  const owned=new Set(S.inventory.map(i=>i.id));
-  const pool=SHOP_ITEMS.filter(i=>!owned.has(i.id));
-  if(!pool.length) return [];
-  const weighted=[];
-  pool.forEach(item=>{ const w=STAR_W[item.star]||10; for(let k=0;k<w;k++) weighted.push(item); });
-  const chosen=[],seen=new Set();
-  for(let t=0;t<400&&chosen.length<6;t++){
-    const pick=weighted[Math.floor(Math.random()*weighted.length)];
-    if(!seen.has(pick.id)){seen.add(pick.id);chosen.push(pick);}
-  }
-  return chosen;
-}
-
-const SHOP_LIMIT=3; // 每次购物日限购件数
-
-function openShop(){
-  S.shopItems=generateShopItems();
-  S.shopBought=0;
-  renderShop();
-  document.getElementById('shopModal').classList.add('show');
-}
-function closeShop(){
-  document.getElementById('shopModal').classList.remove('show');
-  if(S.season==='playoff' && S.playoff.phase==='prep'){
-    finishPlayoffPrep();
-  }
-}
-
-function finishPlayoffPrep(){
-  S.playoff.phase='games';
-  S.playoff.nextGameDay=S.day; // 当天即为第一场比赛日
-  S.stamina=S.maxStam;
-  updateUI();
-  const msg=`备战结束！体力已回满 ${S.maxStam}/${S.maxStam}。\n按对阵表，${PO_ROUNDS[0].name}即将开始！`;
-  document.getElementById('po-stamina-msg').textContent=msg;
-  document.getElementById('poStaminaModal').classList.add('show');
-}
-
-function closeStaminaAndStartGames(){
-  document.getElementById('poStaminaModal').classList.remove('show');
-  showGameConfirmModal();
-}
-
-function renderShop(){
-  document.getElementById('shop-inv-info').textContent=
-    `宝物栏 ${S.inventory.length}/36  ·  💰 ${S.money} 金`;
-  const remain=SHOP_LIMIT-S.shopBought;
-  const hintEl=document.getElementById('shop-hint');
-  if(hintEl){
-    if(remain<=0){
-      hintEl.textContent='✅ 本次购物已达上限（3件）';
-      hintEl.style.color='#4ade80';
-    } else {
-      hintEl.textContent=`本次还可购买 ${remain} 件（限购${SHOP_LIMIT}件）`;
-      hintEl.style.color='';
-    }
-  }
-  const grid=document.getElementById('shop-grid');
-  grid.innerHTML='';
-  if(!S.shopItems.length){
-    grid.innerHTML='<div style="text-align:center;color:#64748b;padding:16px">宝物已全部收集！</div>';
-    return;
-  }
-  const quotaFull=S.shopBought>=SHOP_LIMIT;
-  S.shopItems.forEach(item=>{
-    const alreadyOwn=!!S.inventory.find(i=>i.id===item.id);
-    const full=S.inventory.length>=36;
-    const afford=S.money>=item.price;
-    const div=document.createElement('div');
-    div.className='shop-item';
-    div.innerHTML=
-      `<div class="shop-item-icon">${item.icon}</div>`+
-      `<div class="shop-item-info">`+
-        `<div class="shop-item-name">${item.name} `+
-          `<span style="font-size:.58em;color:${STAR_CLR[item.star]}">${item.star}</span></div>`+
-        `<div class="shop-item-desc">${item.desc}</div>`+
-      `</div>`+
-      `<div class="shop-item-price">${item.price}💰</div>`;
-    if(alreadyOwn||quotaFull){
-      div.style.cssText='opacity:.35;pointer-events:none';
-    } else if(!afford||full){
-      div.style.opacity='.55';
-      div.onclick=()=>addLog(`${full?'宝物栏已满':'金钱不足'}，无法购入【${item.name}】。`,'i');
-    } else {
-      div.onclick=()=>buyItem(item.id);
-    }
-    grid.appendChild(div);
-  });
-}
-
-function buyItem(id){
-  const item=SHOP_ITEMS.find(i=>i.id===id);
-  if(!item||S.shopBought>=SHOP_LIMIT||S.inventory.length>=36||S.money<item.price) return;
-  S.shopBought++;
-  S.money-=item.price;
-  S.inventory.push({...item});
-  // 立即生效：体力上限
-  if(item.eff.type==='passive'&&item.eff.stat==='maxStam'){
-    S.maxStam+=item.eff.val;
-    addLog(`🛒 购入【${item.icon}${item.name}】！体力上限+${item.eff.val} → ${S.maxStam}`,'i');
-  } else {
-    addLog(`🛒 购入【${item.icon}${item.name}】！${item.desc}`,'i');
-  }
-  updateUI();
-  renderShop(); // 刷新商店（不关闭），继续购买
-}
-
-function restartGame(){
-  document.getElementById('endModal').classList.remove('show');
-  goHome(); // 回首页重新选角色
-}
-
- 
-
-// ════════════════════════════════════════════
-// 日志
-// ════════════════════════════════════════════
-const logTypeClass={t:'lt',b:'lb',r:'lr',g:'lg',p:'lp',i:'li'};
-function addLog(text,type='i'){
-  const logEl=document.getElementById('eventLog');
-  const now=new Date();
-  const ts=`${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
-  const div=document.createElement('div');
-  div.className=`le ${logTypeClass[type]||'li'}`;
-  div.textContent=`[${ts}] ${text}`;
-  logEl.appendChild(div);
-  logEl.scrollTop=logEl.scrollHeight;
-  while(logEl.children.length>30)logEl.removeChild(logEl.firstChild);
-}
-
-// ════════════════════════════════════════════
-// 角色创建系统
-// ════════════════════════════════════════════
-const SKIN_TONES=[
-  {label:'白皙',color:'#FDDBB4',shadow:'#D4906A'},
-  {label:'小麦',color:'#E8A87C',shadow:'#B87040'},
-  {label:'蜜糖',color:'#C87941',shadow:'#8A4E20'},
-  {label:'深棕',color:'#8B4513',shadow:'#5C2D0E'},
-  {label:'黑曜',color:'#4A2512',shadow:'#2A1208'},
-];
-const HEIGHT_OPTS=['170cm','180cm','190cm','200cm','210+'];
-const WEIGHT_OPTS=['65kg','75kg','85kg','95kg','105+'];
-const JERSEY_COLORS=[
-  {label:'烈焰红',color:'#E53E3E',shorts:'#9B2C2C'},
-  {label:'皇者蓝',color:'#2B6CB0',shorts:'#1A365D'},
-  {label:'森林绿',color:'#276749',shorts:'#1C4532'},
-  {label:'暗夜紫',color:'#6B46C1',shorts:'#44337A'},
-  {label:'荣耀金',color:'#B7791F',shorts:'#744210'},
-];
-
-let charCreate={name:'',number:null,skinIdx:1,heightIdx:2,weightIdx:2,jerseyIdx:0};
-let savedChars=[];    // 已保存的角色列表（最多5个）
-let currentChar=null; // 当前选中角色
-
-// ══ 赛季结果标识 ══
-const SEASON_ICONS={
-  champion:'🏆', finals_loss:'🥈', conf_loss:'🏅',
-  playoff_loss:'🏀', no_playoff:'❌', injury:'💔', bankrupt:'💸'
-};
-const SEASON_LABELS={
-  champion:'夺冠', finals_loss:'总决赛败', conf_loss:'分区赛败',
-  playoff_loss:'首轮败', no_playoff:'未进季后赛', injury:'伤退', bankrupt:'破产'
-};
-
-// ══ LocalStorage 存档 ══
-const SAVE_KEY='goat_chars_v2';
-function loadSavedChars(){
-  try{
-    const raw=localStorage.getItem(SAVE_KEY);
-    if(raw){
-      savedChars=JSON.parse(raw);
-      // 兼容旧存档（无 seasons 字段）
-      savedChars.forEach(c=>{
-        if(!c.seasons) c.seasons=[];
-        if(!c.currentSeason) c.currentSeason=1;
-      });
-    }
-  }catch(e){ savedChars=[]; }
-}
-function persistChars(){
-  try{ localStorage.setItem(SAVE_KEY,JSON.stringify(savedChars)); }catch(e){}
-}
-
-// ── 打开创建屏 ──
-function openCreateScreen(){
-  document.getElementById('screen-home').style.display='none';
-  document.getElementById('screen-select').style.display='none';
-  document.getElementById('screen-create').style.display='flex';
-  charCreate={name:'',number:23,skinIdx:1,heightIdx:2,weightIdx:2,jerseyIdx:0};
-  buildCreateUI();
-}
-function cancelCreate(){
-  document.getElementById('screen-create').style.display='none';
-  document.getElementById('screen-home').style.display='flex';
-  updateHomeCharBtns();
-}
-
-// ── 构建创建UI ──
-function buildCreateUI(){
-  // 肤色
-  const skinEl=document.getElementById('skin-opts');
-  skinEl.innerHTML='';
-  SKIN_TONES.forEach((s,i)=>{
-    const d=document.createElement('div');
-    d.className='skin-dot'+(i===charCreate.skinIdx?' sel':'');
-    d.style.background=s.color;
-    d.title=s.label;
-    d.onclick=()=>{charCreate.skinIdx=i;refreshCC();drawCharCanvas();};
-    skinEl.appendChild(d);
-  });
-  // 身高
-  const htEl=document.getElementById('height-opts');
-  htEl.innerHTML='';
-  HEIGHT_OPTS.forEach((h,i)=>{
-    const b=document.createElement('button');
-    b.className='tag-btn'+(i===charCreate.heightIdx?' sel':'');
-    b.textContent=h;
-    b.onclick=()=>{charCreate.heightIdx=i;refreshCC();drawCharCanvas();};
-    htEl.appendChild(b);
-  });
-  // 体重
-  const wtEl=document.getElementById('weight-opts');
-  wtEl.innerHTML='';
-  WEIGHT_OPTS.forEach((w,i)=>{
-    const b=document.createElement('button');
-    b.className='tag-btn'+(i===charCreate.weightIdx?' sel':'');
-    b.textContent=w;
-    b.onclick=()=>{charCreate.weightIdx=i;refreshCC();drawCharCanvas();};
-    wtEl.appendChild(b);
-  });
-  // 球衣
-  const jrEl=document.getElementById('jersey-opts');
-  jrEl.innerHTML='';
-  JERSEY_COLORS.forEach((j,i)=>{
-    const d=document.createElement('div');
-    d.className='jersey-sw'+(i===charCreate.jerseyIdx?' sel':'');
-    d.style.background=j.color;
-    d.title=j.label;
-    d.onclick=()=>{charCreate.jerseyIdx=i;refreshCC();drawCharCanvas();};
-    jrEl.appendChild(d);
-  });
-  // 姓名输入
-  const nEl=document.getElementById('inp-name');
-  nEl.value=charCreate.name;
-  nEl.oninput=()=>{
-    charCreate.name=nEl.value;
-    document.getElementById('ctag-name').textContent=charCreate.name||'无名球员';
-  };
-  // 号码输入
-  const numEl=document.getElementById('inp-num');
-  numEl.value=charCreate.number!=null?charCreate.number:'';
-  numEl.oninput=()=>{
-    let v=parseInt(numEl.value);
-    if(isNaN(v)||v<0)v=0;
-    if(v>99)v=99;
-    charCreate.number=numEl.value===''?null:v;
-    document.getElementById('ctag-num').textContent=charCreate.number!=null?'#'+charCreate.number:'#--';
-    drawCharCanvas();
-  };
-  document.getElementById('ctag-name').textContent=charCreate.name||'无名球员';
-  document.getElementById('ctag-num').textContent=charCreate.number!=null?'#'+charCreate.number:'#--';
-  setTimeout(drawCharCanvas,60);
-}
-
-function refreshCC(){
-  document.querySelectorAll('.skin-dot').forEach((d,i)=>d.classList.toggle('sel',i===charCreate.skinIdx));
-  document.querySelectorAll('#height-opts .tag-btn').forEach((b,i)=>b.classList.toggle('sel',i===charCreate.heightIdx));
-  document.querySelectorAll('#weight-opts .tag-btn').forEach((b,i)=>b.classList.toggle('sel',i===charCreate.weightIdx));
-  document.querySelectorAll('.jersey-sw').forEach((d,i)=>d.classList.toggle('sel',i===charCreate.jerseyIdx));
-}
-
-// ── 保存角色 ──
-function confirmCreate(){
-  charCreate.name=(document.getElementById('inp-name').value.trim())||'无名球员';
-  let v=parseInt(document.getElementById('inp-num').value);
-  if(isNaN(v)||v<0||v>99)v=23;
-  charCreate.number=v;
-  if(savedChars.length>=5) savedChars.shift();
-  const newChar={...charCreate, id:Date.now(), seasons:[], currentSeason:1};
-  savedChars.push(newChar);
-  currentChar=newChar;
-  persistChars();
-  document.getElementById('screen-create').style.display='none';
-  document.getElementById('screen-home').style.display='flex';
-  updateHomeCharBtns();
-}
-
-// ── 选择角色屏 ──
-function openSelectScreen(){
-  document.getElementById('screen-home').style.display='none';
-  document.getElementById('screen-create').style.display='none';
-  document.getElementById('screen-select').style.display='flex';
-  renderSelectScreen();
-}
-function cancelSelect(){
-  document.getElementById('screen-select').style.display='none';
-  document.getElementById('screen-home').style.display='flex';
-  updateHomeCharBtns();
-}
-function selectAndStart(){
-  if(!currentChar){
-    const b=document.getElementById('btn-ss-new');
-    b.style.borderColor='#f87171';
-    setTimeout(()=>b.style.borderColor='',800);
-    return;
-  }
-  document.getElementById('screen-select').style.display='none';
-  enterGame();
-}
-
-function renderSelectScreen(){
-  const body=document.getElementById('ss-body');
-  body.innerHTML='';
-  if(!savedChars.length){
-    body.innerHTML=`<div class="ss-empty">📭 还没有角色<br><br>先创建你的第一个球员吧！</div>`;
-    return;
-  }
-  savedChars.slice().reverse().forEach((ch,revIdx)=>{
-    const idx=savedChars.length-1-revIdx;
-    const isActive=currentChar&&currentChar.id===ch.id;
-    const card=document.createElement('div');
-    card.className='char-card'+(isActive?' active-char':'');
-
-    // 缩略像素图
-    const cvs=document.createElement('canvas');
-    cvs.width=60;cvs.height=90;
-    cvs.className='char-card-mini';
-    cvs.style.cssText='width:60px;height:90px;flex-shrink:0';
-    card.appendChild(cvs);
-    setTimeout(()=>drawCharToCanvas(cvs,ch,3),0);
-
-    // 信息区
-    const info=document.createElement('div');
-    info.className='char-card-info';
-
-    const seasons=ch.seasons||[];
-    const nextSeason=ch.currentSeason||1;
-    const totalSeasons=seasons.length;
-    // 最近5赛季结果图标（倒序，最新在前）
-    const recentIcons=seasons.slice(-5).reverse()
-      .map(s=>`<span title="第${s.season}赛季·${SEASON_LABELS[s.result]||s.result}">${SEASON_ICONS[s.result]||'❓'}</span>`).join('');
-    // 最佳战绩
-    const bestLabel=seasons.find(s=>s.result==='champion')
-      ? '<span style="color:#fbbf24;font-weight:700">🏆 含冠军赛季</span>'
-      : '';
-
-    info.innerHTML=
-      `<div class="char-card-name">${ch.name||'无名球员'}`+
-        (isActive?'  <span style="font-size:.68em;color:#f97316;font-weight:700">▶ 当前</span>':'')+
-      `</div>`+
-      `<div class="char-card-num">#${ch.number}</div>`+
-      `<div class="char-card-stats">`+
-        `<span style="color:#fbbf24;font-weight:700">第${nextSeason}赛季</span>`+
-        (totalSeasons>0?`  共${totalSeasons}季`:'  全新球员')+`<br>`+
-        (totalSeasons>0
-          ? `近况：${recentIcons}  ${bestLabel}`
-          : `${HEIGHT_OPTS[ch.heightIdx]||''} · ${WEIGHT_OPTS[ch.weightIdx]||''}`)+
-      `</div>`;
-    card.appendChild(info);
-
-    // 删除按钮
-    const del=document.createElement('button');
-    del.className='char-card-del';
-    del.textContent='删除';
-    del.onclick=(e)=>{
-      e.stopPropagation();
-      savedChars.splice(idx,1);
-      if(currentChar&&currentChar.id===ch.id) currentChar=savedChars[savedChars.length-1]||null;
-      persistChars();
-      updateHomeCharBtns();
-      renderSelectScreen();
-    };
-    card.appendChild(del);
-    card.onclick=()=>{currentChar=ch;updateHomeCharBtns();renderSelectScreen();};
-    body.appendChild(card);
-  });
-}
-
-// ── 首页按钮状态 ──
-function updateHomeCharBtns(){
-  const selBtn=document.getElementById('btn-select-char');
-  if(!selBtn)return;
-  if(currentChar){
-    selBtn.classList.add('has-char');
-    const sn=currentChar.currentSeason||1;
-    selBtn.textContent=`✅ ${currentChar.name||'球员'} · 第${sn}季`;
-  } else {
-    selBtn.classList.remove('has-char');
-    selBtn.textContent='🏀 选择角色';
-  }
-}
-
-// ── 首页开始游戏 ──
-function startGame(){
-  if(!currentChar){
-    const btn=document.getElementById('btn-create-char');
-    const orig=btn.style.borderColor;
-    btn.style.borderColor='#f87171';btn.style.color='#f87171';
-    setTimeout(()=>{btn.style.borderColor='';btn.style.color='';},900);
-    return;
-  }
-  enterGame();
-}
-
-// ════════════════════════════════════════════
-// 像素角色绘制引擎
-// ════════════════════════════════════════════
-function drawCharCanvas(){
-  const canvas=document.getElementById('charCanvas');
-  if(!canvas)return;
-  drawCharToCanvas(canvas,charCreate,7);
-}
-
-function drawCharToCanvas(canvas,cd,PS){
-  const ctx=canvas.getContext('2d');
-  const W=canvas.width,H=canvas.height;
-  ctx.clearRect(0,0,W,H);
-
-  const GW=Math.floor(W/PS); // 格宽（20）
-  const GH=Math.floor(H/PS); // 格高（30）
-  const CX=Math.floor(GW/2); // 中心列（10）
-
-  const sk=SKIN_TONES[cd.skinIdx]||SKIN_TONES[1];
-  const jr=cd.jerseyColor
-    ?{color:cd.jerseyColor,shorts:cd.jerseyShorts||'#1a1a2e'}
-    :(JERSEY_COLORS[cd.jerseyIdx]||JERSEY_COLORS[0]);
-  const hairColor=cd.hairColor||'#1a0d07';
-  const BW=4+(cd.weightIdx||0);  // 躯干宽4-8
-  const LH=4+(cd.heightIdx||0);  // 腿长4-8
-
-  // 总高: 头(5)+颈(1)+身(7)+短裤(3)+腿(LH)+鞋(1) = 17+LH
-  const TH=17+LH;
-  const SY=Math.max(1,Math.floor((GH-TH)/2));
-
-  // 填充辅助
-  const F=(gx,gy,gw,gh,c)=>{
-    ctx.fillStyle=c;
-    ctx.fillRect(Math.round(gx*PS),Math.round(gy*PS),Math.round(gw*PS),Math.round(gh*PS));
-  };
-
-  // ─── 头部（6宽×5高）───
-  const HX=CX-3, HY=SY;
-  F(HX,    HY,    6,2,hairColor);       // 头发
-  F(HX,    HY+2,  6,3,sk.color);      // 脸
-  F(HX,    HY+2,  1,2,sk.shadow);     // 左耳阴影
-  F(HX+5,  HY+2,  1,2,sk.shadow);     // 右耳阴影
-  F(HX+1,  HY+1,  2,1,sk.shadow);     // 左眉
-  F(HX+3,  HY+1,  2,1,sk.shadow);     // 右眉
-  F(HX+1,  HY+2,  1,1,'#111827');     // 左眼
-  F(HX+4,  HY+2,  1,1,'#111827');     // 右眼
-  F(HX+2,  HY+3,  1,1,sk.shadow);     // 鼻
-  F(HX+2,  HY+4,  2,1,'#b85050');     // 嘴
-
-  // ─── 颈部 ───
-  F(CX-1,HY+5,2,1,sk.color);
-
-  // ─── 球衣躯干（BW宽×7高）───
-  const BX=CX-Math.floor(BW/2), BY=HY+6;
-  F(BX,BY,BW,7,jr.color);
-  // 球衣右边阴影
-  F(BX+BW-1,BY,1,7,darkenColor(jr.color));
-
-  // 球衣号码（PS≥5时显示）
-  if(PS>=5){
-    ctx.save();
-    ctx.fillStyle='rgba(255,255,255,.92)';
-    ctx.font=`bold ${Math.round(PS*1.9)}px monospace`;
-    ctx.textAlign='center';
-    ctx.textBaseline='middle';
-    ctx.fillText(cd.number!=null?String(cd.number):'',CX*PS,(BY+3.5)*PS);
-    ctx.restore();
-  }
-
-  // ─── 手臂（皮肤色，无袖球衣）───
-  F(BX-1,  BY,    1,6,sk.color);
-  F(BX+BW, BY,    1,6,sk.color);
-  F(BX-1,  BY+6,  1,1,sk.shadow); // 左手
-  F(BX+BW, BY+6,  1,1,sk.shadow); // 右手
-
-  // ─── 短裤（BW+2宽×3高）───
-  const SHY=BY+7;
-  F(BX-1,SHY,  BW+2,3,jr.shorts);
-  F(BX-1,SHY,  BW+2,1,jr.color);  // 顶部条纹
-
-  // ─── 腿部 ───
-  const LY=SHY+3;
-  const LW=Math.max(2,Math.floor(BW/2)-1);
-  const LLX=BX, RLX=BX+BW-LW;
-  F(LLX,LY,LW,LH,sk.color);
-  F(RLX,LY,LW,LH,sk.color);
-  F(LLX+LW-1,LY,1,LH,sk.shadow); // 内侧阴影
-  F(RLX,     LY,1,LH,sk.shadow);
-
-  // ─── 鞋子 ───
-  const SHOEY=LY+LH;
-  F(LLX-1,SHOEY,LW+2,1,'#1a1a1a');
-  F(RLX-1,SHOEY,LW+2,1,'#1a1a1a');
-
-  // ─── 地面阴影 ───
-  ctx.save();
-  ctx.fillStyle='rgba(0,0,0,.2)';
-  ctx.beginPath();
-  ctx.ellipse(CX*PS,H-Math.round(PS*0.3),BW*PS*.7,Math.round(PS*.45),0,0,Math.PI*2);
-  ctx.fill();
-  ctx.restore();
-}
-
-function darkenColor(hex){
-  try{
-    const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
-    return `rgb(${Math.max(0,r-40)},${Math.max(0,g-40)},${Math.max(0,b-40)})`;
-  }catch(e){return hex;}
-}
-
-// ════════════════════════════════════════════
-// 启动
-// ════════════════════════════════════════════
-function enterGame(){
-  ['screen-home','screen-create','screen-select'].forEach(id=>{
-    document.getElementById(id).style.display='none';
-  });
-  initState();
-  if(currentChar){
-    S.playerName=currentChar.name||'无名球员';
-    S.playerNumber=currentChar.number;
-    S.seasonNum=currentChar.currentSeason||1;
-    S.charData={...currentChar};
-  } else {
-    S.seasonNum=1;
-  }
-  updateUI();
-  const pn=S.playerName||'球员';
-  const pnum=S.playerNumber!=null?` #${S.playerNumber}`:'';
-  addLog(`🏀 ${pn}${pnum}　第 ${S.seasonNum} 赛季　开始！`,'i');
-  addLog(`📅 进入第${S.day}天。`,'i');
-  checkDayStart();
-}
-
-function goHome(){
-  ['endModal','luModal','gameConfirmModal','regularSummaryModal','bracketModal','poStaminaModal','shopModal','itemDetailModal'].forEach(id=>{
-    const el=document.getElementById(id); if(el) el.classList.remove('show');
-  });
-  document.getElementById('screen-create').style.display='none';
-  document.getElementById('screen-select').style.display='none';
-  document.getElementById('screen-home').style.display='flex';
-  updateHomeCharBtns();
-}
-
-// 加载本地存档 + 初始化首页
-loadSavedChars();
-updateHomeCharBtns();
-document.getElementById('screen-home').style.display='flex';
-
-// ════════════════════════════════════════════
-// 骰子悬停提示
-// ════════════════════════════════════════════
-function showDiceTooltip(e, dt){
-  const d=DICE_INFO[dt]; if(!d) return;
-  const tip=document.getElementById('dice-tooltip');
-  tip.querySelector('#dtt-icon').textContent=d.icon;
-  tip.querySelector('#dtt-name').textContent=d.label;
-  tip.querySelector('#dtt-desc').textContent=d.desc;
-  tip.style.display='block';
-  moveDiceTooltip(e);
-}
-function moveDiceTooltip(e){
-  const tip=document.getElementById('dice-tooltip');
-  const x=e.clientX+14, y=e.clientY-70;
-  tip.style.left=Math.min(x, window.innerWidth-140)+'px';
-  tip.style.top=Math.max(y,8)+'px';
-}
-function hideDiceTooltip(){
-  document.getElementById('dice-tooltip').style.display='none';
-}
-</script>
-
-<!-- 骰子悬停提示浮层 -->
-<div id="dice-tooltip">
-  <div id="dtt-icon" style="font-size:1.6em;margin-bottom:3px"></div>
-  <div id="dtt-name" style="font-size:0.78em;font-weight:700;color:#fbbf24;margin-bottom:4px"></div>
-  <div id="dtt-desc" style="font-size:0.68em;color:#94a3b8;font-family:monospace;letter-spacing:2px"></div>
-</div>
-</body>
-</html>
+        
+        // 选择选项
+        function selectOption(type, id, initial = false) {
+            player
