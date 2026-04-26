@@ -1588,13 +1588,13 @@ function skipGame(){
     }
   } else {
     // 季后赛缺阵：直接判负
-    S.playoff.losses++;
-    S.playoff.gamesPlayed++;
-    addLog(`🏀 季后赛缺阵，系列赛判负！当前 ${S.playoff.wins}-${S.playoff.losses}`,'p');
-    
-    if(S.playoff.losses >= 4){
-      const roundName = PO_ROUNDS[S.playoff.round-1]?.name || '季后赛';
-      endGame(false, `${roundName} ${S.playoff.wins}-4 失利，赛季结束。`);
+    const po=S.playoff;
+    po.seriesLosses++;
+    po.seriesGame++;
+    addLog(`🏀 季后赛缺阵，系列赛判负！当前 ${po.seriesWins}-${po.seriesLosses}`,'p');
+    if(po.seriesLosses>=4){
+      const roundName=PO_ROUNDS[po.round-1]?.name||'季后赛';
+      endGame(false,`${roundName} ${po.seriesWins}-${po.seriesLosses} 失利，赛季结束。`);
     } else {
       nextDay();
     }
@@ -1671,23 +1671,55 @@ function proceedToRegularGame(){
 }
 
 function proceedToPlayoffGame(){
-  S.playoff.gamesPlayed++;
+  const po=S.playoff;
+  const opp=S.playoffBracket?.roundOpps[po.round-1]||null;
+  // 首场：计算对手全部4项骰池
+  if(po.seriesGame===0){
+    po.oppAttrs=opp?computePoOppAttrs(opp):null;
+  }
+  po.seriesGame++;
+  // 随机选同一属性双方对决
   S.currentAttr=ATTR_KEYS[Math.floor(Math.random()*4)];
-  const rd=PO_ROUNDS[S.playoff.round-1];
-  const tgt=rd.target+S.playoff.gamesPlayed; // 也随场次增加
-  const pool=S.attrs[S.currentAttr].pool;
+  const attr=S.currentAttr;
+  const playerPool=S.attrs[attr].pool;
+  const oppPool=(po.oppAttrs&&po.oppAttrs[attr])||['STD'];
+  const rd=PO_ROUNDS[po.round-1];
+
   showPanel('playoffPanel');
   document.getElementById('po-round-name').textContent=rd.name;
-  document.getElementById('po-sw').textContent=S.playoff.wins;
-  document.getElementById('po-sl').textContent=S.playoff.losses;
-  document.getElementById('po-attr').textContent=ATTR_NAMES[S.currentAttr];
-  document.getElementById('po-target').textContent=`目标: ≥ ${tgt}（共 ${pool.length} 颗骰子）`;
+  document.getElementById('po-sw').textContent=po.seriesWins;
+  document.getElementById('po-sl').textContent=po.seriesLosses;
+  document.getElementById('po-game-num').textContent=po.seriesGame;
+  document.getElementById('po-attr').textContent=ATTR_NAMES[attr];
+  document.getElementById('po-target').textContent=ATTR_NAMES[attr];
   document.getElementById('po-result').style.display='none';
   document.getElementById('po-effect').textContent='';
   document.getElementById('btn-roll-po').style.display='block';
-  document.getElementById('btn-po-next').style.display='none';
-  buildSpinDice('po-dice',pool.length);
-  addLog(`🏆 ${rd.name} G${S.playoff.gamesPlayed} 开始！【${ATTR_NAMES[S.currentAttr]}】目标≥${tgt}。`,'p');
+  document.getElementById('btn-po-next-game').style.display='none';
+  document.getElementById('btn-po-series-end').style.display='none';
+  buildSpinDice('po-dice',playerPool.length);
+  buildSpinDice('po-opp-dice',oppPool.length);
+
+  // 我方肖像
+  const playerCvs=document.getElementById('po-player-canvas');
+  drawCharToCanvas(playerCvs,S.charData||{skinIdx:1,heightIdx:2,weightIdx:2,jerseyIdx:0,number:0},4);
+  document.getElementById('po-player-name').textContent=S.playerName||'我方';
+
+  // 对手球星肖像
+  const starCvs=document.getElementById('po-star-canvas');
+  if(opp&&opp.starCd){
+    drawCharToCanvas(starCvs,{...opp.starCd,jerseyColor:opp.color,jerseyShorts:opp.accent},4);
+    document.getElementById('po-star-name').textContent=opp.star;
+    document.getElementById('po-star-name').style.color=opp.accent;
+    document.getElementById('po-star-portrait-wrap').style.borderColor=opp.accent+'66';
+  } else {
+    drawCharToCanvas(starCvs,{skinIdx:2,heightIdx:2,weightIdx:2,jerseyIdx:2,number:0},4);
+    document.getElementById('po-star-name').textContent='对手';
+  }
+  document.getElementById('po-opp-score-lbl').textContent=opp?opp.star:'对手';
+
+  const oppName=opp?opp.star:'对手';
+  addLog(`🏆 ${rd.name} G${po.seriesGame} — 【${ATTR_NAMES[attr]}】对决 ${oppName}，系列赛 ${po.seriesWins}-${po.seriesLosses}。`,'p');
 }
 
 // ════════════════════════════════════════════
@@ -1858,53 +1890,104 @@ function startPlayoffs(){
 }
 
 function rollPlayoffDice(){
+  const po=S.playoff;
   const attr=S.currentAttr;
-  const pool=S.attrs[attr].pool;
-  const rd=PO_ROUNDS[S.playoff.round-1];
-  const tgt=rd.target+S.playoff.gamesPlayed;
-  doRoll('po-dice',pool,tgt,(rolls,total,pass,itemFx)=>{
-    document.getElementById('po-total').textContent='合计: '+total;
-    document.getElementById('po-vs').textContent=`需要 ≥ ${tgt}`;
-    const v=document.getElementById('po-verdict');
-    v.textContent=pass?'🏆 胜利！':'😤 失败';
-    v.className='roll-verdict '+(pass?'rv-ok':'rv-no');
+  const playerPool=S.attrs[attr].pool;
+  const oppPool=(po.oppAttrs&&po.oppAttrs[attr])||['STD'];
+  const opp=S.playoffBracket?.roundOpps[po.round-1]||null;
+  const rd=PO_ROUNDS[po.round-1];
+
+  // 预计算对手骰子
+  const oppRolls=oppPool.map(dt=>{
+    const di=DICE_INFO[dt];
+    const v=di.faces[Math.floor(Math.random()*di.faces.length)];
+    return di.fn?di.fn(v):v;
+  });
+  const oppTotal=oppRolls.reduce((s,v)=>s+v,0);
+
+  doRoll('po-dice',playerPool,oppTotal+1,(rolls,total,pass,itemFx)=>{
+    // 落定对手骰子
+    document.getElementById('po-opp-dice').querySelectorAll('.die').forEach((d,i)=>{
+      d.className='die land '+(pass?'fail':'pass');
+      d.textContent=oppRolls[i]??'?';
+    });
+
+    document.getElementById('po-total').textContent=total;
+    document.getElementById('po-vs').textContent=oppTotal;
+    document.getElementById('po-total').style.color=pass?'#4ade80':'#f87171';
+    document.getElementById('po-vs').style.color=pass?'#f87171':'#4ade80';
+
+    const vEl=document.getElementById('po-verdict');
+    vEl.textContent=pass?'🏆 胜！':'😤 败！';
+    vEl.className='roll-verdict '+(pass?'rv-ok':'rv-no');
     document.getElementById('po-result').style.display='block';
-    const stamCost=pass?30:40;
-    S.stamina=Math.max(0,S.stamina-stamCost);
-    if(pass){S.playoff.wins++;gainExp(attr,15+itemFx.expBonus);}
-    else{S.playoff.losses++;gainExp(attr,8+itemFx.expBonus);}
-    document.getElementById('po-sw').textContent=S.playoff.wins;
-    document.getElementById('po-sl').textContent=S.playoff.losses;
+
+    if(pass){po.seriesWins++;gainExp(attr,15+itemFx.expBonus);}
+    else{po.seriesLosses++;gainExp(attr,8+itemFx.expBonus);}
+
+    document.getElementById('po-sw').textContent=po.seriesWins;
+    document.getElementById('po-sl').textContent=po.seriesLosses;
+
+    const seriesStr=`${po.seriesWins}-${po.seriesLosses}`;
     const itemNote=itemFx.msgs.length?`\n道具：${itemFx.msgs.join(' ')}`:'';
-    const eff=pass
-      ?`胜利！系列赛 ${S.playoff.wins}-${S.playoff.losses}\n体力-${stamCost}${itemNote}`
-      :`失败... 系列赛 ${S.playoff.wins}-${S.playoff.losses}\n体力-${stamCost}${itemNote}`;
-    document.getElementById('po-effect').textContent=eff;
-    addLog(`${pass?'🏆 季后赛胜':'😤 季后赛败'}！G${S.playoff.gamesPlayed} 掷出${total}，${rd.name} ${S.playoff.wins}-${S.playoff.losses}。`,'p');
+    document.getElementById('po-effect').textContent=
+      pass?`胜！系列赛 ${seriesStr}${itemNote}`:`败... 系列赛 ${seriesStr}${itemNote}`;
+
+    const oppName=opp?opp.star:'对手';
+    addLog(`${pass?'🏆 胜':'😤 败'} G${po.seriesGame} — 我方${total} vs ${oppName}${oppTotal}，系列赛 ${seriesStr}。`,'p');
+
     document.getElementById('btn-roll-po').style.display='none';
     updateUI();
     processLevelups(()=>{
-      document.getElementById('btn-po-next').style.display='block';
+      if(po.seriesWins>=4||po.seriesLosses>=4){
+        document.getElementById('btn-po-series-end').style.display='block';
+      } else {
+        document.getElementById('btn-po-next-game').style.display='block';
+      }
     });
   },attr);
 }
 
-function afterPlayoffGame(){
-  checkGameOver();
-  if(S.playoff.wins>=4){
-    if(S.playoff.round>=3){
+function nextPlayoffGame(){
+  const po=S.playoff;
+  S.currentAttr=ATTR_KEYS[Math.floor(Math.random()*4)];
+  const attr=S.currentAttr;
+  const playerPool=S.attrs[attr].pool;
+  const oppPool=(po.oppAttrs&&po.oppAttrs[attr])||['STD'];
+  const opp=S.playoffBracket?.roundOpps[po.round-1]||null;
+
+  po.seriesGame++;
+  document.getElementById('po-game-num').textContent=po.seriesGame;
+  document.getElementById('po-attr').textContent=ATTR_NAMES[attr];
+  document.getElementById('po-target').textContent=ATTR_NAMES[attr];
+  document.getElementById('po-result').style.display='none';
+  document.getElementById('po-effect').textContent='';
+  document.getElementById('btn-roll-po').style.display='block';
+  document.getElementById('btn-po-next-game').style.display='none';
+  document.getElementById('btn-po-series-end').style.display='none';
+  buildSpinDice('po-dice',playerPool.length);
+  buildSpinDice('po-opp-dice',oppPool.length);
+
+  const oppName=opp?opp.star:'对手';
+  addLog(`🏀 G${po.seriesGame} — 【${ATTR_NAMES[attr]}】对决 ${oppName}，系列赛 ${po.seriesWins}-${po.seriesLosses}。`,'p');
+}
+
+function afterPlayoffSeries(){
+  const po=S.playoff;
+  const roundName=PO_ROUNDS[po.round-1]?.name||'季后赛';
+  if(po.seriesWins>=4){
+    if(po.round>=3){
       endGame(true,'🎉 恭喜！赢得NBA总冠军！你就是最强GOAT！🏆');
     } else {
-      addLog(`🎉 赢得${PO_ROUNDS[S.playoff.round-1].name}！晋级！`,'i');
-      S.playoff.round++;
-      S.playoff.wins=0;S.playoff.losses=0;S.playoff.gamesPlayed=0;
-      addLog(`🏀 ${PO_ROUNDS[S.playoff.round-1].name}开始！`,'p');
+      addLog(`🎉 赢得${roundName}！系列赛 ${po.seriesWins}-${po.seriesLosses}，晋级！`,'i');
+      po.round++;
+      po.seriesWins=0; po.seriesLosses=0; po.seriesGame=0; po.oppAttrs=null;
+      po.nextGameDay=S.day+1;
+      addLog(`🏀 ${PO_ROUNDS[po.round-1].name} 即将开始！`,'p');
       nextDay();
     }
-  } else if(S.playoff.losses>=4){
-    endGame(false,`${PO_ROUNDS[S.playoff.round-1].name} ${S.playoff.wins}-4 失利，赛季结束。`);
   } else {
-    nextDay();
+    endGame(false,`${roundName} ${po.seriesWins}-${po.seriesLosses} 失利，赛季结束。`);
   }
 }
 
@@ -2146,17 +2229,21 @@ function renderCalendar(){
     const d=S.day+i;
     const isToday=(i===0);
     const isGameDay=S.season==='regular' && REGULAR_GAME_DAYS.includes(d) && S.gamesPlayed<REG_GAMES;
-    const isPoDay=S.season==='playoff' && d%PO_EVERY===0;
+    const po=S.playoff;
+    const isPoDay=S.season==='playoff' && po.phase==='games' && po.nextGameDay!=null && d===po.nextGameDay;
+    const isPoPrepShop=S.season==='playoff' && po.phase==='prep' && po.prepStep===4 && i===1; // tomorrow = shop day
     const isShopDay=isShoppingDayForDay(d);
     const el=document.createElement('div');
     let cls='cal-day';
     if(isToday) cls+=' cal-today';
     if(isGameDay||isPoDay) cls+=' cal-game';
-    if(isShopDay) cls+=' cal-shop';
+    if(isShopDay||isPoPrepShop) cls+=' cal-shop';
     el.className=cls;
     let icon='📋',label='训练日';
     if(isGameDay){icon='🏀';label='常规赛';}
     else if(isPoDay){icon='🏆';label=(PO_ROUNDS[S.playoff.round-1]?.name||'季后赛').slice(0,3);}
+    else if(S.season==='playoff'&&po.phase==='prep'&&i===0){icon='🏋️';label=`备战${po.prepStep}/4`;}
+    else if(isPoPrepShop){icon='🛒';label='购物日';}
     else if(isShopDay){icon='🛒';label='购物日';}
     el.innerHTML=`<div class="cal-day-num">第${d}天</div><div class="cal-day-icon">${icon}</div><div class="cal-day-label">${label}</div>`;
     grid.appendChild(el);
@@ -2183,11 +2270,16 @@ function updateUI(){
     const nextGD=getNextRegularGameDay();
     document.getElementById('g-next-game').textContent=nextGD?`第${nextGD}天`:'赛季结束';
   } else {
+    const po=S.playoff;
     document.getElementById('wins-label').textContent='系列赛';
-    document.getElementById('sv-wins').textContent=`${S.playoff.wins}-${S.playoff.losses}`;
+    document.getElementById('sv-wins').textContent=`${po.seriesWins}-${po.seriesLosses}`;
     document.getElementById('g-season-type').textContent='季后赛';
-    const nextPoDay=S.day+((PO_EVERY-(S.day%PO_EVERY))%PO_EVERY||PO_EVERY);
-    document.getElementById('g-next-game').textContent=`第${nextPoDay}天`;
+    if(po.phase==='prep'){
+      document.getElementById('g-next-game').textContent=`备战${po.prepStep}/4`;
+    } else {
+      const ngd=po.nextGameDay;
+      document.getElementById('g-next-game').textContent=ngd!=null?`第${ngd}天`:'进行中';
+    }
   }
 
   renderCalendar();
@@ -2935,8 +3027,8 @@ function enterGame(){
 }
 
 function goHome(){
-  ['endModal','luModal','gameConfirmModal','regularSummaryModal','bracketModal','shopModal','itemDetailModal'].forEach(id=>{
-    document.getElementById(id).classList.remove('show');
+  ['endModal','luModal','gameConfirmModal','regularSummaryModal','bracketModal','poStaminaModal','shopModal','itemDetailModal'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.classList.remove('show');
   });
   document.getElementById('screen-create').style.display='none';
   document.getElementById('screen-select').style.display='none';
